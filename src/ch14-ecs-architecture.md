@@ -584,10 +584,11 @@ fn spawn_objects(mut commands: Commands) {
 
 A **Plugin** packages systems, resources, events, and initialization into a reusable unit:
 
+🎯 The complete physics plugin
+ Configuration
+
 ```rust
-/// 🎯 The complete physics plugin
 pub struct PhysicsPlugin {
-    /// Configuration
     pub gravity: Vec2,
     pub fixed_dt: f32,
 }

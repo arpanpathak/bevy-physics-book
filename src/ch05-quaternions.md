@@ -97,11 +97,13 @@ Additionally, q and -q represent the SAME rotation (double cover).
 This is why SLERP can always find the SHORTEST path between two rotations.
 ```
 
+Creating a quaternion from axis-angle is the most intuitive method.
+ You say: "I want to rotate `angle` radians around this `axis`."
+ Alternatively, use the shorthand for axis-specific rotations:
+
 ```rust
 use bevy::prelude::*;
 
-/// Creating a quaternion from axis-angle is the most intuitive method.
-/// You say: "I want to rotate `angle` radians around this `axis`."
 pub fn create_rotation_from_axis_and_angle() -> Quat {
     let rotation_axis = Vec3::new(0.0, 1.0, 0.0); // Y axis (yaw)
     let rotation_angle = std::f32::consts::FRAC_PI_4; // 45°
@@ -109,7 +111,6 @@ pub fn create_rotation_from_axis_and_angle() -> Quat {
     Quat::from_axis_angle(rotation_axis, rotation_angle)
 }
 
-/// Alternatively, use the shorthand for axis-specific rotations:
 let pitch_quaternion = Quat::from_rotation_x(std::f32::consts::FRAC_PI_4); // Nod "yes"
 let yaw_quaternion = Quat::from_rotation_y(std::f32::consts::FRAC_PI_4);   // Shake "no"
 let roll_quaternion = Quat::from_rotation_z(std::f32::consts::FRAC_PI_4);  // Tilt head
@@ -119,19 +120,29 @@ let roll_quaternion = Quat::from_rotation_z(std::f32::consts::FRAC_PI_4);  // Ti
 
 ## 🎯 Creating Quaternions in Bevy: Four Methods
 
+--- Method 1: From an axis and angle (MOST DIRECT) ---
+
+ Specify exactly what axis to spin around and how much.
+ The axis MUST be a unit vector (length = 1).
+ --- Method 2: From a specific axis (CONVENIENT) ---
+ --- Method 3: From Euler angles (CONVENIENT BUT DANGEROUS) ---
+
+ WARNING: Euler angles can cause gimbal lock!
+ Only use this for simple cases or when reading user input.
+ Convert to quaternion immediately and store as quaternion.
+ --- Method 4: Look rotation (FACE TOWARD A TARGET) ---
+
+ Creates a rotation that makes `forward` direction point toward
+ `target`. The `up` vector prevents rolling (defines which way is up).
+
 ```rust
 use bevy::prelude::*;
 
-/// --- Method 1: From an axis and angle (MOST DIRECT) ---
-///
-/// Specify exactly what axis to spin around and how much.
-/// The axis MUST be a unit vector (length = 1).
 pub fn method_axis_angle() -> Quat {
     // Rotate 45° around the world Y axis (yaw left)
     Quat::from_axis_angle(Vec3::Y, std::f32::consts::FRAC_PI_4)
 }
 
-/// --- Method 2: From a specific axis (CONVENIENT) ---
 pub fn method_axis_shorthand() -> Quat {
     // These are equivalent to from_axis_angle with the corresponding axis:
     let pitch = Quat::from_rotation_x(0.5);  // Nod up by 0.5 radians
@@ -143,11 +154,6 @@ pub fn method_axis_shorthand() -> Quat {
     roll * yaw * pitch
 }
 
-/// --- Method 3: From Euler angles (CONVENIENT BUT DANGEROUS) ---
-///
-/// WARNING: Euler angles can cause gimbal lock!
-/// Only use this for simple cases or when reading user input.
-/// Convert to quaternion immediately and store as quaternion.
 pub fn method_euler() -> Quat {
     Quat::from_euler(
         EulerRot::XYZ,                     // Convention: pitch, yaw, roll
@@ -157,10 +163,6 @@ pub fn method_euler() -> Quat {
     )
 }
 
-/// --- Method 4: Look rotation (FACE TOWARD A TARGET) ---
-///
-/// Creates a rotation that makes `forward` direction point toward
-/// `target`. The `up` vector prevents rolling (defines which way is up).
 pub fn method_look_rotation() -> Quat {
     let current_forward = Vec3::Z;           // Object's default forward
     let desired_forward = Vec3::new(1.0, 0.0, 1.0).normalize();
@@ -174,8 +176,15 @@ pub fn method_look_rotation() -> Quat {
 
 ## 🔄 Applying Quaternions to Vectors
 
+Rotating a vector by a quaternion is a SINGLE multiplication.
+ 💡 QUATERNION ON THE LEFT, VECTOR ON THE RIGHT:
+   rotated = quaternion × vector
+ This is NOT commutative  -  reversed multiplication gives nonsense.
+ ⭐ GETTING AXIS DIRECTIONS AFTER ROTATION:
+
+ This is how you find "which way is the object facing?"
+
 ```rust
-/// Rotating a vector by a quaternion is a SINGLE multiplication.
 pub fn apply_quaternion_to_vector() {
     let rotation = Quat::from_rotation_z(std::f32::consts::FRAC_PI_2); // 90° around Z
     let original_vector = Vec3::new(1.0, 0.0, 0.0); // Points along X axis
@@ -184,14 +193,8 @@ pub fn apply_quaternion_to_vector() {
     // rotated_vector ≈ (0, 1, 0)  -  the vector now points along Y!
     // The point (1,0,0) rotated 90° around Z -> (0,1,0)
     
-    /// 💡 QUATERNION ON THE LEFT, VECTOR ON THE RIGHT:
-    ///   rotated = quaternion × vector
-    /// This is NOT commutative  -  reversed multiplication gives nonsense.
 }
 
-/// ⭐ GETTING AXIS DIRECTIONS AFTER ROTATION:
-///
-/// This is how you find "which way is the object facing?"
 pub fn get_rotated_axes(object_rotation: Quat) -> (Vec3, Vec3, Vec3) {
     let forward = object_rotation * Vec3::NEG_Z; // Forward in Bevy = -Z
     let right = object_rotation * Vec3::X;        // Right = +X
@@ -212,13 +215,19 @@ pub fn get_rotated_axes(object_rotation: Quat) -> (Vec3, Vec3, Vec3) {
 
 Just like matrices, quaternions COMPOSE through multiplication:
 
+Composing two rotations: apply `first_rotation`, then `second_rotation`.
+
+ CRITICAL: Quaternion multiplication is NOT commutative!
+ second_rotation × first_rotation ≠ first_rotation × second_rotation
+
+ Read right-to-left: the RIGHTMOST quaternion is applied FIRST.
+ --- Practical: flying an aircraft ---
+
+ In local rotation (multiply on the RIGHT), the rotation axes
+ rotate WITH the object. This is what you want for aircraft:
+ pitching up ALWAYS nods the nose, regardless of orientation.
+
 ```rust
-/// Composing two rotations: apply `first_rotation`, then `second_rotation`.
-///
-/// CRITICAL: Quaternion multiplication is NOT commutative!
-/// second_rotation × first_rotation ≠ first_rotation × second_rotation
-///
-/// Read right-to-left: the RIGHTMOST quaternion is applied FIRST.
 pub fn compose_rotations() {
     let pitch_up = Quat::from_rotation_x(std::f32::consts::FRAC_PI_6);   // 30° pitch
     let yaw_left = Quat::from_rotation_y(std::f32::consts::FRAC_PI_4);   // 45° yaw
@@ -236,11 +245,6 @@ pub fn compose_rotations() {
     // but they lead to different final positions.
 }
 
-/// --- Practical: flying an aircraft ---
-///
-/// In local rotation (multiply on the RIGHT), the rotation axes
-/// rotate WITH the object. This is what you want for aircraft:
-/// pitching up ALWAYS nods the nose, regardless of orientation.
 pub fn local_vs_world_rotation() {
     let mut current_orientation = Quat::IDENTITY;
     
@@ -262,16 +266,21 @@ pub fn local_vs_world_rotation() {
 
 **SLERP** (Spherical Linear Interpolation) is THE reason to use quaternions:
 
+SLERP interpolates between two rotations along the SHORTEST PATH.
+
+ WITHOUT SLERP (interpolating Euler angles):
+   The rotation "wobbles"  -  angular velocity changes mid-path,
+   causing a jerky, unnatural feel.
+
+ WITH SLERP (interpolating quaternions):
+   CONSTANT angular velocity  -  the object rotates at exactly
+   the same speed throughout. Smooth as glass. 🪟
+ --- Frame-rate-independent SLERP for smooth camera movement ---
+ --- Complete: Smooth camera system ---
+ The rotation we want to reach.
+ How quickly we catch up (higher = snappier, 4.0-8.0).
+
 ```rust
-/// SLERP interpolates between two rotations along the SHORTEST PATH.
-///
-/// WITHOUT SLERP (interpolating Euler angles):
-///   The rotation "wobbles"  -  angular velocity changes mid-path,
-///   causing a jerky, unnatural feel.
-///
-/// WITH SLERP (interpolating quaternions):
-///   CONSTANT angular velocity  -  the object rotates at exactly
-///   the same speed throughout. Smooth as glass. 🪟
 pub fn slerp_between_orientations(
     start_rotation: Quat,
     end_rotation: Quat,
@@ -280,7 +289,6 @@ pub fn slerp_between_orientations(
     start_rotation.slerp(end_rotation, interpolation_progress)
 }
 
-/// --- Frame-rate-independent SLERP for smooth camera movement ---
 pub fn smooth_slerp(
     current_rotation: Quat,
     target_rotation: Quat,
@@ -296,12 +304,9 @@ pub fn smooth_slerp(
     current_rotation.slerp(target_rotation, interpolation_factor)
 }
 
-/// --- Complete: Smooth camera system ---
 #[derive(Component)]
 pub struct SmoothCamera {
-    /// The rotation we want to reach.
     pub target_rotation: Quat,
-    /// How quickly we catch up (higher = snappier, 4.0-8.0).
     pub smoothness: f32,
 }
 
@@ -327,11 +332,12 @@ pub fn smooth_camera_system(
 
 ## 🚀 Complete Example: 3D Spaceship with Quaternion Rotation
 
+Maximum rotation speed around each local axis (radians/second).
+ Typical values: pitch = 2.0, yaw = 3.0, roll = 4.0
+
 ```rust
 #[derive(Component)]
 pub struct SpaceShip3D {
-    /// Maximum rotation speed around each local axis (radians/second).
-    /// Typical values: pitch = 2.0, yaw = 3.0, roll = 4.0
     pub max_angular_velocity: Vec3,
 }
 

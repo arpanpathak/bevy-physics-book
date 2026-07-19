@@ -26,19 +26,28 @@ Phase 1: BROAD PHASE 🗺️        Phase 2: NARROW PHASE 🔍
 
 The simplest and fastest collision shape:
 
+📦 An Axis-Aligned Bounding Box
+
+ "Axis-Aligned" means the box CANNOT rotate  -  its edges are
+ always parallel to the x and y axes.
+
+ This makes collision checks INCREDIBLY fast:
+ Just compare min/max coordinates!
+ 📍 Minimum corner (bottom-left)
+ 📍 Maximum corner (top-right)
+ 🧱 Check if two AABBs overlap
+ This is THE simplest collision check in all of game physics!
+
+ Think of it as: "Is there a gap on any axis?"
+ If there's a gap on ANY axis, they're NOT colliding.
+ If there's NO gap on ALL axes, they ARE colliding.
+ 📏 Get the overlap amount on each axis
+ Useful for pushing objects apart
+
 ```rust
-/// 📦 An Axis-Aligned Bounding Box
-///
-/// "Axis-Aligned" means the box CANNOT rotate  -  its edges are
-/// always parallel to the x and y axes.
-///
-/// This makes collision checks INCREDIBLY fast:
-/// Just compare min/max coordinates!
 #[derive(Debug, Clone, Copy)]
 struct Aabb {
-    /// 📍 Minimum corner (bottom-left)
     min: Vec2,
-    /// 📍 Maximum corner (top-right)
     max: Vec2,
 }
 
@@ -50,12 +59,6 @@ impl Aabb {
         }
     }
     
-    /// 🧱 Check if two AABBs overlap
-    /// This is THE simplest collision check in all of game physics!
-    ///
-    /// Think of it as: "Is there a gap on any axis?"
-    /// If there's a gap on ANY axis, they're NOT colliding.
-    /// If there's NO gap on ALL axes, they ARE colliding.
     fn overlaps(&self, other: &Aabb) -> bool {
         // Check X axis: is there a gap?
         // No gap on X means the projections overlap
@@ -65,8 +68,6 @@ impl Aabb {
         // ✅ Both axes overlap -> collision!
     }
     
-    /// 📏 Get the overlap amount on each axis
-    /// Useful for pushing objects apart
     fn overlap_amount(&self, other: &Aabb) -> Vec2 {
         let overlap_x = (self.max.x - other.min.x)
             .min(other.max.x - self.min.x);
@@ -96,8 +97,18 @@ AABB Overlap Check:
 
 ## 🔵 Circle Collision
 
+🔵 Circle collider
+ 🎯 Circle-vs-Circle collision
+
+ Two circles collide if the distance between their centers
+ is less than the sum of their radii.
+
+ This is the SECOND fastest collision check!
+ 📐 Get collision normal (direction to push apart)
+ 📏 Penetration depth
+ 🧪 Tests
+
 ```rust
-/// 🔵 Circle collider
 #[derive(Debug, Clone, Copy)]
 struct Circle {
     center: Vec2,
@@ -105,12 +116,6 @@ struct Circle {
 }
 
 impl Circle {
-    /// 🎯 Circle-vs-Circle collision
-    ///
-    /// Two circles collide if the distance between their centers
-    /// is less than the sum of their radii.
-    ///
-    /// This is the SECOND fastest collision check!
     fn overlaps(&self, other: &Circle) -> bool {
         // Vector between centers
         let diff = self.center - other.center;
@@ -126,7 +131,6 @@ impl Circle {
         dist_sq <= radius_sum_sq
     }
     
-    /// 📐 Get collision normal (direction to push apart)
     fn collision_normal(&self, other: &Circle) -> Vec2 {
         let diff = other.center - self.center;
         let dist = diff.length();
@@ -139,7 +143,6 @@ impl Circle {
         }
     }
     
-    /// 📏 Penetration depth
     fn penetration(&self, other: &Circle) -> f32 {
         let diff = self.center - other.center;
         let dist = diff.length();
@@ -149,7 +152,6 @@ impl Circle {
     }
 }
 
-/// 🧪 Tests
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -194,10 +196,14 @@ Circle-Circle Collision:
 
 ## 📐 Circle vs AABB
 
+🔵📦 Circle vs AABB collision
+
+ This is a common case: circular player vs rectangular walls
+ 💡 Key insight: "Closest point on rectangle to circle"
+ We clamp the circle center to the rectangle bounds.
+ If the clamped point is within the circle's radius -> collision!
+
 ```rust
-/// 🔵📦 Circle vs AABB collision
-///
-/// This is a common case: circular player vs rectangular walls
 fn circle_vs_aabb(circle: &Circle, aabb: &Aabb) -> bool {
     // STEP 1: Find the closest point on the AABB to the circle center
     let closest_x = circle.center.x.clamp(aabb.min.x, aabb.max.x);
@@ -209,10 +215,6 @@ fn circle_vs_aabb(circle: &Circle, aabb: &Aabb) -> bool {
     // STEP 3: Check if distance is less than circle radius
     diff.length_squared() <= circle.radius * circle.radius
 }
-
-/// 💡 Key insight: "Closest point on rectangle to circle"
-/// We clamp the circle center to the rectangle bounds.
-/// If the clamped point is within the circle's radius -> collision!
 ```
 
 ```
@@ -237,20 +239,24 @@ Circle vs AABB:
 
 The **SAT** is the most general 2D collision test. It works for ANY convex polygon:
 
+🔺 Separating Axis Theorem
+
+ THEOREM: Two convex shapes do NOT overlap if there exists
+ a line (axis) where their projections don't overlap.
+
+ In practice: Check every edge of both polygons as a potential
+ separating axis. If all axes overlap -> collision!
+ 📐 Get all edge normals (potential separating axes)
+ 📏 Project polygon onto an axis
+ Returns (min, max) of the projection
+ 💥 SAT collision test
+
 ```rust
-/// 🔺 Separating Axis Theorem
-///
-/// THEOREM: Two convex shapes do NOT overlap if there exists
-/// a line (axis) where their projections don't overlap.
-///
-/// In practice: Check every edge of both polygons as a potential
-/// separating axis. If all axes overlap -> collision!
 struct Polygon {
     vertices: Vec<Vec2>,
 }
 
 impl Polygon {
-    /// 📐 Get all edge normals (potential separating axes)
     fn edge_normals(&self) -> Vec<Vec2> {
         let mut normals = Vec::with_capacity(self.vertices.len());
         
@@ -268,8 +274,6 @@ impl Polygon {
         normals
     }
     
-    /// 📏 Project polygon onto an axis
-    /// Returns (min, max) of the projection
     fn project_onto_axis(&self, axis: Vec2) -> (f32, f32) {
         let mut min = f32::MAX;
         let mut max = f32::MIN;
@@ -284,7 +288,6 @@ impl Polygon {
         (min, max)
     }
     
-    /// 💥 SAT collision test
     fn sat_overlaps(&self, other: &Polygon) -> bool {
         // Check ALL axes from BOTH polygons
         let mut axes = self.edge_normals();
@@ -333,16 +336,24 @@ SAT Visualization:
 
 ## 🎯 Raycasting
 
+🎯 Ray  -  an infinite line from origin in a direction
+ 🎯 Ray vs Circle intersection
+ Returns the closest hit point (if any)
+ 🎯 Ray vs AABB intersection (slab method)
+ 💡 Raycasting uses:
+ - 🎯 Mouse picking ("what did I click on?")
+ - 👁️ Line of sight checks
+ - 🔫 Bullet trajectory
+ - 🕯️ Shadow casting
+ - 📡 AI perception
+
 ```rust
-/// 🎯 Ray  -  an infinite line from origin in a direction
 struct Ray {
     origin: Vec2,
     direction: Vec2,  // Should be normalized
 }
 
 impl Ray {
-    /// 🎯 Ray vs Circle intersection
-    /// Returns the closest hit point (if any)
     fn intersect_circle(&self, circle: &Circle) -> Option<Vec2> {
         // Vector from ray origin to circle center
         let oc = self.origin - circle.center;
@@ -369,7 +380,6 @@ impl Ray {
         }
     }
     
-    /// 🎯 Ray vs AABB intersection (slab method)
     fn intersect_aabb(&self, aabb: &Aabb) -> Option<Vec2> {
         let inv_dir = Vec2::new(
             1.0 / self.direction.x,
@@ -393,21 +403,17 @@ impl Ray {
         }
     }
 }
-
-/// 💡 Raycasting uses:
-/// - 🎯 Mouse picking ("what did I click on?")
-/// - 👁️ Line of sight checks
-/// - 🔫 Bullet trajectory
-/// - 🕯️ Shadow casting
-/// - 📡 AI perception
 ```
 
 ---
 
 ## 🏗️ Complete Collision System
 
+💥 Collision event  -  emitted when two entities collide
+ 🧱 Broad-phase + narrow-phase collision detection
+ 🔍 Dispatches to the right collision check based on shape type
+
 ```rust
-/// 💥 Collision event  -  emitted when two entities collide
 #[derive(Event)]
 struct CollisionEvent {
     entity_a: Entity,
@@ -416,7 +422,6 @@ struct CollisionEvent {
     penetration: f32,  // How deep they overlap
 }
 
-/// 🧱 Broad-phase + narrow-phase collision detection
 fn collision_detection_system(
     mut collision_events: EventWriter<CollisionEvent>,
     query: Query<(Entity, &Position, &Collider)>,
@@ -449,7 +454,6 @@ fn collision_detection_system(
     }
 }
 
-/// 🔍 Dispatches to the right collision check based on shape type
 fn check_collision(
     pos_a: Vec2,
     collider_a: &Collider,

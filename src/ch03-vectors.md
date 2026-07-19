@@ -90,8 +90,9 @@ This is the MOST important concept in this entire chapter. A vector can represen
 
 #### 1. A POSITION (a point in space)
 
+📍 Position vector: measured FROM the origin (0,0) TO a location.
+
 ```rust
-/// 📍 Position vector: measured FROM the origin (0,0) TO a location.
 let player_position = Vec2::new(400.0, 300.0);
 // "The player is 400 pixels right and 300 pixels up from (0,0)."
 // The origin is implied. The vector tells you WHERE.
@@ -99,8 +100,9 @@ let player_position = Vec2::new(400.0, 300.0);
 
 #### 2. A CHANGE/DIRECTION (an offset, a movement, a velocity)
 
+🏃 Direction vector: a CHANGE to apply to a position.
+
 ```rust
-/// 🏃 Direction vector: a CHANGE to apply to a position.
 let movement_this_frame = Vec2::new(50.0, 0.0);
 // "Move 50 pixels right and 0 pixels up from your current position."
 // There's no origin. The vector tells you HOW TO MOVE.
@@ -151,8 +153,9 @@ This is so fundamental that we often don't think about it. But every frame of ev
 
 **Why this works for physics:** Position and velocity are BOTH Vec2. Adding them is physically meaningful - "where I am plus how I'm moving tells me where I'll be."
 
+Moving a character by adding velocity to position:
+
 ```rust
-/// Moving a character by adding velocity to position:
 let character_position = Vec2::new(100.0, 200.0);
 let velocity = Vec2::new(50.0, 0.0);  // Moving right 50 px/s
 let delta_time = 1.0 / 60.0;          // One frame
@@ -203,21 +206,22 @@ let player_to_enemy = enemy_position - player_position;
 
 Multiplying a vector by a number changes its length but NOT its direction:
 
+🧭 PURE DIRECTION (length = 1):
+ 🏃 DIFFERENT SPEEDS, SAME DIRECTION:
+ THE CORE PATTERN: Direction × Speed = Velocity
+
+ This is the single most common vector pattern in game physics.
+ 1. Find the direction (unit vector from you to target)
+ 2. Multiply by the desired speed
+ 3. The result is the velocity!
+
 ```rust
-/// 🧭 PURE DIRECTION (length = 1):
 let unit_direction = Vec2::new(1.0, 0.0);  // Points right
 
-/// 🏃 DIFFERENT SPEEDS, SAME DIRECTION:
 let slow_velocity = unit_direction * 50.0;   // (50, 0)  -  slow movement
 let fast_velocity = unit_direction * 200.0;  // (200, 0)  -  fast movement
 let backward = unit_direction * (-1.0);      // (-1, 0)  -  reversed direction
 
-/// THE CORE PATTERN: Direction × Speed = Velocity
-///
-/// This is the single most common vector pattern in game physics.
-/// 1. Find the direction (unit vector from you to target)
-/// 2. Multiply by the desired speed
-/// 3. The result is the velocity!
 fn compute_velocity(from: Vec2, to: Vec2, desired_speed: f32) -> Vec2 {
     let raw_direction = to - from;           // Step 1: vector to target
     let unit_direction = raw_direction.normalize();  // Step 2: pure direction

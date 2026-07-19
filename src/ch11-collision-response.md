@@ -37,14 +37,14 @@ Collision Detected! 💥
 
 ## 💥 Impulse-Based Collision Response
 
-```rust
-/// 🤝 Collision resolution using impulses
-///
-/// An "impulse" is an instantaneous change in velocity.
-/// Think of it as a force applied over an infinitely short time.
-/// Perfect for game physics!
+🤝 Collision resolution using impulses
 
-/// 📐 Compute the impulse between two colliding objects
+ An "impulse" is an instantaneous change in velocity.
+ Think of it as a force applied over an infinitely short time.
+ Perfect for game physics!
+ 📐 Compute the impulse between two colliding objects
+
+```rust
 fn resolve_collision(
     // Collision data
     normal: Vec2,         // Direction to push entity_a away
@@ -138,20 +138,20 @@ fn resolve_collision(
 
 ## 🎾 Restitution (Bounciness)
 
-```rust
-/// 🎾 Restitution coefficient e = how bouncy is the collision?
-///
-/// e = 0.0   -> Perfectly inelastic (balls of clay, sticky)
-/// e = 0.3   -> Slightly bouncy (a basketball)
-/// e = 0.5   -> Moderately bouncy (a tennis ball)
-/// e = 0.8   -> Very bouncy (a superball)
-/// e = 1.0   -> Perfectly elastic (ideal, no energy loss)
-///
-/// Combined restitution (when two objects collide):
-/// e_combined = min(e_a, e_b)   -  conservative
-/// e_combined = e_a × e_b        -  common choice
-/// e_combined = sqrt(e_a × e_b)  -  geometric mean
+🎾 Restitution coefficient e = how bouncy is the collision?
 
+ e = 0.0   -> Perfectly inelastic (balls of clay, sticky)
+ e = 0.3   -> Slightly bouncy (a basketball)
+ e = 0.5   -> Moderately bouncy (a tennis ball)
+ e = 0.8   -> Very bouncy (a superball)
+ e = 1.0   -> Perfectly elastic (ideal, no energy loss)
+
+ Combined restitution (when two objects collide):
+ e_combined = min(e_a, e_b)   -  conservative
+ e_combined = e_a × e_b        -  common choice
+ e_combined = sqrt(e_a × e_b)  -  geometric mean
+
+```rust
 #[derive(Component)]
 struct Material {
     restitution: f32,
@@ -198,8 +198,9 @@ Bounce Heights (drop from 10m):
 
 ## 🏗️ Collision Response System
 
+💥 Complete collision response system using Bevy ECS
+
 ```rust
-/// 💥 Complete collision response system using Bevy ECS
 fn collision_response_system(
     mut collision_events: EventReader<CollisionEvent>,
     mut query: Query<(&mut Position, &mut Velocity, &Mass, Option<&Material>)>,
@@ -254,12 +255,13 @@ fn collision_response_system(
 
 ## 🧮 Energy & Momentum Conservation
 
-```rust
-/// 🧮 Physics invariants  -  these should be conserved
-///
-/// MONITOR THESE during development to catch bugs!
+🧮 Physics invariants  -  these should be conserved
 
-/// 📊 Total momentum should be conserved in all collisions
+ MONITOR THESE during development to catch bugs!
+ 📊 Total momentum should be conserved in all collisions
+ 📊 Kinetic energy check
+
+```rust
 fn check_momentum_conservation(
     query: Query<(&Velocity, &Mass)>,
 ) {
@@ -276,7 +278,6 @@ fn check_momentum_conservation(
         total_momentum.x, total_momentum.y);
 }
 
-/// 📊 Kinetic energy check
 fn check_kinetic_energy(
     query: Query<(&Velocity, &Mass)>,
 ) {
@@ -300,23 +301,30 @@ fn check_kinetic_energy(
 
 Stacking requires special handling  -  gravity keeps pushing down:
 
-```rust
-/// 📦 Stacking boxes  -  keeping things stable
-///
-/// Problem: Box A sits on Box B. Gravity pulls A down.
-/// Solution: Box A is ON TOP of Box B.
-/// But Box B can't tell Box A to move up... OR CAN IT?
-///
-/// The trick: CONTACT POINTS with a "resting" threshold.
+📦 Stacking boxes  -  keeping things stable
 
+ Problem: Box A sits on Box B. Gravity pulls A down.
+ Solution: Box A is ON TOP of Box B.
+ But Box B can't tell Box A to move up... OR CAN IT?
+
+ The trick: CONTACT POINTS with a "resting" threshold.
+ How many objects are resting on top of me
+ 🧱 Resting contact detection
+ If velocity toward contact is very small, object is "resting"
+ 💡 Stacking stability tips:
+ 1. Use position correction (push apart) BEFORE velocity change
+ 2. Use "slop" (small penetration threshold) to avoid jitter
+ 3. Apply damping to reduce oscillation
+ 4. Use multiple iterations (2-4) per physics step
+ 5. Consider using a "sleep" system for stationary objects
+ 😴 Physics sleep  -  skip simulation for resting objects
+
+```rust
 #[derive(Component)]
 struct BoxStack {
-    /// How many objects are resting on top of me
     supporting_count: u32,
 }
 
-/// 🧱 Resting contact detection
-/// If velocity toward contact is very small, object is "resting"
 fn detect_resting_contacts(
     mut query: Query<(
         Entity,
@@ -343,14 +351,7 @@ fn detect_resting_contacts(
     }
 }
 
-/// 💡 Stacking stability tips:
-/// 1. Use position correction (push apart) BEFORE velocity change
-/// 2. Use "slop" (small penetration threshold) to avoid jitter
-/// 3. Apply damping to reduce oscillation
-/// 4. Use multiple iterations (2-4) per physics step
-/// 5. Consider using a "sleep" system for stationary objects
 
-/// 😴 Physics sleep  -  skip simulation for resting objects
 #[derive(Component)]
 struct Sleeping {
     timer: f32,
@@ -383,9 +384,9 @@ fn physics_sleep(
 
 ## 🎯 Chapter Summary
 
-```rust
-/// 📝 Collision response cheat sheet:
+📝 Collision response cheat sheet:
 
+```rust
 // 💥 The impulse formula:
 // j = -(1 + e) · (v₁ - v₂) · n / (1/m₁ + 1/m₂)
 

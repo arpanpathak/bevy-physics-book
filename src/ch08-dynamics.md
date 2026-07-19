@@ -126,21 +126,22 @@ Every frame, every physics object follows this EXACT pipeline:
 
 ### Why Forces MUST Be Cleared Each Frame
 
+❌ THE BUG: Not clearing forces.
+
+ Frame 1: gravity applies (0, -500) to the force accumulator.
+          Total force = (0, -500). a = F/m = (0, -500). ✅ Good.
+
+ Frame 2: gravity applies (0, -500) AGAIN.
+          But we DIDN'T clear! Total force = (0, -500) + (0, -500) = (0, -1000).
+          a = F/m = (0, -1000). The object accelerates TWICE as fast! ❌
+
+ Frame 3: Total force = (0, -1500). Even faster! ❌
+ Frame 4: Total force = (0, -2000). RUNAWAY PHYSICS! 💥
+
+ ✅ THE FIX: Clear forces at the START of each frame.
+            Every frame starts with a clean slate.
+
 ```rust
-/// ❌ THE BUG: Not clearing forces.
-///
-/// Frame 1: gravity applies (0, -500) to the force accumulator.
-///          Total force = (0, -500). a = F/m = (0, -500). ✅ Good.
-///
-/// Frame 2: gravity applies (0, -500) AGAIN.
-///          But we DIDN'T clear! Total force = (0, -500) + (0, -500) = (0, -1000).
-///          a = F/m = (0, -1000). The object accelerates TWICE as fast! ❌
-///
-/// Frame 3: Total force = (0, -1500). Even faster! ❌
-/// Frame 4: Total force = (0, -2000). RUNAWAY PHYSICS! 💥
-///
-/// ✅ THE FIX: Clear forces at the START of each frame.
-///            Every frame starts with a clean slate.
 pub fn clear_force_accumulators(
     mut force_query: Query<&mut ForceAccumulator>,
 ) {
@@ -156,22 +157,31 @@ pub fn clear_force_accumulators(
 
 ### 🏋️ Gravity: The Universal Force
 
+GRAVITY applies a constant downward force to all objects with mass.
+
+ MATHEMATICAL DERIVATION:
+   F_gravity = m × g
+
+   Where g = gravitational acceleration (a VECTOR pointing downward).
+   On Earth: g ≈ (0, -9.81) m/s²
+   In game units: g ≈ (0, -500) to (0, -1000) pixels/s²
+
+   Since a = F/m = (m × g) / m = g, ALL objects fall at the SAME rate
+   regardless of mass! A feather and a boulder fall identically
+   (in vacuum  -  air resistance changes this).
+
+   This is why astronauts on the Moon dropped a hammer and feather
+   together  -  they hit the ground simultaneously.
+ 💡 GAME FEEL: Adjust gravity for the desired feel.
+
+   Realistic gravity (Earth):    g = (0, -9.81)  -> slow, floaty
+   Platformer gravity (Mario):   g = (0, -60)    -> snappy, responsive
+   Moon gravity:                  g = (0, -1.62)  -> floaty jumps
+   "Juice" gravity:              g = (0, -100)   -> dramatic falls
+
+ There's no "correct" gravity for a game  -  only what feels right.
+
 ```rust
-/// GRAVITY applies a constant downward force to all objects with mass.
-///
-/// MATHEMATICAL DERIVATION:
-///   F_gravity = m × g
-///   
-///   Where g = gravitational acceleration (a VECTOR pointing downward).
-///   On Earth: g ≈ (0, -9.81) m/s²
-///   In game units: g ≈ (0, -500) to (0, -1000) pixels/s²
-///
-///   Since a = F/m = (m × g) / m = g, ALL objects fall at the SAME rate
-///   regardless of mass! A feather and a boulder fall identically
-///   (in vacuum  -  air resistance changes this).
-///
-///   This is why astronauts on the Moon dropped a hammer and feather
-///   together  -  they hit the ground simultaneously.
 pub fn apply_gravity_to_all_objects(
     mut force_query: Query<(&Mass, &mut ForceAccumulator)>,
     physics_settings: Res<PhysicsSettings>,
@@ -182,38 +192,40 @@ pub fn apply_gravity_to_all_objects(
         force_accumulator.add_force(gravitational_force);
     }
 }
-
-/// 💡 GAME FEEL: Adjust gravity for the desired feel.
-///
-///   Realistic gravity (Earth):    g = (0, -9.81)  -> slow, floaty
-///   Platformer gravity (Mario):   g = (0, -60)    -> snappy, responsive
-///   Moon gravity:                  g = (0, -1.62)  -> floaty jumps
-///   "Juice" gravity:              g = (0, -100)   -> dramatic falls
-///
-/// There's no "correct" gravity for a game  -  only what feels right.
 ```
 
 ### 🌬️ Linear Drag (Damping): Why Things Stop
 
+LINEAR DRAG applies a force that opposes velocity.
+
+ MATHEMATICAL DERIVATION:
+   F_drag = -b × v
+
+   Where:
+     b = damping coefficient (how much resistance)
+     v = current velocity
+     - = opposite direction (if moving right, drag pushes left)
+
+   This creates EXPONENTIAL DECAY of velocity:
+     v(t) = v₀ × e^(-b × t / m)
+
+   After one second:  v = v₀ × e^(-b/m)
+   After two seconds: v = v₀ × e^(-2b/m)
+   After three seconds: v ≈ 0 (effectively stopped)
+
+   Higher b -> faster decay -> objects stop sooner.
+ TUNING GUIDE for damping coefficient:
+
+   b = 0.0    -> No drag. Object slides forever (in space).
+   b = 0.1    -> Very subtle drag. Ice-like movement.
+   b = 1.0    -> Noticeable drag. Movement feels "heavy."
+   b = 5.0    -> Strong drag. Like moving through honey.
+   b = 10.0   -> Extreme drag. Stops almost immediately.
+
+ For most games, start with b = 0.5 and adjust until it feels right.
+ Drag coefficient. Higher = more resistance.
+
 ```rust
-/// LINEAR DRAG applies a force that opposes velocity.
-///
-/// MATHEMATICAL DERIVATION:
-///   F_drag = -b × v
-///
-///   Where:
-///     b = damping coefficient (how much resistance)
-///     v = current velocity
-///     - = opposite direction (if moving right, drag pushes left)
-///
-///   This creates EXPONENTIAL DECAY of velocity:
-///     v(t) = v₀ × e^(-b × t / m)
-///
-///   After one second:  v = v₀ × e^(-b/m)
-///   After two seconds: v = v₀ × e^(-2b/m)
-///   After three seconds: v ≈ 0 (effectively stopped)
-///
-///   Higher b -> faster decay -> objects stop sooner.
 pub fn apply_linear_drag_to_objects(
     mut force_query: Query<(&Velocity, &mut ForceAccumulator, &LinearDamping)>,
 ) {
@@ -225,18 +237,8 @@ pub fn apply_linear_drag_to_objects(
     }
 }
 
-/// TUNING GUIDE for damping coefficient:
-///
-///   b = 0.0    -> No drag. Object slides forever (in space).
-///   b = 0.1    -> Very subtle drag. Ice-like movement.
-///   b = 1.0    -> Noticeable drag. Movement feels "heavy."
-///   b = 5.0    -> Strong drag. Like moving through honey.
-///   b = 10.0   -> Extreme drag. Stops almost immediately.
-///
-/// For most games, start with b = 0.5 and adjust until it feels right.
 #[derive(Component)]
 pub struct LinearDamping {
-    /// Drag coefficient. Higher = more resistance.
     pub coefficient: f32,
 }
 
@@ -249,28 +251,29 @@ impl Default for LinearDamping {
 
 ### 🧲 Spring Force (Hooke's Law): Elasticity
 
+SPRING FORCE pulls an object toward an anchor point.
+
+ MATHEMATICAL DERIVATION (Hooke's Law):
+   F_spring = -k × (x - x₀)
+
+   Where:
+     k = spring constant (stiffness)
+     x = current position
+     x₀ = rest position (where the spring is relaxed)
+     (x - x₀) = DISPLACEMENT from rest
+
+   The force is PROPORTIONAL to displacement. Pull it twice as far?
+   It pulls back twice as hard.
+
+   This creates SIMPLE HARMONIC MOTION:
+     x(t) = A × cos(ωt + φ)
+     where ω = √(k/m) = natural frequency
+     and T = 2π/ω = period of oscillation
+
+   Higher k -> faster oscillation, stiffer feel.
+   Higher m -> slower oscillation, heavier feel.
+
 ```rust
-/// SPRING FORCE pulls an object toward an anchor point.
-///
-/// MATHEMATICAL DERIVATION (Hooke's Law):
-///   F_spring = -k × (x - x₀)
-///
-///   Where:
-///     k = spring constant (stiffness)
-///     x = current position
-///     x₀ = rest position (where the spring is relaxed)
-///     (x - x₀) = DISPLACEMENT from rest
-///
-///   The force is PROPORTIONAL to displacement. Pull it twice as far?
-///   It pulls back twice as hard.
-///
-///   This creates SIMPLE HARMONIC MOTION:
-///     x(t) = A × cos(ωt + φ)
-///     where ω = √(k/m) = natural frequency
-///     and T = 2π/ω = period of oscillation
-///
-///   Higher k -> faster oscillation, stiffer feel.
-///   Higher m -> slower oscillation, heavier feel.
 pub fn apply_spring_force_to_attached_object(
     object_position: Vec2,
     spring_anchor: Vec2,
@@ -315,20 +318,21 @@ SPRING OSCILLATION VISUALIZED:
 
 ## 🧮 The Bridge System: F = ma -> a = F/m
 
+THE CRITICAL BRIDGE between Dynamics and Kinematics.
+
+ This system takes the accumulated forces and converts them
+ into acceleration using Newton's Second Law.
+
+ After this system runs, the kinematics systems can use the
+ acceleration to update velocity and position.
+
+ The formula: a = F / m
+
+ Special cases:
+   mass = 0 (static): a = 0  -  immovable object
+   mass < 0: invalid  -  don't do this
+
 ```rust
-/// THE CRITICAL BRIDGE between Dynamics and Kinematics.
-///
-/// This system takes the accumulated forces and converts them
-/// into acceleration using Newton's Second Law.
-///
-/// After this system runs, the kinematics systems can use the
-/// acceleration to update velocity and position.
-///
-/// The formula: a = F / m
-///
-/// Special cases:
-///   mass = 0 (static): a = 0  -  immovable object
-///   mass < 0: invalid  -  don't do this
 pub fn convert_forces_to_acceleration(
     mut physics_query: Query<(
         &ForceAccumulator,
@@ -360,15 +364,15 @@ pub fn convert_forces_to_acceleration(
 
 Let's trace ONE object through ONE complete physics frame:
 
-```rust
-/// INITIAL STATE:
-///   Position: (0, 300)
-///   Velocity: (0, 0)          -  starting from rest
-///   Mass: 2.0
-///   Gravity: (0, -500)         -  500 px/s² downward
-///   Damping: 0.1
-///   dt: 1/60 ≈ 0.01667
+INITIAL STATE:
+   Position: (0, 300)
+   Velocity: (0, 0)          -  starting from rest
+   Mass: 2.0
+   Gravity: (0, -500)         -  500 px/s² downward
+   Damping: 0.1
+   dt: 1/60 ≈ 0.01667
 
+```rust
 pub fn trace_complete_physics_frame() {
     // --- START OF FRAME ---
     

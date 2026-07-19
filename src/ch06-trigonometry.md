@@ -56,9 +56,10 @@ A **unit circle** is a circle with radius 1 centered at the origin. The angle θ
 
 **The key insight:** For any angle θ, the point `(cos(θ), sin(θ))` is on the unit circle. This is a UNIT VECTOR at angle θ.
 
+📐 Verify the unit circle property:
+ For ANY angle θ, the vector (cos(θ), sin(θ)) has length exactly 1.
+
 ```rust
-/// 📐 Verify the unit circle property:
-/// For ANY angle θ, the vector (cos(θ), sin(θ)) has length exactly 1.
 pub fn verify_unit_circle_property() {
     let angles = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, std::f32::consts::PI];
     
@@ -99,46 +100,47 @@ On the unit circle (hypotenuse = 1):
 
 ## 🔄 The Three Core Functions
 
+📐 SIN(θ): Returns the y-coordinate on the unit circle.
+
+ Range: [-1, 1]
+ Period: 2π (360°)  -  sin repeats every full rotation.
+ Key values:
+   sin(0) = 0      sin(π/2) = 1     sin(π) = 0      sin(3π/2) = -1
+
+ Game uses:
+   - Vertical oscillation (bouncing, waves)
+   - Cross product magnitude
+   - Sound wave generation
+ 📐 COS(θ): Returns the x-coordinate on the unit circle.
+
+ Range: [-1, 1]
+ Period: 2π  -  cos repeats every full rotation.
+ Key values:
+   cos(0) = 1      cos(π/2) = 0     cos(π) = -1     cos(3π/2) = 0
+
+ Game uses:
+   - Horizontal oscillation
+   - Dot product
+   - Rotation matrix construction
+ 📐 TAN(θ): Returns the slope = sin(θ) / cos(θ).
+
+ Range: (-∞, ∞)  -  tan has ASYMPTOTES where cos(θ) = 0.
+ Period: π (180°)  -  tan repeats every half rotation.
+
+ Game uses:
+   - Computing slopes
+   - Line-of-sight angle checks
+   - (Rarely used directly  -  atan2 is more useful)
+
 ```rust
-/// 📐 SIN(θ): Returns the y-coordinate on the unit circle.
-///
-/// Range: [-1, 1]
-/// Period: 2π (360°)  -  sin repeats every full rotation.
-/// Key values:
-///   sin(0) = 0      sin(π/2) = 1     sin(π) = 0      sin(3π/2) = -1
-///
-/// Game uses:
-///   - Vertical oscillation (bouncing, waves)
-///   - Cross product magnitude
-///   - Sound wave generation
 pub fn sine_example(angle_radians: f32) -> f32 {
     angle_radians.sin()
 }
 
-/// 📐 COS(θ): Returns the x-coordinate on the unit circle.
-///
-/// Range: [-1, 1]
-/// Period: 2π  -  cos repeats every full rotation.
-/// Key values:
-///   cos(0) = 1      cos(π/2) = 0     cos(π) = -1     cos(3π/2) = 0
-///
-/// Game uses:
-///   - Horizontal oscillation
-///   - Dot product
-///   - Rotation matrix construction
 pub fn cosine_example(angle_radians: f32) -> f32 {
     angle_radians.cos()
 }
 
-/// 📐 TAN(θ): Returns the slope = sin(θ) / cos(θ).
-///
-/// Range: (-∞, ∞)  -  tan has ASYMPTOTES where cos(θ) = 0.
-/// Period: π (180°)  -  tan repeats every half rotation.
-///
-/// Game uses:
-///   - Computing slopes
-///   - Line-of-sight angle checks
-///   - (Rarely used directly  -  atan2 is more useful)
 pub fn tangent_example(angle_radians: f32) -> f32 {
     angle_radians.tan()
     // ⚠️ WARNING: tan(π/2) = ∞ (division by zero!)
@@ -152,30 +154,39 @@ pub fn tangent_example(angle_radians: f32) -> f32 {
 
 **`atan2(y, x)` is the inverse of sin/cos**  -  given a vector, it returns the angle:
 
+🎯 atan2(y, x) returns the angle of the vector (x, y).
+
+ WHY atan2 IS BETTER THAN atan(y/x):
+
+ atan(y/x) has TWO problems:
+   1. Division by zero when x = 0
+   2. Can't distinguish between Quadrants I and III
+      (because y/x = (-y)/(-x), so (1,1) and (-1,-1) give the same angle!)
+
+ atan2(y, x) solves BOTH:
+   1. Handles x = 0 (returns ±π/2)
+   2. Uses the SIGNS of BOTH arguments to determine the correct quadrant
+
+ Range: [-π, π] = [-180°, 180°]
+   (0, 1)  ->  π/2   (up)
+   (1, 0)  ->  0     (right)
+   (0, -1) -> -π/2   (down)
+   (-1, 0) ->  π     (left)
+ --- Complete: Aim a weapon toward the mouse cursor ---
+ --- Complete: Move in the direction of an angle ---
+ These two functions form a ROUND-TRIP:
+
+ vector -> atan2 -> angle -> cos/sin -> same vector (up to length)
+   (3, 4)  ->  0.927  ->  (0.6, 0.8)  ->  direction of (3, 4)!
+
+ angle -> cos/sin -> vector -> atan2 -> same angle
+   0.927  ->  (0.6, 0.8)  ->  0.927  ->  ✅
+
 ```rust
-/// 🎯 atan2(y, x) returns the angle of the vector (x, y).
-///
-/// WHY atan2 IS BETTER THAN atan(y/x):
-///
-/// atan(y/x) has TWO problems:
-///   1. Division by zero when x = 0
-///   2. Can't distinguish between Quadrants I and III
-///      (because y/x = (-y)/(-x), so (1,1) and (-1,-1) give the same angle!)
-///
-/// atan2(y, x) solves BOTH:
-///   1. Handles x = 0 (returns ±π/2)
-///   2. Uses the SIGNS of BOTH arguments to determine the correct quadrant
-///
-/// Range: [-π, π] = [-180°, 180°]
-///   (0, 1)  ->  π/2   (up)
-///   (1, 0)  ->  0     (right)
-///   (0, -1) -> -π/2   (down)
-///   (-1, 0) ->  π     (left)
 pub fn angle_of_vector(vector: Vec2) -> f32 {
     vector.y.atan2(vector.x)
 }
 
-/// --- Complete: Aim a weapon toward the mouse cursor ---
 pub fn aim_toward_target(
     shooter_position: Vec2,
     target_position: Vec2,
@@ -190,7 +201,6 @@ pub fn aim_toward_target(
     angle_to_target
 }
 
-/// --- Complete: Move in the direction of an angle ---
 pub fn velocity_from_angle(angle_radians: f32, speed: f32) -> Vec2 {
     Vec2::new(
         angle_radians.cos() * speed,  // X component
@@ -198,13 +208,6 @@ pub fn velocity_from_angle(angle_radians: f32, speed: f32) -> Vec2 {
     )
 }
 
-/// These two functions form a ROUND-TRIP:
-///
-/// vector -> atan2 -> angle -> cos/sin -> same vector (up to length)
-///   (3, 4)  ->  0.927  ->  (0.6, 0.8)  ->  direction of (3, 4)!
-///
-/// angle -> cos/sin -> vector -> atan2 -> same angle
-///   0.927  ->  (0.6, 0.8)  ->  0.927  ->  ✅
 pub fn demonstrate_round_trip() {
     let original_vector = Vec2::new(3.0, 4.0);
     
@@ -224,27 +227,33 @@ pub fn demonstrate_round_trip() {
 
 ## 🏗️ Practical Example 1: Wave Motion (Sine & Cosine in Action)
 
+🌊 Floating platform that bobs up and down using a sine wave.
+
+ The general form of a sine wave is:
+   y(t) = amplitude × sin(2π × frequency × t + phase)
+
+ Where:
+   amplitude = how far it moves from center
+   frequency = how many complete cycles per second
+   phase = horizontal shift (for variety between objects)
+   t = time in seconds
+ The center Y position around which the platform bobs.
+ How far up and down the platform moves (peak-to-peak = 2× this).
+ How many full bobs per second. 1.0 = one cycle/second.
+ Phase offset in radians. Use different values for different
+ platforms so they don't all bob in sync.
+ 🌊 BUTTER SMOOTH sine wave animation:
+
+ If you want a more "natural" feel, use a cosine wave for the
+ horizontal component and sine for vertical  -  this creates
+ circular/elliptical motion:
+
 ```rust
-/// 🌊 Floating platform that bobs up and down using a sine wave.
-///
-/// The general form of a sine wave is:
-///   y(t) = amplitude × sin(2π × frequency × t + phase)
-///
-/// Where:
-///   amplitude = how far it moves from center
-///   frequency = how many complete cycles per second
-///   phase = horizontal shift (for variety between objects)
-///   t = time in seconds
 #[derive(Component)]
 pub struct FloatingPlatform {
-    /// The center Y position around which the platform bobs.
     pub base_y: f32,
-    /// How far up and down the platform moves (peak-to-peak = 2× this).
     pub amplitude: f32,
-    /// How many full bobs per second. 1.0 = one cycle/second.
     pub frequency: f32,
-    /// Phase offset in radians. Use different values for different
-    /// platforms so they don't all bob in sync.
     pub phase_offset: f32,
 }
 
@@ -270,11 +279,6 @@ pub fn update_floating_platform_system(
     }
 }
 
-/// 🌊 BUTTER SMOOTH sine wave animation:
-///
-/// If you want a more "natural" feel, use a cosine wave for the
-/// horizontal component and sine for vertical  -  this creates
-/// circular/elliptical motion:
 pub fn circular_motion_example(
     center: Vec2,
     radius: f32,
@@ -295,12 +299,23 @@ pub fn circular_motion_example(
 
 ## 🏀 Practical Example 2: Projectile Motion
 
+Fires a projectile toward a target using trigonometric decomposition.
+
+ The key insight: we use atan2 to find the angle, then cos/sin to
+ decompose the velocity into x and y components. Gravity then
+ curves the trajectory into a parabola.
+ The FULL projectile position equation at time t:
+
+   x(t) = x₀ + v₀·cos(θ)·t
+   y(t) = y₀ + v₀·sin(θ)·t - ½·g·t²
+
+ This is the combination of:
+   - Linear motion in x (no horizontal force, no drag)
+   - Constant acceleration in y (gravity)
+
+ The result is a PARABOLA. At 45°, you get MAXIMUM range.
+
 ```rust
-/// Fires a projectile toward a target using trigonometric decomposition.
-///
-/// The key insight: we use atan2 to find the angle, then cos/sin to
-/// decompose the velocity into x and y components. Gravity then
-/// curves the trajectory into a parabola.
 pub fn fire_projectile_toward_target(
     commands: &mut Commands,
     origin_position: Vec2,
@@ -334,16 +349,6 @@ pub fn fire_projectile_toward_target(
     ));
 }
 
-/// The FULL projectile position equation at time t:
-///
-///   x(t) = x₀ + v₀·cos(θ)·t
-///   y(t) = y₀ + v₀·sin(θ)·t - ½·g·t²
-///
-/// This is the combination of:
-///   - Linear motion in x (no horizontal force, no drag)
-///   - Constant acceleration in y (gravity)
-///
-/// The result is a PARABOLA. At 45°, you get MAXIMUM range.
 pub fn projectile_position_at_time(
     origin: Vec2,
     initial_velocity: Vec2,
@@ -377,13 +382,14 @@ Projectile trajectory at different launch angles:
 
 ## 👁️ Practical Example 3: Field of View Detection
 
+Checks whether `target_position` is within the field of view of
+ an observer at `observer_position` facing `observer_facing_direction`.
+
+ This uses the dot product, which IS cos(θ) when both vectors are
+ unit vectors. We avoid computing the actual angle  -  comparing
+ cosines is equivalent and MUCH faster.
+
 ```rust
-/// Checks whether `target_position` is within the field of view of
-/// an observer at `observer_position` facing `observer_facing_direction`.
-///
-/// This uses the dot product, which IS cos(θ) when both vectors are
-/// unit vectors. We avoid computing the actual angle  -  comparing
-/// cosines is equivalent and MUCH faster.
 pub fn is_target_in_field_of_view(
     observer_position: Vec2,
     observer_facing_direction: Vec2, // MUST be a unit vector!

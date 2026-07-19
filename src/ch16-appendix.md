@@ -97,21 +97,22 @@ q.to_euler(EulerRot::XYZ)          // To Euler angles (pitch, yaw, roll)
 
 ### 📐 Physics Constants
 
+🌍 Standard gravity values (pixels/s²  -  game scale!)
+ 📐 Common angles (radians)
+ ⏱️ Common physics timesteps
+
 ```rust
-/// 🌍 Standard gravity values (pixels/s²  -  game scale!)
 pub const GRAVITY_EARTH_LIKE: Vec2 = Vec2::new(0.0, -500.0);
 pub const GRAVITY_MOON_LIKE: Vec2 = Vec2::new(0.0, -81.0);
 pub const GRAVITY_MARIO_LIKE: Vec2 = Vec2::new(0.0, -2000.0);  // Snappy!
 pub const GRAVITY_FLIP: Vec2 = Vec2::new(0.0, 500.0);          // Upside-down!
 pub const GRAVITY_ZERO: Vec2 = Vec2::ZERO;                      // Space!
 
-/// 📐 Common angles (radians)
 pub const DEG_45: f32 = 0.7853981633974483;   // π/4
 pub const DEG_90: f32 = 1.5707963267948966;   // π/2
 pub const DEG_180: f32 = 3.141592653589793;   // π
 pub const DEG_360: f32 = 6.283185307179586;   // 2π
 
-/// ⏱️ Common physics timesteps
 pub const DT_30FPS: f32 = 1.0 / 30.0;   // 33.33ms  -  low quality
 pub const DT_60FPS: f32 = 1.0 / 60.0;   // 16.67ms  -  standard
 pub const DT_120FPS: f32 = 1.0 / 120.0; // 8.33ms  -  high quality
@@ -159,8 +160,9 @@ pub const DT_240FPS: f32 = 1.0 / 240.0; // 4.17ms  -  overkill
 
 ### Builder Pattern for Components
 
+🏗️ Builder pattern for physics objects
+
 ```rust
-/// 🏗️ Builder pattern for physics objects
 #[derive(Component)]
 struct PhysicsObject {
     pos: Vec2,
@@ -200,12 +202,13 @@ impl PhysicsObject {
 
 ### Type State for Safety
 
+🛡️ Using types to prevent invalid physics states
+ 👻 Physics state machine encoded in types!
+
 ```rust
-/// 🛡️ Using types to prevent invalid physics states
 struct Resting;     // Object is at rest
 struct Moving;      // Object is in motion
 
-/// 👻 Physics state machine encoded in types!
 #[derive(Component)]
 struct RigidBody<State = Moving> {
     pos: Vec2,
@@ -240,8 +243,9 @@ impl RigidBody<Resting> {
 
 ### Newtype Pattern for Units
 
+📏 Preventing unit confusion with newtypes
+
 ```rust
-/// 📏 Preventing unit confusion with newtypes
 #[derive(Component)]
 struct Meters(pub f32);
 
@@ -261,8 +265,9 @@ fn cannot_mix_units(pos: Meters, vel: MetersPerSecond) {
 
 ### Command Pattern for Spawning
 
+📝 Command queue for spawning physics objects
+
 ```rust
-/// 📝 Command queue for spawning physics objects
 #[derive(Event)]
 enum PhysicsCommand {
     SpawnBall { pos: Vec2, radius: f32, mass: f32 },
@@ -333,8 +338,9 @@ fn physics_command_handler(
 
 > **"You've journeyed from vectors to Verlet, from gravity to gimbal lock, from Euler to ECS. You now hold the keys to the physics kingdom. Go build something that bounces, floats, crashes, and soars!"** 🚀
 
+The final physics system  -  YOU!
+
 ```rust
-/// The final physics system  -  YOU!
 fn you_as_a_physics_engine() -> &'static str {
     "You're now equipped to build game physics in Rust with Bevy! 🎮"
 }

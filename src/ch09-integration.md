@@ -35,39 +35,36 @@ Runge-Kutta 4     ⭐⭐⭐⭐       ⭐⭐⭐⭐     ⚡⚡        🧩🧩🧩
 
 ## 1️⃣ Explicit Euler (The Simple One)
 
-```rust
-/// Performs one step of **Explicit Euler** integration.
-///
-/// This is the most straightforward integration method, but it has
-/// a critical flaw: it uses the velocity at the BEGINNING of the
-/// timestep to update the position, rather than the velocity at
-/// the END. This causes energy to drift upward over time.
-///
-/// # Mathematical Formulation
-///
-/// ```text
-/// velocity(t + Δt)     = velocity(t) + acceleration(t) × Δt
-/// position(t + Δt)     = position(t) + velocity(t) × Δt
-/// ```
-///
-/// Note the second equation uses `velocity(t)` (the OLD value),
-/// not `velocity(t + Δt)` (the newly computed value). This is
-/// what distinguishes Explicit from Symplectic Euler.
-///
-/// # Arguments
-/// * `current_position` - The position vector at the start of the timestep.
-///   This will be modified in-place to hold the new position.
-/// * `current_velocity` - The velocity vector at the start of the timestep.
-///   This will be modified in-place to hold the new velocity.
-/// * `acceleration` - The acceleration vector, assumed constant over
-///   this timestep. This is typically derived from F = ma applied to
-///   the accumulated forces on the object.
-/// * `delta_time` - The duration of this timestep in seconds. Typically
-///   1/60 for standard game physics.
-///
-/// # Warning
-/// This integrator does NOT conserve energy. Objects in orbit will
-/// gradually spiral outward. Use Symplectic Euler instead for games.
+Performs one step of **Explicit Euler** integration.
+
+ This is the most straightforward integration method, but it has
+ a critical flaw: it uses the velocity at the BEGINNING of the
+ timestep to update the position, rather than the velocity at
+ the END. This causes energy to drift upward over time.
+
+ # Mathematical Formulationtext
+  velocity(t + Δt)     = velocity(t) + acceleration(t) × Δt
+  position(t + Δt)     = position(t) + velocity(t) × Δt
+  Note the second equation uses `velocity(t)` (the OLD value),
+ not `velocity(t + Δt)` (the newly computed value). This is
+ what distinguishes Explicit from Symplectic Euler.
+
+ # Arguments
+ * `current_position` - The position vector at the start of the timestep.
+   This will be modified in-place to hold the new position.
+ * `current_velocity` - The velocity vector at the start of the timestep.
+   This will be modified in-place to hold the new velocity.
+ * `acceleration` - The acceleration vector, assumed constant over
+   this timestep. This is typically derived from F = ma applied to
+   the accumulated forces on the object.
+ * `delta_time` - The duration of this timestep in seconds. Typically
+   1/60 for standard game physics.
+
+ # Warning
+ This integrator does NOT conserve energy. Objects in orbit will
+ gradually spiral outward. Use Symplectic Euler instead for games.
+
+```
 pub fn explicit_euler(
     current_position: &mut Vec2,
     current_velocity: &mut Vec2,
@@ -99,36 +96,33 @@ pub fn explicit_euler(
 
 ## 2️⃣ Symplectic Euler (The Workhorse) ⭐
 
-```rust
-/// Performs one step of **Symplectic (Semi-Implicit) Euler** integration.
-///
-/// This is the RECOMMENDED integrator for game physics. It differs from
-/// Explicit Euler in ONE crucial detail: it uses the NEWLY computed
-/// velocity to update the position, rather than the old one.
-///
-/// # Mathematical Formulation
-///
-/// ```text
-/// velocity(t + Δt)     = velocity(t) + acceleration(t) × Δt
-/// position(t + Δt)     = position(t) + velocity(t + Δt) × Δt
-/// ```
-///
-/// The key difference is in the second line: we use `velocity(t + Δt)`
-/// (the value we just computed) instead of `velocity(t)`.
-///
-/// # Why This Tiny Change Matters
-///
-/// This seemingly minor difference means the Symplectic Euler method
-/// preserves the **symplectic form** of Hamiltonian mechanics. In
-/// plain English: it conserves energy much better. Objects in orbit
-/// stay in orbit. Springs don't explode. This is NOT just theoretical
-///  -  the difference in stability is dramatic.
-///
-/// # Arguments
-/// * `current_position` - Position at start of timestep. Modified in-place.
-/// * `current_velocity` - Velocity at start of timestep. Modified in-place.
-/// * `acceleration` - Constant acceleration during this timestep.
-/// * `delta_time` - Duration of timestep in seconds.
+Performs one step of **Symplectic (Semi-Implicit) Euler** integration.
+
+ This is the RECOMMENDED integrator for game physics. It differs from
+ Explicit Euler in ONE crucial detail: it uses the NEWLY computed
+ velocity to update the position, rather than the old one.
+
+ # Mathematical Formulationtext
+  velocity(t + Δt)     = velocity(t) + acceleration(t) × Δt
+  position(t + Δt)     = position(t) + velocity(t + Δt) × Δt
+  The key difference is in the second line: we use `velocity(t + Δt)`
+ (the value we just computed) instead of `velocity(t)`.
+
+ # Why This Tiny Change Matters
+
+ This seemingly minor difference means the Symplectic Euler method
+ preserves the **symplectic form** of Hamiltonian mechanics. In
+ plain English: it conserves energy much better. Objects in orbit
+ stay in orbit. Springs don't explode. This is NOT just theoretical
+  -  the difference in stability is dramatic.
+
+ # Arguments
+ * `current_position` - Position at start of timestep. Modified in-place.
+ * `current_velocity` - Velocity at start of timestep. Modified in-place.
+ * `acceleration` - Constant acceleration during this timestep.
+ * `delta_time` - Duration of timestep in seconds.
+
+```
 pub fn symplectic_euler(
     current_position: &mut Vec2,
     current_velocity: &mut Vec2,
@@ -153,65 +147,65 @@ pub fn symplectic_euler(
 
 ## 3️⃣ Verlet Integration (The Stable One)
 
-```rust
-/// 📍 A particle that uses **Verlet integration**.
-///
-/// Unlike Euler methods which store velocity explicitly, Verlet
-/// integration works purely with POSITIONS. The velocity is
-/// IMPLICITLY derived from the difference between current and
-/// previous positions.
-///
-/// # Mathematical Formulation
-///
-/// ```text
-/// position(t + Δt) = 2 × position(t) - position(t - Δt) + acceleration(t) × Δt²
-/// ```
-///
-/// This formula comes from the Taylor expansion of position around
-/// time t, keeping terms up to second order. The `2 × position(t) - position(t - Δt)`
-/// term is essentially the inertial term (where the object would go
-/// if no forces acted), and `acceleration × Δt²` is the force term.
-///
-/// # Why Verlet is Amazing for Constraints
-///
-/// Since Verlet works with positions directly, CONSTRAINTS are trivial:
-/// you just MOVE the position to satisfy the constraint, and the
-/// velocity automatically adjusts in the next frame. This makes Verlet
-/// the go-to choice for:
-/// - Cloth simulation (thousands of particles with distance constraints)
-/// - Rope/chain physics
-/// - Soft body dynamics
-/// - Ragdolls
-///
-/// # Performance Note
-/// Verlet requires storing TWO positions (current and previous),
-/// which is 2× the memory of Euler methods. However, it's more
-/// stable per timestep and can often use larger timesteps.
+📍 A particle that uses **Verlet integration**.
+
+ Unlike Euler methods which store velocity explicitly, Verlet
+ integration works purely with POSITIONS. The velocity is
+ IMPLICITLY derived from the difference between current and
+ previous positions.
+
+ # Mathematical Formulationtext
+  position(t + Δt) = 2 × position(t) - position(t - Δt) + acceleration(t) × Δt²
+  This formula comes from the Taylor expansion of position around
+ time t, keeping terms up to second order. The `2 × position(t) - position(t - Δt)`
+ term is essentially the inertial term (where the object would go
+ if no forces acted), and `acceleration × Δt²` is the force term.
+
+ # Why Verlet is Amazing for Constraints
+
+ Since Verlet works with positions directly, CONSTRAINTS are trivial:
+ you just MOVE the position to satisfy the constraint, and the
+ velocity automatically adjusts in the next frame. This makes Verlet
+ the go-to choice for:
+ - Cloth simulation (thousands of particles with distance constraints)
+ - Rope/chain physics
+ - Soft body dynamics
+ - Ragdolls
+
+ # Performance Note
+ Verlet requires storing TWO positions (current and previous),
+ which is 2× the memory of Euler methods. However, it's more
+ stable per timestep and can often use larger timesteps.
+ The position of this particle at time `t - Δt` (the previous frame).
+ We need this to compute the inertial term in the Verlet formula.
+ The position of this particle at time `t` (the current frame).
+ This gets updated each timestep and becomes the new "previous"
+ position for the next frame.
+ The accumulated acceleration acting on this particle.
+ This is reset to zero at the start of each timestep and
+ accumulates forces (gravity, drag, springs, etc.) as the
+ various force systems run.
+ Creates a new Verlet particle at the specified position.
+
+ # Arguments
+ * `starting_position` - The initial position of this particle.
+   Both `previous_position` and `current_position` are set to
+   this value, meaning the particle starts at rest.
+ Advances the particle by one Verlet integration step.
+
+ The Verlet formula is:
+
+```
 #[derive(Component)]
 pub struct VerletParticle {
-    /// The position of this particle at time `t - Δt` (the previous frame).
-    /// We need this to compute the inertial term in the Verlet formula.
     pub previous_position: Vec2,
 
-    /// The position of this particle at time `t` (the current frame).
-    /// This gets updated each timestep and becomes the new "previous"
-    /// position for the next frame.
     pub current_position: Vec2,
 
-    /// The accumulated acceleration acting on this particle.
-    /// This is reset to zero at the start of each timestep and
-    /// accumulates forces (gravity, drag, springs, etc.) as the
-    /// various force systems run.
     pub acceleration: Vec2,
 }
 
 impl VerletParticle {
-    /// Creates a new Verlet particle at the specified position.
-    ///
-    /// # Arguments
-    /// * `starting_position` - The initial position of this particle.
-    ///   Both `previous_position` and `current_position` are set to
-    ///   this value, meaning the particle starts at rest.
     pub fn new(starting_position: Vec2) -> Self {
         Self {
             // Start with both positions equal -> velocity = 0
@@ -221,17 +215,17 @@ impl VerletParticle {
             acceleration: Vec2::ZERO,
         }
     }
+```text
+     new_position = 2 × current - previous + acceleration × Δt²
+     # Arguments
+ * `delta_time` - The duration of this timestep in seconds.
+ Computes the velocity from the position history.
 
-    /// Advances the particle by one Verlet integration step.
-    ///
-    /// The Verlet formula is:
-    /// ```text
-    /// new_position = 2 × current - previous + acceleration × Δt²
-    /// ```
-    ///
-    /// # Arguments
-    /// * `delta_time` - The duration of this timestep in seconds.
-    pub fn integrate(&mut self, delta_time: f32) {
+ Since Verlet doesn't store velocity explicitly, we derive it
+ from the difference between current and previous positions:
+
+```
+pub fn integrate(&mut self, delta_time: f32) {
         // The Verlet update:
         // new_position = 2 × current - previous + acceleration × Δt²
         //
@@ -253,47 +247,42 @@ impl VerletParticle {
         // Forces are re-calculated fresh each frame.
         self.acceleration = Vec2::ZERO;
     }
+```text
+     velocity = (current_position - previous_position) / Δt
+     This is the CENTRAL DIFFERENCE approximation of the derivative.
 
-    /// Computes the velocity from the position history.
-    ///
-    /// Since Verlet doesn't store velocity explicitly, we derive it
-    /// from the difference between current and previous positions:
-    /// ```text
-    /// velocity = (current_position - previous_position) / Δt
-    /// ```
-    ///
-    /// This is the CENTRAL DIFFERENCE approximation of the derivative.
-    ///
-    /// # Arguments
-    /// * `delta_time` - The timestep used in the last integration.
-    pub fn derive_velocity(&self, delta_time: f32) -> Vec2 {
+ # Arguments
+ * `delta_time` - The timestep used in the last integration.
+ Applies a force to this particle for the current timestep.
+
+ Forces are converted to acceleration via F = ma and accumulated.
+ Multiple calls to this method sum up before integration.
+
+ # Arguments
+ * `force` - The force vector to apply.
+ * `mass` - The mass of this particle. Must be > 0.
+ Constrains this particle to stay at a fixed distance from an anchor point.
+
+ This is THE reason to use Verlet: constraints are trivial.
+ We just MOVE the particle to satisfy the distance, and the
+ velocity will naturally adjust in the next integration step.
+
+ # Arguments
+ * `anchor` - The point to constrain distance to.
+ * `target_distance` - The desired distance from the anchor.
+ * `stiffness` - How rigid the constraint is (0.0 to 1.0).
+   1.0 = perfectly rigid, 0.5 = soft.
+
+```
+pub fn derive_velocity(&self, delta_time: f32) -> Vec2 {
         (self.current_position - self.previous_position) / delta_time
     }
 
-    /// Applies a force to this particle for the current timestep.
-    ///
-    /// Forces are converted to acceleration via F = ma and accumulated.
-    /// Multiple calls to this method sum up before integration.
-    ///
-    /// # Arguments
-    /// * `force` - The force vector to apply.
-    /// * `mass` - The mass of this particle. Must be > 0.
     pub fn apply_force(&mut self, force: Vec2, mass: f32) {
         // Per Newton's Second Law: a = F / m
         self.acceleration += force / mass;
     }
 
-    /// Constrains this particle to stay at a fixed distance from an anchor point.
-    ///
-    /// This is THE reason to use Verlet: constraints are trivial.
-    /// We just MOVE the particle to satisfy the distance, and the
-    /// velocity will naturally adjust in the next integration step.
-    ///
-    /// # Arguments
-    /// * `anchor` - The point to constrain distance to.
-    /// * `target_distance` - The desired distance from the anchor.
-    /// * `stiffness` - How rigid the constraint is (0.0 to 1.0).
-    ///   1.0 = perfectly rigid, 0.5 = soft.
     pub fn constrain_to_distance(
         &mut self,
         anchor: Vec2,
@@ -328,63 +317,80 @@ impl VerletParticle {
 
 ## 4️⃣ Runge-Kutta 4 (The Accurate One)
 
+🧮 The complete state of a physics body at a moment in time.
+
+ RK4 operates on "state" objects rather than individual components.
+ The state bundles position and velocity together because they
+ are co-evolving quantities  -  you can't update one without the other.
+ The position of the body in world space.
+ The velocity of the body in units per second.
+ 📐 The time derivative of the physics state.
+
+ In calculus terms, this represents `d(State)/dt`.
+ The derivative of position is velocity. The derivative of
+ velocity is acceleration. So this struct captures both.
+ Time derivative of position = velocity (dx/dt).
+ Time derivative of velocity = acceleration (dv/dt).
+ Performs one RK4 integration step.
+
+ RK4 (Runge-Kutta 4th Order) takes FOUR samples of the acceleration
+ function within a single timestep and combines them using a
+ weighted average (Simpson's rule). This gives dramatically better
+ accuracy than Euler methods  -  at the cost of 4× more acceleration
+ evaluations.
+
+ # How RK4 Works (Conceptual)
+
+ Instead of assuming acceleration is constant over the whole
+ timestep (like Euler), RK4:
+
+ 1. **k1**: Samples acceleration at the START of the timestep.
+ 2. **k2**: Samples acceleration at the MIDPOINT, using k1 to estimate the state there.
+ 3. **k3**: Samples acceleration at the MIDPOINT AGAIN, using k2 for a refined estimate.
+ 4. **k4**: Samples acceleration at the END, using k3 to estimate the final state.
+ 5. Combines all four with weights: (k1 + 2×k2 + 2×k3 + k4) / 6
+
+ This is analogous to Simpson's Rule for numerical integration  -
+ midpoints get higher weight because they're better estimates.
+
+ # Arguments
+ * `current_state` - The position and velocity at the start of the timestep.
+ * `delta_time` - The duration of this timestep.
+ * `acceleration_function` - A function that computes acceleration given
+   the current state. This is where forces (gravity, drag, etc.) are applied.
+
+ # Returns
+ A new `PhysicsState` representing position and velocity after `delta_time`.
+ Evaluates the derivative of the physics state at a guessed future state.
+
+ Given a current state and a candidate derivative (which tells us how
+ the state is changing), this function computes: "if the state changes
+ according to this derivative for `time_offset` seconds, what would
+ the acceleration be at that future state?"
+
+ This is the core subroutine used by RK4 to sample the acceleration
+ at different points within the timestep.
+
+ # Arguments
+ * `current_state` - The state at the START of the full timestep.
+ * `time_offset` - How far into the timestep we're sampling (0.0 to dt).
+ * `assumed_derivative` - The derivative we assume the state follows
+   to reach the sampling point.
+ * `acceleration_function` - Computes acceleration from state.
+
 ```rust
-/// 🧮 The complete state of a physics body at a moment in time.
-///
-/// RK4 operates on "state" objects rather than individual components.
-/// The state bundles position and velocity together because they
-/// are co-evolving quantities  -  you can't update one without the other.
 #[derive(Clone, Debug)]
 pub struct PhysicsState {
-    /// The position of the body in world space.
     pub position: Vec2,
-    /// The velocity of the body in units per second.
     pub velocity: Vec2,
 }
 
-/// 📐 The time derivative of the physics state.
-///
-/// In calculus terms, this represents `d(State)/dt`.
-/// The derivative of position is velocity. The derivative of
-/// velocity is acceleration. So this struct captures both.
 #[derive(Clone, Debug)]
 pub struct StateDerivative {
-    /// Time derivative of position = velocity (dx/dt).
     pub derivative_of_position: Vec2,
-    /// Time derivative of velocity = acceleration (dv/dt).
     pub derivative_of_velocity: Vec2,
 }
 
-/// Performs one RK4 integration step.
-///
-/// RK4 (Runge-Kutta 4th Order) takes FOUR samples of the acceleration
-/// function within a single timestep and combines them using a
-/// weighted average (Simpson's rule). This gives dramatically better
-/// accuracy than Euler methods  -  at the cost of 4× more acceleration
-/// evaluations.
-///
-/// # How RK4 Works (Conceptual)
-///
-/// Instead of assuming acceleration is constant over the whole
-/// timestep (like Euler), RK4:
-///
-/// 1. **k1**: Samples acceleration at the START of the timestep.
-/// 2. **k2**: Samples acceleration at the MIDPOINT, using k1 to estimate the state there.
-/// 3. **k3**: Samples acceleration at the MIDPOINT AGAIN, using k2 for a refined estimate.
-/// 4. **k4**: Samples acceleration at the END, using k3 to estimate the final state.
-/// 5. Combines all four with weights: (k1 + 2×k2 + 2×k3 + k4) / 6
-///
-/// This is analogous to Simpson's Rule for numerical integration  - 
-/// midpoints get higher weight because they're better estimates.
-///
-/// # Arguments
-/// * `current_state` - The position and velocity at the start of the timestep.
-/// * `delta_time` - The duration of this timestep.
-/// * `acceleration_function` - A function that computes acceleration given
-///   the current state. This is where forces (gravity, drag, etc.) are applied.
-///
-/// # Returns
-/// A new `PhysicsState` representing position and velocity after `delta_time`.
 pub fn rk4_step(
     current_state: &PhysicsState,
     delta_time: f32,
@@ -449,22 +455,6 @@ pub fn rk4_step(
     }
 }
 
-/// Evaluates the derivative of the physics state at a guessed future state.
-///
-/// Given a current state and a candidate derivative (which tells us how
-/// the state is changing), this function computes: "if the state changes
-/// according to this derivative for `time_offset` seconds, what would
-/// the acceleration be at that future state?"
-///
-/// This is the core subroutine used by RK4 to sample the acceleration
-/// at different points within the timestep.
-///
-/// # Arguments
-/// * `current_state` - The state at the START of the full timestep.
-/// * `time_offset` - How far into the timestep we're sampling (0.0 to dt).
-/// * `assumed_derivative` - The derivative we assume the state follows
-///   to reach the sampling point.
-/// * `acceleration_function` - Computes acceleration from state.
 fn evaluate_derivative(
     current_state: &PhysicsState,
     time_offset: f32,
@@ -496,41 +486,58 @@ fn evaluate_derivative(
 
 ## ⚡ Sub-stepping: The Secret Sauce
 
-```rust
-/// 🎯 Manages a **fixed timestep accumulator** for consistent physics.
-///
-/// The core insight: real time passes at variable rates (a frame might
-/// take 8ms or 33ms depending on what's happening), but physics must
-/// run at a CONSTANT rate to be deterministic and stable.
-///
-/// This resource accumulates the REAL elapsed time and "chunks" it
-/// into fixed-size physics timesteps:
-///
-/// ```text
-/// Frame 1 (took 33ms):  accumulator = 33ms -> run 2 physics steps (16.67ms each)
-///                                              remainder = 0ms
-/// Frame 2 (took 8ms):   accumulator = 8ms  -> run 0 physics steps (not enough yet)
-///                                              remainder = 8ms
-/// Frame 3 (took 17ms):  accumulator = 25ms -> run 1 physics step (16.67ms)
-///                                              remainder = 8.33ms  <- interpolate!
-/// ```
-///
-/// This decouples PHYSICS FRAMERATE from RENDER FRAMERATE.
+🎯 Manages a **fixed timestep accumulator** for consistent physics.
+
+ The core insight: real time passes at variable rates (a frame might
+ take 8ms or 33ms depending on what's happening), but physics must
+ run at a CONSTANT rate to be deterministic and stable.
+
+ This resource accumulates the REAL elapsed time and "chunks" it
+ into fixed-size physics timesteps:text
+  Frame 1 (took 33ms):  accumulator = 33ms -> run 2 physics steps (16.67ms each)
+                                               remainder = 0ms
+  Frame 2 (took 8ms):   accumulator = 8ms  -> run 0 physics steps (not enough yet)
+                                               remainder = 8ms
+  Frame 3 (took 17ms):  accumulator = 25ms -> run 1 physics step (16.67ms)
+                                               remainder = 8.33ms  <- interpolate!
+  This decouples PHYSICS FRAMERATE from RENDER FRAMERATE.
+ Accumulated real time that hasn't been consumed by physics yet.
+ Measured in seconds.
+ The fixed duration of each physics timestep.
+ Standard value: 1.0 / 60.0 = ~16.67ms (60 Hz physics).
+ Maximum number of physics steps to run in a single frame.
+ If the game freezes for 5 seconds, we DON'T want to run
+ 300 physics steps to catch up  -  that would freeze again!
+ Instead, we cap at this value and let the simulation
+ "fall behind" (which is usually imperceptible).
+ Runs the physics simulation using a fixed timestep accumulator.
+
+ This system should run at the BEGINNING of the frame, before any
+ other physics systems. It reads the frame's delta time, feeds it
+ into the accumulator, and runs physics steps until caught up.
+
+ # Arguments
+ * `time` - Bevy's time resource, providing the real frame delta.
+ * `accumulator` - Our fixed timestep accumulator.
+ * `physics_query` - The entities to run physics on.
+ Runs a single physics step for all entities.
+
+ This is the core physics pipeline, executed at the fixed timestep:
+ 1. Zero out acceleration (forces don't persist between frames)
+ 2. Apply forces (gravity, drag, etc.)  -  accumulated in Acceleration
+ 3. Integrate: acceleration -> velocity -> position
+
+ # Arguments
+ * `physics_query` - All entities with physics components.
+ * `delta_time` - The fixed physics timestep (NOT the frame delta).
+
+```
 #[derive(Resource)]
 pub struct FixedTimestepAccumulator {
-    /// Accumulated real time that hasn't been consumed by physics yet.
-    /// Measured in seconds.
     pub accumulated_time: f32,
 
-    /// The fixed duration of each physics timestep.
-    /// Standard value: 1.0 / 60.0 = ~16.67ms (60 Hz physics).
     pub physics_timestep: f32,
 
-    /// Maximum number of physics steps to run in a single frame.
-    /// If the game freezes for 5 seconds, we DON'T want to run
-    /// 300 physics steps to catch up  -  that would freeze again!
-    /// Instead, we cap at this value and let the simulation
-    /// "fall behind" (which is usually imperceptible).
     pub max_steps_per_frame: u32,
 }
 
@@ -544,16 +551,6 @@ impl Default for FixedTimestepAccumulator {
     }
 }
 
-/// Runs the physics simulation using a fixed timestep accumulator.
-///
-/// This system should run at the BEGINNING of the frame, before any
-/// other physics systems. It reads the frame's delta time, feeds it
-/// into the accumulator, and runs physics steps until caught up.
-///
-/// # Arguments
-/// * `time` - Bevy's time resource, providing the real frame delta.
-/// * `accumulator` - Our fixed timestep accumulator.
-/// * `physics_query` - The entities to run physics on.
 pub fn fixed_timestep_physics_system(
     time: Res<Time>,
     mut accumulator: ResMut<FixedTimestepAccumulator>,
@@ -601,16 +598,6 @@ pub fn fixed_timestep_physics_system(
     // Use `interpolation_factor` to lerp between previous and current states...
 }
 
-/// Runs a single physics step for all entities.
-///
-/// This is the core physics pipeline, executed at the fixed timestep:
-/// 1. Zero out acceleration (forces don't persist between frames)
-/// 2. Apply forces (gravity, drag, etc.)  -  accumulated in Acceleration
-/// 3. Integrate: acceleration -> velocity -> position
-///
-/// # Arguments
-/// * `physics_query` - All entities with physics components.
-/// * `delta_time` - The fixed physics timestep (NOT the frame delta).
 fn run_single_physics_step(
     physics_query: &mut Query<(
         &mut Position,
@@ -646,25 +633,26 @@ fn run_single_physics_step(
 
 ## 🏆 Choosing the Right Method
 
+Represents the different needs a physics simulation might have.
+ Use this to select the right integration method.
+ Most games: simple, fast, good enough.
+ Cloth, ropes, soft bodies (position-based dynamics).
+ Scientific simulation, rockets, precision physics.
+ Selects the appropriate integration method based on requirements.
+
+ # Arguments
+ * `requirements` - What the simulation needs.
+
+ # Returns
+ A string naming the recommended integrator.
+
 ```rust
-/// Represents the different needs a physics simulation might have.
-/// Use this to select the right integration method.
 enum SimulationRequirements {
-    /// Most games: simple, fast, good enough.
     SimpleAndFast,
-    /// Cloth, ropes, soft bodies (position-based dynamics).
     PositionBasedConstraints,
-    /// Scientific simulation, rockets, precision physics.
     HighPrecision,
 }
 
-/// Selects the appropriate integration method based on requirements.
-///
-/// # Arguments
-/// * `requirements` - What the simulation needs.
-///
-/// # Returns
-/// A string naming the recommended integrator.
 fn recommend_integrator(requirements: SimulationRequirements) -> &'static str {
     match requirements {
         SimulationRequirements::SimpleAndFast => {
@@ -688,11 +676,18 @@ fn recommend_integrator(requirements: SimulationRequirements) -> &'static str {
 
 ## 🎯 Chapter Summary
 
-```rust
-/// 📝 Integration cheat sheet  -  the three methods at a glance.
+📝 Integration cheat sheet  -  the three methods at a glance.
+ 1️⃣ SYMPLECTIC EULER (USE THIS 99% OF THE TIME)
+ Stable, fast, energy-conserving. The standard for game physics.
+ 2️⃣ VERLET (for position-based dynamics)
+ Great for cloth, ropes, ragdolls. Constraints are trivial.
+ 3️⃣ KEY RECOMMENDATION
+ Start with Symplectic Euler. It's simple, fast, and good enough.
+ Switch to Verlet only if you need cloth/constraints.
+ Use RK4 only if you're doing scientific simulation.
+ Never use Explicit Euler  -  it's strictly worse than Symplectic.
 
-/// 1️⃣ SYMPLECTIC EULER (USE THIS 99% OF THE TIME)
-/// Stable, fast, energy-conserving. The standard for game physics.
+```rust
 fn symplectic_euler_step(
     position: &mut Vec2,
     velocity: &mut Vec2,
@@ -703,8 +698,6 @@ fn symplectic_euler_step(
     *position += *velocity * delta_time;  // Uses UPDATED velocity ✅
 }
 
-/// 2️⃣ VERLET (for position-based dynamics)
-/// Great for cloth, ropes, ragdolls. Constraints are trivial.
 fn verlet_step(
     current_position: &mut Vec2,
     previous_position: &mut Vec2,
@@ -717,12 +710,6 @@ fn verlet_step(
     *previous_position = *current_position;
     *current_position = new_position;
 }
-
-/// 3️⃣ KEY RECOMMENDATION
-/// Start with Symplectic Euler. It's simple, fast, and good enough.
-/// Switch to Verlet only if you need cloth/constraints.
-/// Use RK4 only if you're doing scientific simulation.
-/// Never use Explicit Euler  -  it's strictly worse than Symplectic.
 ```
 
 > **The integrator is the HEART of your physics engine. Everything else  -  forces, collisions, constraints  -  feeds INTO the integrator. Choose Symplectic Euler by default. It's stable, energy-conserving, and simple. Only reach for Verlet or RK4 when you have a specific need they're uniquely suited for.** 🏆

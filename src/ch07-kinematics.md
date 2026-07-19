@@ -259,12 +259,13 @@ Height vs Time for the jump:
 
 Kinematics lets you PREDICT THE FUTURE. This is the single most powerful tool for game AI:
 
+Given where something is NOW and how it's moving,
+ where will it be in `t` seconds?
+
+ This uses the SUVAT equation: s = ut + ½at²
+ applied to each axis (X and Y) independently.
+
 ```rust
-/// Given where something is NOW and how it's moving,
-/// where will it be in `t` seconds?
-///
-/// This uses the SUVAT equation: s = ut + ½at²
-/// applied to each axis (X and Y) independently.
 fn predict_future_position(
     current_position: Vec2,
     current_velocity: Vec2,
@@ -300,11 +301,12 @@ Enemy wants to shoot where the player WILL be, not where he IS.
 
 Now that you understand the PHYSICS, the code is almost trivial:
 
+The ENTIRE kinematics engine, in two lines.
+
+ This runs every frame, for every physics entity.
+ It transforms acceleration into velocity, and velocity into position.
+
 ```rust
-/// The ENTIRE kinematics engine, in two lines.
-///
-/// This runs every frame, for every physics entity.
-/// It transforms acceleration into velocity, and velocity into position.
 pub fn kinematics_step(
     velocity: &mut Vec2,
     position: &mut Vec2,

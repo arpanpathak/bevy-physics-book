@@ -31,40 +31,38 @@ Without constraints:    With constraints:
 
 The simplest and most useful constraint:
 
-/// Resolves a **distance constraint** between two particles.
-///
-/// A distance constraint ensures that two particles remain at a fixed
-/// distance from each other  -  like a rigid rod connecting them.
-///
-/// # How It Works
-///
-/// 1. Compute the current distance between the two particles.
-/// 2. Compare it to the target (rest) distance.
-/// 3. If there's a difference, push the particles toward or away from
-///    each other along the line connecting them.
-/// 4. The amount each particle moves is PROPORTIONAL to its inverse mass
-///    (heavier particles move less).
-///
-/// # The Correction Formula
-///
-/// ```text
-/// displacement = direction × (current_distance - target_distance) × stiffness
-/// particle_1 -= displacement × (inverse_mass_1 / total_inverse_mass)
-/// particle_2 += displacement × (inverse_mass_2 / total_inverse_mass)
-/// ```
-///
-/// This is a **position-based** constraint solver  -  we directly modify
-/// positions rather than applying forces. This is what makes Verlet
-/// integration so powerful: constraints become trivial position adjustments.
-///
-/// # Arguments
-/// * `position_of_first_particle` - The position of particle 1. Modified in-place.
-/// * `position_of_second_particle` - The position of particle 2. Modified in-place.
-/// * `inverse_mass_of_first_particle` - 1/mass of particle 1 (0 = infinite mass).
-/// * `inverse_mass_of_second_particle` - 1/mass of particle 2 (0 = infinite mass).
-/// * `target_distance` - The desired distance between the two particles.
-/// * `stiffness` - How rigid the constraint is (0.0 to 1.0).
-///   1.0 = perfectly rigid, 0.5 = soft/springy.
+  Resolves a **distance constraint** between two particles.
+ 
+  A distance constraint ensures that two particles remain at a fixed
+  distance from each other  -  like a rigid rod connecting them.
+ 
+  # How It Works
+ 
+  1. Compute the current distance between the two particles.
+  2. Compare it to the target (rest) distance.
+  3. If there's a difference, push the particles toward or away from
+     each other along the line connecting them.
+  4. The amount each particle moves is PROPORTIONAL to its inverse mass
+     (heavier particles move less).
+ 
+  # The Correction Formula
+ 
+  displacement = direction × (current_distance - target_distance) × stiffness
+ particle_1 -= displacement × (inverse_mass_1 / total_inverse_mass)
+ particle_2 += displacement × (inverse_mass_2 / total_inverse_mass)
+ 
+  This is a **position-based** constraint solver  -  we directly modify
+  positions rather than applying forces. This is what makes Verlet
+  integration so powerful: constraints become trivial position adjustments.
+ 
+  # Arguments
+  * `position_of_first_particle` - The position of particle 1. Modified in-place.
+  * `position_of_second_particle` - The position of particle 2. Modified in-place.
+  * `inverse_mass_of_first_particle` - 1/mass of particle 1 (0 = infinite mass).
+  * `inverse_mass_of_second_particle` - 1/mass of particle 2 (0 = infinite mass).
+  * `target_distance` - The desired distance between the two particles.
+  * `stiffness` - How rigid the constraint is (0.0 to 1.0).
+    1.0 = perfectly rigid, 0.5 = soft/springy.
 pub fn distance_constraint(
     position_of_first_particle: &mut Vec2,
     position_of_second_particle: &mut Vec2,
@@ -150,37 +148,37 @@ Distance Constraint:
 Using Verlet integration, constraints become **trivially simple**:
 
 ```rust
-/// ⛓️ A chain made of Verlet particles with distance constraints
+  ⛓️ A chain made of Verlet particles with distance constraints
 
-/// 📍 A single particle in a Verlet chain simulation.
-///
-/// Verlet integration stores the PREVIOUS position instead of velocity.
-/// This allows the integration to be done purely through position
-/// manipulation, which makes constraints trivially simple to implement.
+  📍 A single particle in a Verlet chain simulation.
+ 
+  Verlet integration stores the PREVIOUS position instead of velocity.
+  This allows the integration to be done purely through position
+  manipulation, which makes constraints trivially simple to implement.
 #[derive(Component)]
 struct ChainParticle {
-    /// The position of this particle in the PREVIOUS frame.
-    /// Used by the Verlet integrator to compute motion:
-    /// new_position = 2 × current - previous + acceleration × dt²
+     The position of this particle in the PREVIOUS frame.
+     Used by the Verlet integrator to compute motion:
+     new_position = 2 × current - previous + acceleration × dt²
     previous_position: Vec2,
 }
 
-/// 🔗 A distance constraint between two particles in the chain.
-///
-/// This is a rigid rod connecting two particles. The constraint solver
-/// will push/pull the particles so they maintain exactly `rest_length`
-/// distance from each other.
+  🔗 A distance constraint between two particles in the chain.
+ 
+  This is a rigid rod connecting two particles. The constraint solver
+  will push/pull the particles so they maintain exactly `rest_length`
+  distance from each other.
 #[derive(Component)]
 struct ChainLink {
-    /// The particle at one end of the rod.
+     The particle at one end of the rod.
     first_particle_entity: Entity,
-    /// The particle at the other end of the rod.
+     The particle at the other end of the rod.
     second_particle_entity: Entity,
-    /// The desired distance between the two particles (the rod length).
+     The desired distance between the two particles (the rod length).
     rest_length: f32,
 }
 
-/// 🏗️ Build a chain from start to end
+  🏗️ Build a chain from start to end
 fn spawn_chain(
     commands: &mut Commands,
     start: Vec2,
@@ -218,7 +216,7 @@ fn spawn_chain(
     entities
 }
 
-/// 🔄 Update chain physics (Verlet integration)
+  🔄 Update chain physics (Verlet integration)
 fn update_chain(
     mut particle_query: Query<(&mut Position, &mut ChainParticle)>,
     link_query: Query<&ChainLink>,
@@ -257,12 +255,12 @@ fn update_chain(
     }
 }
 
-/// 💡 Verlet chain secrets:
-/// 1. Run Verlet integration first (gravity, velocity)
-/// 2. Run constraint solver (iteratively!)
-/// 3. Repeat
-/// The constraints "pull" particles to valid positions.
-/// Multiple iterations (5-10) give near-perfect results.
+  💡 Verlet chain secrets:
+  1. Run Verlet integration first (gravity, velocity)
+  2. Run constraint solver (iteratively!)
+  3. Repeat
+  The constraints "pull" particles to valid positions.
+  Multiple iterations (5-10) give near-perfect results.
 ```
 
 ```
@@ -294,14 +292,14 @@ Chain Simulation:
 ## 🔄 Rotational Joint
 
 ```rust
-/// 🔄 Hinge / Pivot joint  -  objects rotate around a common point
+  🔄 Hinge / Pivot joint  -  objects rotate around a common point
 #[derive(Component)]
 struct HingeJoint {
-    /// World-space position of the hinge
+     World-space position of the hinge
     pivot: Vec2,
-    /// Entity connected (None = connected to world)
+     Entity connected (None = connected to world)
     connected: Option<Entity>,
-    /// Min/max angle (None = free rotation)
+     Min/max angle (None = free rotation)
     min_angle: Option<f32>,
     max_angle: Option<f32>,
 }
@@ -338,12 +336,12 @@ fn solve_hinge_joint(
     }
 }
 
-/// 💡 Hinge joints are everywhere:
-/// - 🚪 Door hinges
-/// - 🦾 Robot arms
-/// - 🌲 Tree branches
-/// - 🚗 Car suspension
-/// - 🧍 Ragdoll elbows & knees
+  💡 Hinge joints are everywhere:
+  - 🚪 Door hinges
+  - 🦾 Robot arms
+  - 🌲 Tree branches
+  - 🚗 Car suspension
+  - 🧍 Ragdoll elbows & knees
 ```
 
 ---
@@ -351,18 +349,18 @@ fn solve_hinge_joint(
 ## 🧍 Simple Ragdoll
 
 ```rust
-/// 🧍 A minimal ragdoll with constraints
-///
-/// Structure:
-///     head
-///      |
-///     torso
-///    \    \
-///  arm    arm
-///    \    \
-///     hips
-///    \    \
-///  leg    leg
+  🧍 A minimal ragdoll with constraints
+ 
+  Structure:
+      head
+       |
+      torso
+     \    \
+   arm    arm
+     \    \
+      hips
+     \    \
+   leg    leg
 
 #[derive(Component)]
 struct RagdollPart {
@@ -380,7 +378,7 @@ struct RagdollJoint {
     rest_length: f32,
 }
 
-/// 🏗️ Spawn a simple ragdoll
+  🏗️ Spawn a simple ragdoll
 fn spawn_ragdoll(commands: &mut Commands, position: Vec2) {
     let head = spawn_part(commands, position + Vec2::new(0.0, 40.0), 8.0, RagdollPartType::Head);
     let torso = spawn_part(commands, position, 12.0, RagdollPartType::Torso);
@@ -423,7 +421,7 @@ fn spawn_part(commands: &mut Commands, pos: Vec2, size: f32, part_type: RagdollP
     )).id()
 }
 
-/// 🔄 Solve ragdoll constraints
+  🔄 Solve ragdoll constraints
 fn solve_ragdoll(
     joint_query: Query<&RagdollJoint>,
     mut part_query: Query<&mut Position>,
@@ -450,13 +448,13 @@ fn solve_ragdoll(
 ## 🎯 Constraint Solver Architecture
 
 ```rust
-/// 🏗️ Full constraint solver
-///
-/// The trick: run constraints MULTIPLE TIMES per frame
-/// More iterations = more accurate = more expensive
+  🏗️ Full constraint solver
+ 
+  The trick: run constraints MULTIPLE TIMES per frame
+  More iterations = more accurate = more expensive
 #[derive(Resource)]
 struct ConstraintSettings {
-    /// Number of constraint iterations per frame
+     Number of constraint iterations per frame
     iterations: u32,
 }
 
@@ -466,7 +464,7 @@ impl Default for ConstraintSettings {
     }
 }
 
-/// 🔄 Main constraint solving loop
+  🔄 Main constraint solving loop
 fn constraint_solver(
     settings: Res<ConstraintSettings>,
     // ... all constraint queries ...
@@ -489,16 +487,16 @@ fn constraint_solver(
     }
 }
 
-/// 💡 Constraint iteration insights:
-///
-/// 1 iteration  -> Jelly-like, very soft
-/// 3 iterations -> Noticeably stiffer
-/// 5 iterations -> Good for most games
-/// 10 iterations -> Very stiff, near-rigid
-/// 20+ iterations -> Overkill (diminishing returns)
-///
-/// Each iteration compounds the corrections, converging
-/// toward a valid configuration (like Gauss-Seidel).
+  💡 Constraint iteration insights:
+ 
+  1 iteration  -> Jelly-like, very soft
+  3 iterations -> Noticeably stiffer
+  5 iterations -> Good for most games
+  10 iterations -> Very stiff, near-rigid
+  20+ iterations -> Overkill (diminishing returns)
+ 
+  Each iteration compounds the corrections, converging
+  toward a valid configuration (like Gauss-Seidel).
 ```
 
 ---

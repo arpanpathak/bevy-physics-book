@@ -56,6 +56,25 @@ bevy = "0.15"
 
 ## 🧠 Complete Physics Module
 
+📍 Position in world space
+ 🏃 Velocity (units/second)
+ ⚡ Acceleration (units/second²)
+ ⚖️ Mass (kg)
+ 💥 Force accumulator
+ 🧱 Collision shape
+ 🎾 Material properties
+ 💥 Collision event
+ 🌍 Physics world settings
+ 🗺️ Simple spatial grid for broad phase
+ 🔍 Find entities in the 3×3 neighborhood
+ 🧹 Clear force accumulators
+ 🌍 Apply gravity
+ 📐 F = ma -> Integrate
+ 🗺️ Build spatial grid
+ 🔍 Detect collisions (broad + narrow)
+ 🔍 Narrow phase collision check
+ 🤝 Resolve collisions (impulse-based)
+
 ```rust
 // 📁 src/physics.rs
 //! 🧠 Complete physics engine  -  all in one file for clarity!
@@ -69,19 +88,15 @@ use bevy::prelude::*;
 // 📍 COMPONENTS
 // -
 
-/// 📍 Position in world space
 #[derive(Component, Clone, Copy)]
 pub struct Position(pub Vec2);
 
-/// 🏃 Velocity (units/second)
 #[derive(Component, Clone, Copy, Default)]
 pub struct Velocity(pub Vec2);
 
-/// ⚡ Acceleration (units/second²)
 #[derive(Component, Clone, Copy, Default)]
 pub struct Acceleration(pub Vec2);
 
-/// ⚖️ Mass (kg)
 #[derive(Component, Clone, Copy)]
 pub struct Mass(pub f32);
 
@@ -89,18 +104,15 @@ impl Default for Mass {
     fn default() -> Self { Self(1.0) }
 }
 
-/// 💥 Force accumulator
 #[derive(Component, Clone, Copy, Default)]
 pub struct ForceAccumulator(pub Vec2);
 
-/// 🧱 Collision shape
 #[derive(Component, Clone)]
 pub enum Collider {
     Circle { radius: f32 },
     Aabb { half_width: f32, half_height: f32 },
 }
 
-/// 🎾 Material properties
 #[derive(Component, Clone, Copy)]
 pub struct Material {
     pub restitution: f32,
@@ -113,7 +125,6 @@ impl Default for Material {
     }
 }
 
-/// 💥 Collision event
 #[derive(Event)]
 pub struct CollisionEvent {
     pub entity_a: Entity,
@@ -126,7 +137,6 @@ pub struct CollisionEvent {
 // ⚙️ RESOURCES
 // -
 
-/// 🌍 Physics world settings
 #[derive(Resource)]
 pub struct PhysicsSettings {
     pub gravity: Vec2,
@@ -142,7 +152,6 @@ impl Default for PhysicsSettings {
     }
 }
 
-/// 🗺️ Simple spatial grid for broad phase
 #[derive(Resource, Default)]
 pub struct SpatialGrid {
     cells: std::collections::HashMap<(i32, i32), Vec<Entity>>,
@@ -171,7 +180,6 @@ impl SpatialGrid {
         self.entity_positions.clear();
     }
     
-    /// 🔍 Find entities in the 3×3 neighborhood
     pub fn find_nearby(&self, entity: Entity, pos: Vec2) -> Vec<Entity> {
         let center = self.cell(pos);
         let mut nearby = Vec::new();
@@ -193,12 +201,10 @@ impl SpatialGrid {
 // 🔄 SYSTEMS
 // -
 
-/// 🧹 Clear force accumulators
 fn clear_forces(mut query: Query<&mut ForceAccumulator>) {
     for mut f in query.iter_mut() { f.0 = Vec2::ZERO; }
 }
 
-/// 🌍 Apply gravity
 fn apply_gravity(
     mut query: Query<(&Mass, &mut ForceAccumulator)>,
     settings: Res<PhysicsSettings>,
@@ -208,7 +214,6 @@ fn apply_gravity(
     }
 }
 
-/// 📐 F = ma -> Integrate
 fn integrate(
     mut query: Query<(&ForceAccumulator, &Mass, &mut Acceleration, &mut Velocity, &mut Position)>,
     settings: Res<PhysicsSettings>,
@@ -225,7 +230,6 @@ fn integrate(
     }
 }
 
-/// 🗺️ Build spatial grid
 fn build_grid(
     mut grid: ResMut<SpatialGrid>,
     query: Query<(Entity, &Position)>,
@@ -236,7 +240,6 @@ fn build_grid(
     }
 }
 
-/// 🔍 Detect collisions (broad + narrow)
 fn detect_collisions(
     mut events: EventWriter<CollisionEvent>,
     grid: Res<SpatialGrid>,
@@ -280,7 +283,6 @@ fn detect_collisions(
     }
 }
 
-/// 🔍 Narrow phase collision check
 fn check_collision(pos_a: Vec2, col_a: &Collider, pos_b: Vec2, col_b: &Collider) -> Option<(Vec2, f32)> {
     match (col_a, col_b) {
         (Collider::Circle { radius: r1 }, Collider::Circle { radius: r2 }) => {
@@ -316,7 +318,6 @@ fn check_collision(pos_a: Vec2, col_a: &Collider, pos_b: Vec2, col_b: &Collider)
     }
 }
 
-/// 🤝 Resolve collisions (impulse-based)
 fn resolve_collisions(
     mut events: EventReader<CollisionEvent>,
     mut query: Query<(&mut Position, &mut Velocity, &Mass, Option<&Material>)>,
@@ -359,6 +360,12 @@ fn resolve_collisions(
 
 ## 🎮 Sandbox Interaction Module
 
+🖱️ Resources for sandbox state
+ 🏗️ Setup the sandbox world
+ 🏀 Spawn a physics ball with visual sprite
+ 🖱️ Handle mouse click to spawn balls
+ ⌨️ Keyboard controls
+
 ```rust
 // 📁 src/sandbox.rs
 //! 🎮 Physics sandbox  -  interactive demo
@@ -366,7 +373,6 @@ fn resolve_collisions(
 use bevy::prelude::*;
 use crate::physics::*;
 
-/// 🖱️ Resources for sandbox state
 #[derive(Resource)]
 struct SandboxState {
     spawn_radius: f32,
@@ -379,7 +385,6 @@ impl Default for SandboxState {
     }
 }
 
-/// 🏗️ Setup the sandbox world
 pub fn setup_sandbox(mut commands: Commands) {
     // 📷 Camera
     commands.spawn(Camera2dBundle::default());
@@ -418,7 +423,6 @@ pub fn setup_sandbox(mut commands: Commands) {
     }
 }
 
-/// 🏀 Spawn a physics ball with visual sprite
 fn spawn_ball(commands: &mut Commands, pos: Vec2, radius: f32, mass: f32) {
     // Color based on mass
     let hue = (mass / 5.0).clamp(0.0, 1.0) * 0.7;
@@ -440,7 +444,6 @@ fn spawn_ball(commands: &mut Commands, pos: Vec2, radius: f32, mass: f32) {
     ));
 }
 
-/// 🖱️ Handle mouse click to spawn balls
 pub fn spawn_on_click(
     buttons: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window>,
@@ -467,7 +470,6 @@ pub fn spawn_on_click(
     }
 }
 
-/// ⌨️ Keyboard controls
 pub fn sandbox_controls(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut settings: ResMut<PhysicsSettings>,
@@ -524,6 +526,11 @@ pub fn sandbox_controls(
 
 ## 🕵️ Debug Visualization Module
 
+🎯 Debug toggle resource
+ 🔄 Toggle debug with F3
+ 🎨 Draw collision shapes and velocity vectors
+ 📊 Display FPS and object count
+
 ```rust
 // 📁 src/debug.rs
 //! 🕵️ Debug visualization for physics
@@ -531,7 +538,6 @@ pub fn sandbox_controls(
 use bevy::prelude::*;
 use crate::physics::*;
 
-/// 🎯 Debug toggle resource
 #[derive(Resource)]
 pub struct DebugMode(pub bool);
 
@@ -539,7 +545,6 @@ impl Default for DebugMode {
     fn default() -> Self { Self(false) }
 }
 
-/// 🔄 Toggle debug with F3
 pub fn toggle_debug(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut debug: ResMut<DebugMode>,
@@ -550,7 +555,6 @@ pub fn toggle_debug(
     }
 }
 
-/// 🎨 Draw collision shapes and velocity vectors
 pub fn debug_draw(
     debug: Res<DebugMode>,
     mut gizmos: Gizmos,
@@ -578,7 +582,6 @@ pub fn debug_draw(
     }
 }
 
-/// 📊 Display FPS and object count
 pub fn debug_ui(
     debug: Res<DebugMode>,
     diagnostics: Query<&Position>,

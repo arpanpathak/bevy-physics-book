@@ -634,13 +634,14 @@ THE INTUITION:
 
 Now that you understand the WHY, here's the code that implements it:
 
+The TWO-LINE integration that powers all of physics.
+
+ Input:  velocity, position (current state)
+         acceleration (from F = ma)
+         delta_time (timestep, typically 1/60 second)
+ Output: velocity, position (next state, modified in-place)
+
 ```rust
-/// The TWO-LINE integration that powers all of physics.
-///
-/// Input:  velocity, position (current state)
-///         acceleration (from F = ma)
-///         delta_time (timestep, typically 1/60 second)
-/// Output: velocity, position (next state, modified in-place)
 fn symplectic_euler_step(
     velocity: &mut Vec2,
     position: &mut Vec2,
@@ -665,9 +666,10 @@ fn symplectic_euler_step(
 
 And here's the full Bevy system that calls it for every physics entity every frame:
 
+The integration system registered with Bevy.
+ It runs every frame, for every entity that has all four physics components.
+
 ```rust
-/// The integration system registered with Bevy.
-/// It runs every frame, for every entity that has all four physics components.
 pub fn integrate_positions_using_symplectic_euler(
     mut physics_query: Query<(
         &ForceAccumulator,
@@ -703,36 +705,37 @@ pub fn integrate_positions_using_symplectic_euler(
 
 ### The PhysicsSettings Resource: World Settings
 
+Global physics settings stored as a Bevy Resource (singleton).
+
+ A Resource in Bevy is like a global variable - but managed by Bevy's
+ scheduler so systems can safely read/write it without conflicts.
+
+ Why a Resource and not a Component?
+   - Gravity affects ALL objects equally (not per-entity)
+   - Timestep is a WORLD setting, not an object property
+   - There's only ONE physics world with one set of settings
+
+ Why FIXED timestep and not the frame's delta time?
+   If dt varied with framerate:
+     30 FPS: dt = 33ms, objects jump TWICE as far per step
+     120 FPS: dt = 8ms, objects move HALF as far per step
+   Physics would run at DIFFERENT speeds on different computers!
+
+   Fixed timestep: physics always advances by 1/60 second per step.
+   If a frame takes 33ms (30 FPS): physics runs TWICE (catch up)
+   If a frame takes 8ms (120 FPS): physics runs ONCE (just right)
+   The RESULT is identical regardless of framerate!
+ Gravity vector. Default: (0, -500) pixels/second^2 in 2D.
+ Negative Y = pulls objects downward.
+ Game feel: (0, -9.81) = realistic, (0, -500) = platformer snappy
+ Fixed physics timestep. 1/60 = ~16.67ms for 60 Hz simulation.
+ Standard choice: 1/60. Stable and compatible with 60 FPS rendering.
+
 ```rust
-/// Global physics settings stored as a Bevy Resource (singleton).
-///
-/// A Resource in Bevy is like a global variable - but managed by Bevy's
-/// scheduler so systems can safely read/write it without conflicts.
-///
-/// Why a Resource and not a Component?
-///   - Gravity affects ALL objects equally (not per-entity)
-///   - Timestep is a WORLD setting, not an object property
-///   - There's only ONE physics world with one set of settings
-///
-/// Why FIXED timestep and not the frame's delta time?
-///   If dt varied with framerate:
-///     30 FPS: dt = 33ms, objects jump TWICE as far per step
-///     120 FPS: dt = 8ms, objects move HALF as far per step
-///   Physics would run at DIFFERENT speeds on different computers!
-///   
-///   Fixed timestep: physics always advances by 1/60 second per step.
-///   If a frame takes 33ms (30 FPS): physics runs TWICE (catch up)
-///   If a frame takes 8ms (120 FPS): physics runs ONCE (just right)
-///   The RESULT is identical regardless of framerate!
 #[derive(Resource)]
 pub struct PhysicsSettings {
-    /// Gravity vector. Default: (0, -500) pixels/second^2 in 2D.
-    /// Negative Y = pulls objects downward.
-    /// Game feel: (0, -9.81) = realistic, (0, -500) = platformer snappy
     pub gravity: Vec2,
     
-    /// Fixed physics timestep. 1/60 = ~16.67ms for 60 Hz simulation.
-    /// Standard choice: 1/60. Stable and compatible with 60 FPS rendering.
     pub fixed_delta_time: f32,
 }
 

@@ -30,19 +30,32 @@ for a in all_objects {
 
 ## 1️⃣ Spatial Grid (Simple & Effective)
 
-```rust
-/// 🗺️ Spatial Hash Grid  -  divides space into cells
-///
-/// Only check collisions between objects in the SAME cell (or adjacent cells)
-/// Objects far apart are never compared.
+🗺️ Spatial Hash Grid  -  divides space into cells
 
+ Only check collisions between objects in the SAME cell (or adjacent cells)
+ Objects far apart are never compared.
+ Cell size (should be > largest object size)
+ Grid cells: (cell_x, cell_y) -> list of entities
+ Entity positions (for boundary checks)
+ 🧮 Convert a world position to grid coordinates
+ 📥 Insert an entity into the grid
+ 🧹 Clear the grid (rebuild every frame)
+ 🔍 Find potential collision pairs for an entity
+ Only checks the entity's cell and 8 neighbors (3×3 region)
+ 🔄 System: rebuild spatial grid every frame
+ 🔍 Broad phase using spatial grid
+ 💡 Spatial Grid Performance:
+
+ Without grid:  n=1000 -> ~500,000 checks
+ With grid:     n=1000 -> ~9,000 checks (cell visitation)
+
+ That's 55× FASTER! And the advantage grows with n.
+
+```rust
 #[derive(Resource)]
 struct SpatialGrid {
-    /// Cell size (should be > largest object size)
     cell_size: f32,
-    /// Grid cells: (cell_x, cell_y) -> list of entities
     cells: HashMap<(i32, i32), Vec<Entity>>,
-    /// Entity positions (for boundary checks)
     entity_positions: HashMap<Entity, Vec2>,
 }
 
@@ -55,7 +68,6 @@ impl SpatialGrid {
         }
     }
     
-    /// 🧮 Convert a world position to grid coordinates
     fn cell_coord(&self, pos: Vec2) -> (i32, i32) {
         (
             (pos.x / self.cell_size).floor() as i32,
@@ -63,21 +75,17 @@ impl SpatialGrid {
         )
     }
     
-    /// 📥 Insert an entity into the grid
     fn insert(&mut self, entity: Entity, pos: Vec2) {
         let cell = self.cell_coord(pos);
         self.cells.entry(cell).or_default().push(entity);
         self.entity_positions.insert(entity, pos);
     }
     
-    /// 🧹 Clear the grid (rebuild every frame)
     fn clear(&mut self) {
         self.cells.clear();
         self.entity_positions.clear();
     }
     
-    /// 🔍 Find potential collision pairs for an entity
-    /// Only checks the entity's cell and 8 neighbors (3×3 region)
     fn find_pairs(&self, entity: Entity, pos: Vec2) -> Vec<Entity> {
         let center = self.cell_coord(pos);
         let mut nearby = Vec::new();
@@ -100,7 +108,6 @@ impl SpatialGrid {
     }
 }
 
-/// 🔄 System: rebuild spatial grid every frame
 fn rebuild_spatial_grid(
     mut grid: ResMut<SpatialGrid>,
     query: Query<(Entity, &Position)>,
@@ -113,7 +120,6 @@ fn rebuild_spatial_grid(
     }
 }
 
-/// 🔍 Broad phase using spatial grid
 fn broad_phase_spatial_grid(
     grid: Res<SpatialGrid>,
     query: Query<(Entity, &Position)>,
@@ -139,13 +145,6 @@ fn broad_phase_spatial_grid(
     
     pairs
 }
-
-/// 💡 Spatial Grid Performance:
-///
-/// Without grid:  n=1000 -> ~500,000 checks
-/// With grid:     n=1000 -> ~9,000 checks (cell visitation)
-///
-/// That's 55× FASTER! And the advantage grows with n.
 ```
 
 ```
@@ -171,21 +170,24 @@ Spatial Grid Visualization:
 
 ## 2️⃣ Quadtree (Adaptive Partitioning)
 
-```rust
-/// 🌳 Quadtree  -  adaptive spatial partitioning
-///
-/// Unlike the grid (which has fixed cell size), a quadtree
-/// subdivides only where there are many objects.
-/// Perfect for unevenly distributed scenes!
+🌳 Quadtree  -  adaptive spatial partitioning
 
+ Unlike the grid (which has fixed cell size), a quadtree
+ subdivides only where there are many objects.
+ Perfect for unevenly distributed scenes!
+ Boundaries of this node
+ Max objects before splitting
+ Objects in this node
+ Child nodes (subdivided)
+ 📥 Insert an entity
+ ✂️ Subdivide into 4 children
+ 🔍 Find all potential collisions for a position
+
+```rust
 struct Quadtree {
-    /// Boundaries of this node
     bounds: Aabb,
-    /// Max objects before splitting
     capacity: usize,
-    /// Objects in this node
     objects: Vec<(Entity, Vec2)>,
-    /// Child nodes (subdivided)
     children: Option<Box<[Quadtree; 4]>>,
 }
 
@@ -199,7 +201,6 @@ impl Quadtree {
         }
     }
     
-    /// 📥 Insert an entity
     fn insert(&mut self, entity: Entity, pos: Vec2) {
         // Is this position inside our bounds?
         if !self.bounds.contains(pos) {
@@ -237,7 +238,6 @@ impl Quadtree {
         }
     }
     
-    /// ✂️ Subdivide into 4 children
     fn subdivide(&mut self) {
         let center = (self.bounds.min + self.bounds.max) * 0.5;
         let (min, max) = (self.bounds.min, self.bounds.max);
@@ -254,7 +254,6 @@ impl Quadtree {
         ]));
     }
     
-    /// 🔍 Find all potential collisions for a position
     fn query(&self, pos: Vec2, results: &mut Vec<Entity>) {
         if !self.bounds.contains(pos) {
             return;
@@ -279,26 +278,27 @@ impl Quadtree {
 
 ## 3️⃣ Bounding Volume Hierarchy (BVH)
 
-```rust
-/// 🌳 Bounding Volume Hierarchy  -  tree of nested bounding boxes
-///
-/// Used by:
-/// - Bevy's built-in rendering (frustum culling)
-/// - Rapier physics engine
-/// - Modern game engines (Unity, Unreal)
+🌳 Bounding Volume Hierarchy  -  tree of nested bounding boxes
 
+ Used by:
+ - Bevy's built-in rendering (frustum culling)
+ - Rapier physics engine
+ - Modern game engines (Unity, Unreal)
+ Bounding box of this node and all children
+ Leaf: entity data
+ Internal: child nodes
+ 🏗️ Build BVH from a list of entities (bottom-up)
+ 🔍 Ray intersection (very fast with BVH!)
+
+```rust
 struct BvhNode {
-    /// Bounding box of this node and all children
     bounds: Aabb,
-    /// Leaf: entity data
     entity: Option<Entity>,
-    /// Internal: child nodes
     left: Option<Box<BvhNode>>,
     right: Option<Box<BvhNode>>,
 }
 
 impl BvhNode {
-    /// 🏗️ Build BVH from a list of entities (bottom-up)
     fn build(entities: &[(Entity, Vec2, f32)]) -> Self {
         if entities.len() == 1 {
             let (entity, pos, radius) = entities[0];
@@ -334,7 +334,6 @@ impl BvhNode {
         }
     }
     
-    /// 🔍 Ray intersection (very fast with BVH!)
     fn intersect_ray(&self, ray: &Ray) -> Option<(Entity, Vec2)> {
         // Quick reject: does the ray hit this node's bounds?
         if !ray.intersects_aabb(&self.bounds) {
@@ -376,8 +375,9 @@ impl BvhNode {
 | **Quadtree** | O(n log n) | O(log n) | O(n) | Uneven distribution |
 | **BVH** | O(n log n) | O(log n) | O(n) | Dynamic scenes |
 
+🎯 Recommendation by scene size:
+
 ```rust
-/// 🎯 Recommendation by scene size:
 fn recommend_partitioning(object_count: usize) -> &'static str {
     match object_count {
         0..=50 => "❌ None needed  -  brute force is fine!",
@@ -392,20 +392,20 @@ fn recommend_partitioning(object_count: usize) -> &'static str {
 
 ## 🎯 Chapter Summary
 
-```rust
-/// 📝 Spatial partitioning cheat sheet:
+📝 Spatial partitioning cheat sheet:
+ 🗺️ Spatial Grid Rules:
+ 🌳 Quadtree Rules:
 
+```rust
 // For < 50 objects: don't bother, O(n²) is fine
 // For 50-500 objects: Spatial Grid (easiest!)
 // For 500+ objects: Quadtree or BVH
 
-/// 🗺️ Spatial Grid Rules:
 // 1. Cell size should be > largest object size
 // 2. Check 3×3 neighborhood (9 cells total)
 // 3. Rebuild every frame (it's fast!)
 // 4. Use HashMap<(i32, i32), Vec<Entity>>
 
-/// 🌳 Quadtree Rules:
 // 1. Capacity threshold: 4-16 objects per node
 // 2. Subdivide only when full
 // 3. Query is O(log n)
