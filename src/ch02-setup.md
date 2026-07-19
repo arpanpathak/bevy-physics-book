@@ -1,30 +1,132 @@
-# ⚙️ Setting Up Your Bevy Physics Playground
+# ⚙️ Setting Up: From Zero to a Working Bevy Physics Project
 
-> **"Before you can simulate physics, you need to understand the simulation framework. Bevy's architecture isn't just 'how we set up the project'  -  it's the conceptual foundation for everything that follows."** 🔨
+> **Before we write a single line of physics code, we need a working Rust development environment and a Bevy project. This chapter walks you through EVERY step - from installing Rust to seeing your first physics object fall on screen. No prior Rust or Bevy experience required.** 🔨
 
 ---
 
-## 🎯 What We'll Build
+## 🎯 Prerequisites - What You Need
 
-By the end of this chapter, you won't just have a working Bevy project. You'll understand **what each piece does**, **why it's structured that way**, and **how the ECS engine processes your physics code**:
+To follow this book, you need:
+- A computer (Windows, Mac, or Linux) with internet access
+- About 2GB of free disk space (Rust + dependencies take space)
+- A text editor or IDE (VS Code recommended, but any will work)
+- The ability to open a terminal/command prompt
+- **No prior Rust experience required** - we'll install it together
+
+---
+
+## 📥 Step 0: Install Rust (If You Haven't Already)
+
+If you already have Rust installed, skip to Step 1. If not, here's how:
+
+### For Mac and Linux:
+
+Open your terminal and run:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+This downloads and runs the Rust installer. When prompted:
+1. Type `1` and press Enter (this chooses the default installation)
+2. Wait for the installation to complete (1-2 minutes)
+3. Close and reopen your terminal, OR run: `source $HOME/.cargo/env`
+
+### For Windows:
+
+1. Go to https://rustup.rs in your web browser
+2. Download `rustup-init.exe` (the big orange button)
+3. Run the installer
+4. Select "Default installation" when prompted
+5. After installation, open a NEW command prompt or PowerShell
+
+### Verify Rust Is Installed
+
+Run these commands to confirm everything works:
+
+```bash
+# Check Rust version (should show rustc 1.8x or later)
+rustc --version
+
+# Check Cargo version (Cargo is Rust's build tool)
+cargo --version
+```
+
+If you see version numbers, you're good. If you get "command not found," restart your terminal or log out and back in.
+
+### What Did We Just Install?
+
+| Tool | What It Does | Why We Need It |
+|------|-------------|----------------|
+| `rustc` | The Rust **compiler** - turns `.rs` files into executable programs | Without it, our code is just text |
+| `cargo` | Rust's **package manager and build tool** - creates projects, downloads dependencies, runs tests | Bevy is a dependency. Cargo downloads it and all 200+ crates it needs |
+| `rustup` | The Rust **version manager** - lets you switch between Rust versions | Ensures you can update to the latest Rust when needed |
+
+---
+
+## 🆕 Step 1: Create the Project
+
+Now let's create the Bevy physics project:
+
+```bash
+# Create a new Rust project called "my_physics_game"
+cargo new my_physics_game
+
+# Move into the project directory
+cd my_physics_game
+```
+
+Let's see what `cargo new` created:
+
+```bash
+# List all files (including hidden ones)
+ls -la
+
+# Output should look like:
+#   Cargo.toml    <- The project configuration file
+#   src/          <- Source code directory
+#     main.rs     <- The main entry point file
+#   .git/         <- Git repository (for version control)
+```
+
+### What Are These Files?
 
 ```
-📁 my_physics_game/
-├── Cargo.toml            # 📦 Dependency declarations (what crates we use)
+my_physics_game/
+├── Cargo.toml          📋 THE RECIPE CARD
+│                       Contains: project name, version, dependencies list.
+│                       When you add "bevy = 0.15" here, Cargo downloads
+│                       the entire Bevy engine and all its dependencies.
+│
 ├── src/
-│   ├── main.rs           # 🎬 App construction & system registration
-│   └── physics/
-│       ├── mod.rs        # 📝 Module declarations & plugin definition
-│       ├── components.rs # 📍 Data definitions (Position, Velocity, etc.)
-│       ├── integration.rs# 🔄 Logic (how position changes over time)
-│       └── collision.rs  # 🧱 Logic (what overlaps with what)
+│   └── main.rs         📝 THE ENTRY POINT
+│                       Contains the main() function. When you run
+│                       "cargo run", this is the file that executes.
+│                       Initially contains: fn main() { println!("Hello!"); }
+│
+└── .git/               📦 VERSION CONTROL (optional for us)
+                        Git repository for tracking changes to your code.
+                        Created automatically by cargo new.
 ```
 
 ---
 
-## 📦 Step 1: Understanding Dependencies
+## 📦 Step 2: Add Bevy as a Dependency
 
-When you write `bevy = "0.15"` in Cargo.toml, you're importing Bevy's **core crate**, which re-exports everything you need:
+Open `Cargo.toml` in your text editor. It currently looks like this:
+
+```toml
+[package]
+name = "my_physics_game"
+version = "0.1.0"
+edition = "2021"
+description = "🎮 A physics playground built with Bevy & Rust"
+
+# NOTE: There are NO dependencies yet.
+# The [dependencies] section doesn't exist - we ADD it.
+```
+
+**Change it to this:**
 
 ```toml
 [package]
@@ -33,182 +135,96 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# 🎯 Bevy 0.15  -  the entire game framework
-# This ONE crate gives us:
-#   - ECS World (entities, components, systems)
-#   - Renderer (window, sprites, camera)
-#   - Input (keyboard, mouse, gamepad)
-#   - Audio, UI, asset system, and much more
+# 🎯 Bevy - the game engine
+# Version 0.15 is what this book targets.
+# The * means "latest compatible version in the 0.15 range"
 bevy = "0.15"
 ```
 
-### What's Inside Bevy?
-
-Bevy is not a monolith  -  it's a **modular collection of plugins** under one crate:
-
-```
-bevy 0.15 ─┬── bevy_ecs        🧠 Core ECS (World, entities, components, systems)
-           ├── bevy_render     🎨 GPU rendering pipeline
-           ├── bevy_sprite     🖼️ 2D sprite rendering
-           ├── bevy_window     🪟 Window creation & management
-           ├── bevy_input      ⌨️ Keyboard/mouse/gamepad input
-           ├── bevy_time       ⏱️ Frame timing, delta time
-           ├── bevy_audio      🔊 Sound playback
-           └── bevy_ui         🧩 User interface elements
-```
-
-When you call `.add_plugins(DefaultPlugins)` in your app, you're enabling ALL of these at once. For physics, the essential ones are:
-
-- `bevy_ecs`  -  The **entire physics engine** runs on this
-- `bevy_time`  -  Provides `Time.delta_secs()` for integration
-- `bevy_render` + `bevy_sprite`  -  Visualizes physics objects
-- `bevy_input`  -  Enables interactive physics controls
-
-> 💡 **Key Insight:** The physics engine we build will run ENTIRELY within `bevy_ecs`. The other plugins are just for visualization and interaction. If you removed `DefaultPlugins`, your physics code would still compile and run  -  you just wouldn't see anything!
-
----
-
-## 🧠 Step 2: Understanding the ECS World
-
-Before writing a single line of physics, you MUST understand how Bevy's World processes data. This is the single most important concept in this entire book:
-
-### The Mental Model
-
-Think of Bevy's World as a **relational database** for game objects:
-
-```
-WORLD
-├── "Tables" = Archetypes (unique combinations of component types)
-├── "Rows" = Entities (identified by ID)
-├── "Columns" = Components (typed columns per archetype)
-└── "Queries" = SELECT statements (find entities matching component patterns)
-```
-
-### What happens when you call `.run()`?
-
-```rust
-fn main() {
-    App::new()                    // 1. Create empty application
-        .add_plugins(DefaultPlugins) // 2. Register built-in systems
-        .add_systems(Startup, setup) // 3. Register startup logic
-        .add_systems(Update, physics_step) // 4. Register per-frame logic
-        .run();                   // 5. 🚀 ENTER THE MAIN LOOP
-}
-```
-
-Let's trace through exactly what `.run()` does:
-
-```
-.run() ENTRY POINT
-│
-├── Phase 1: BUILD SCHEDULE
-│   ├── Collect ALL registered systems
-│   ├── Analyze component access patterns (reads vs writes)
-│   ├── Build dependency graph from .before()/.after()/.chain()
-│   └── Determine parallel execution groups
-│
-├── Phase 2: RUN STARTUP (once)
-│   ├── Execute all Startup systems in registration order
-│   │   └── setup() runs here:
-│   │       ├── commands.spawn(Camera2dBundle) → Queues camera creation
-│   │       ├── commands.spawn((Position, Velocity, SpriteBundle)) → Queues entity
-│   │       └── All queued commands execute at sync point
-│   └── ─── SYNC POINT ─── (Commands are flushed, entities become real)
-│
-└── Phase 3: MAIN LOOP (every frame, until window closes)
-    ├── 1. Event readers are advanced (previous frame's events cleared)
-    ├── 2. Time.delta_secs() is updated (time since last frame)
-    ├── 3. SCHEDULER RUNS Update systems
-    │   └── physics_step() runs here:
-    │       ├── Query<(Entity, &Velocity, &mut Position)>
-    │       ├── For each matching entity: pos += vel * dt
-    │       └── Reads Time resource for dt
-    ├── 4. ─── SYNC POINT ─── (any Commands from this frame)
-    ├── 5. RENDER: Bevy reads Transform components, draws sprites
-    └── 6. Repeat
-```
-
-### The Critical Insight: Systems Iterate, They Don't "Call"
-
-This is the most important mental shift from traditional game programming:
-
-```rust
-// ❌ TRADITIONAL APPROACH (object-oriented)
-fn game_loop(objects: &mut Vec<GameObject>) {
-    for obj in objects.iter_mut() {   // Manual iteration
-        obj.update(dt);               // Virtual method call
-    }
-}
-
-// ✅ BEVY APPROACH (data-oriented)
-fn physics_step(
-    query: Query<(&Velocity, &mut Position)>,  // Declarative query
-    time: Res<Time>,
-) {
-    // Bevy handles the iteration  -  it finds ALL matching entities
-    // and feeds them to this function body
-    for (vel, mut pos) in query.iter_mut() {
-        pos.0 += vel.0 * time.delta_secs();
-    }
-}
-```
-
-The difference is subtle but profound:
-- **OO:** You tell objects what to do. Objects own their data.
-- **ECS:** You describe a transformation on data. Bevy finds the data for you.
-
-This enables Bevy's **parallelism guarantee**: If two systems access different components (or the same components but only read), they can run in parallel automatically. The scheduler proves safety at compile time.
-
----
-
-## 🏗️ Step 3: Project Structure  -  Why Module Separation Matters
+Now let's test that everything works:
 
 ```bash
-mkdir -p src/physics
-touch src/physics/mod.rs
-touch src/physics/components.rs
-touch src/physics/integration.rs
-touch src/physics/collision.rs
+# Build the project (this downloads Bevy and compiles it)
+# First build takes 5-15 minutes depending on your internet speed
+cargo build
 ```
 
-This structure isn't arbitrary. Each file has a **clear responsibility**:
+**What happens during `cargo build`:**
+
+```
+Step 1: Cargo reads Cargo.toml
+Step 2: Sees "bevy = 0.15" in [dependencies]
+Step 3: Contacts crates.io (Rust's package registry)
+Step 4: Downloads Bevy source code (~100+ crates)
+Step 5: Downloads Bevy's dependencies (another ~100+ crates)
+Step 6: Compiles everything (this takes the longest)
+Step 7: Creates the executable in target/debug/
+
+Subsequent builds are MUCH faster - Cargo caches everything.
+```
+
+> ⚠️ **First build tip:** Go make coffee. Seriously. Bevy compiles over 200 dependent crates on the first build. Subsequent builds take seconds, not minutes.
+
+---
+
+## 🏗️ Step 3: Create the Physics Module Structure
+
+Now let's create the folder structure for our physics engine:
+
+```bash
+# Create the physics module directory
+mkdir -p src/physics
+
+# Create empty module files (we'll fill them in shortly)
+touch src/physics/mod.rs
+touch src/physics/components.rs
+touch src/physics/systems.rs
+```
+
+Your project structure should now look like:
+
+```
+my_physics_game/
+├── Cargo.toml                  # Dependencies
+├── src/
+│   ├── main.rs                 # Entry point
+│   └── physics/
+│       ├── mod.rs              # Physics plugin definition
+│       ├── components.rs       # Position, Velocity, Mass, etc.
+│       └── systems.rs          # Integration, forces, rendering sync
+```
+
+### Why This Structure?
+
+Each file has one job. This is called **separation of concerns**:
 
 ```
 src/
-├── main.rs              # 🎬 Main entry: App construction, system registration
-│                        #    "THE ORCHESTRATOR"  -  knows what systems exist
-│                        #    and in what order they run, but doesn't
-│                        #    know HOW they work internally
+├── main.rs              🎬 THE ORCHESTRATOR
+│                        Only sets up the app and spawns entities.
+│                        Doesn't know HOW physics works - only that it exists.
 │
-└── physics/             # 🧠 Physics engine: encapsulated module
-    ├── mod.rs           # 📝 Module declarations & PhysicsPlugin definition
-    │                    #    "THE BOUNDARY"  -  external code only sees
-    │                    #    this module's public API
+└── physics/             🧠 THE PHYSICS ENGINE (reusable module)
+    ├── mod.rs           📝 THE PUBLIC API
+    │                    Exposes PhysicsPlugin. External code just adds it.
+    │                    "What can outsiders see?" -> Only the plugin.
     │
-    ├── components.rs    # 📍 Data types: Position, Velocity, Mass, etc.
-    │                    #    "THE VOCABULARY"  -  defines what physics
-    │                    #    concepts exist (pure data, no logic)
+    ├── components.rs    📍 THE VOCABULARY
+    │                    Defines Position, Velocity, Mass, ForceAccumulator.
+    │                    PURE DATA. No logic. Just structs with fields.
+    │                    "What concepts exist?" -> Position, Velocity, etc.
     │
-    ├── integration.rs   # 🔄 Systems that UPDATE components
-    │                    #    "THE PHYSICS"  -  implements Euler integration,
-    │                    #    force accumulation, damping
-    │
-    └── collision.rs     # 🧱 Systems that DETECT and RESPOND to overlaps
-                         #    "THE COLLISIONS"  -  broad phase, narrow phase,
-                         #    impulse resolution
+    └── systems.rs       🔄 THE GRAMMAR
+                         Defines how components transform each frame.
+                         PURE LOGIC. Functions that read/write components.
+                         "What happens each frame?" -> Integrate, sync, etc.
 ```
 
-### 💡 Why This Separation Matters for Learning
-
-Each component type in your physics engine needs THREE things:
-
-| # | What | Where | Example |
-|---|------|-------|---------|
-| 1 | **Data definition** | `components.rs` | `struct Position(Vec2)` |
-| 2 | **Creation logic** | Setup/system | `Position::new(0.0, 0.0)` |
-| 3 | **Update logic** | System | `pos.0 += vel.0 * dt` |
-
-By separating data (`components.rs`) from logic (`integration.rs`, `collision.rs`), you enforce the ECS discipline: **components are dumb data, systems are smart logic**. This makes your code easier to reason about, test, and parallelize.
+> 💡 **The key insight:** If you separate data from logic, you can:
+> 1. Change the logic without changing the data (and vice versa)
+> 2. Test the logic in isolation (pass in test data, check output)
+> 3. Reuse the logic with different data (different games, same physics)
+> 4. Run the logic in parallel (no shared mutable state - the ECS guarantee)
 
 ---
 
