@@ -45,77 +45,86 @@ Euler angles represent rotation as THREE SEPARATE 2D rotations applied in sequen
 
 ## 🧮 What IS a Quaternion?
 
-A quaternion has four components: `w`, `x`, `y`, `z`.
+**A quaternion is a way to represent ANY 3D rotation using exactly four numbers, without the singularities that plague Euler angles.**
+
+Think of it as "axis-angle" with a clever mathematical encoding:
 
 ```
-Quaternion = w + x·i + y·j + z·k
+Axis-angle:     "Rotate by theta degrees around axis A"
+                  (needs special math to compose/apply)
 
-Where i, j, k are "imaginary units" satisfying:
-  i² = j² = k² = i·j·k = -1
+Quaternion:     Same rotation, encoded as four numbers (w, x, y, z)
+                  (composes trivially with multiplication)
 ```
 
-But you don't need to understand the complex algebra. What matters is the **geometric meaning**:
+The encoding is simple. For a rotation of θ degrees around a unit axis A = (ax, ay, az):
+
+| Component | Formula | What It Stores |
+|-----------|---------|----------------|
+| **w** | cos(θ/2) | "How much" rotation (scalar part) |
+| **x** | ax sin(θ/2) | X-component of the rotation axis |
+| **y** | ay sin(θ/2) | Y-component of the rotation axis |
+| **z** | az sin(θ/2) | Z-component of the rotation axis |
+
+**Concrete example: Rotate 90 degrees around the Z axis**
 
 ```
-A quaternion represents: "Rotate by θ degrees around axis A"
+Axis: Z = (0, 0, 1), Angle = 90 degrees = pi/2 radians
 
-  θ = angle of rotation
-  A = (ax, ay, az) = unit vector axis of rotation
+  w = cos(90/2) = cos(45) = 0.707
+  x = 0 * sin(45) = 0
+  y = 0 * sin(45) = 0
+  z = 1 * sin(45) = 0.707
 
-  Quaternion components:
-    w = cos(θ/2)          <- "amount" of rotation
-    x = ax × sin(θ/2)     <- X component of rotation axis
-    y = ay × sin(θ/2)     <- Y component of rotation axis
-    z = az × sin(θ/2)     <- Z component of rotation axis
-
-EXAMPLE: Rotate 90° around the Z axis:
-  θ = 90° = π/2
-  A = (0, 0, 1)  <- Z axis
-
-  w = cos(45°) ≈ 0.707
-  x = 0 × sin(45°) = 0
-  y = 0 × sin(45°) = 0
-  z = 1 × sin(45°) ≈ 0.707
-
-  Result: Quat(w=0.707, x=0, y=0, z=0.707)
-  This represents: "rotate 90° around the Z axis"
+Result: Quat(w=0.707, x=0, y=0, z=0.707)
 ```
 
-### Why θ/2? The Double Cover Property
+This says: "take the Z-axis (0,0,1), stretch it by sin(45)=0.707, and store the cosine of the half-angle in w."
 
-The "half angle" is what makes quaternion composition work:
+### Why theta/2? The Double Cover Property
+
+The half-angle is not arbitrary - it exists because quaternions use MULTIPLICATION to compose rotations.
+
+**The key insight:** When you multiply two quaternions, their half-angles ADD. This is exactly what you want from rotation composition - two rotations of 30 degrees each should combine to one rotation of 60 degrees.
 
 ```
-If Q₁ = "rotate θ₁ around A₁" and Q₂ = "rotate θ₂ around A₂"
+Quaternion A: rotate 30 degrees around axis A
+  w_A = cos(15)  (half of 30)
+  
+Quaternion B: rotate 30 degrees around axis B  
+  w_B = cos(15)  (half of 30)
 
-Then Q₂ × Q₁ = "rotate by θ₁, THEN rotate by θ₂"
-
-The angles add because of the half-angle in the definition:
-  cos(θ₁/2) × cos(θ₂/2) - sin(θ₁/2) × sin(θ₂/2) × (A₁ · A₂) = cos((θ₁+θ₂)/2)
-
-Additionally, q and -q represent the SAME rotation (double cover).
-This is why SLERP can always find the SHORTEST path between two rotations.
+When multiplied: A x B = rotate 60 degrees around some combined axis
+  w_result = cos(30)  (half of 60 = 15 + 15)
 ```
 
-Creating a quaternion from axis-angle is the most intuitive method.
- You say: "I want to rotate `angle` radians around this `axis`."
- Alternatively, use the shorthand for axis-specific rotations:
+The half-angle is what makes this work elegantly. Without it, composing rotations would require complex trigonometric calculations instead of simple multiplication.
+
+**A quaternion represents every rotation TWICE** - this is the "double cover" property:
+
+```
+Quat(axis, theta) = the same rotation as Quat(-axis, -theta + 360)
+Quat(w, x, y, z)  = the same rotation as Quat(-w, -x, -y, -z)
+```
+
+Both represent IDENTICAL physical rotations. This is useful for SLERP (smooth interpolation) because it gives you two paths between rotations - you can always choose the SHORTER one.
+
+**In practice:** Never modify quaternion components directly. Use Bevy's Quat::from_axis_angle() and Quat::from_rotation_z() which handle the math correctly. The internal (w, x, y, z) representation is an implementation detail.
 
 ```rust
 use bevy::prelude::*;
 
 pub fn create_rotation_from_axis_and_angle() -> Quat {
-    let rotation_axis = Vec3::new(0.0, 1.0, 0.0); // Y axis (yaw)
-    let rotation_angle = std::f32::consts::FRAC_PI_4; // 45°
+    let rotation_axis = Vec3::new(0.0, 1.0, 0.0);
+    let rotation_angle = std::f32::consts::FRAC_PI_4;
     
     Quat::from_axis_angle(rotation_axis, rotation_angle)
 }
 
-let pitch_quaternion = Quat::from_rotation_x(std::f32::consts::FRAC_PI_4); // Nod "yes"
-let yaw_quaternion = Quat::from_rotation_y(std::f32::consts::FRAC_PI_4);   // Shake "no"
-let roll_quaternion = Quat::from_rotation_z(std::f32::consts::FRAC_PI_4);  // Tilt head
+let pitch_quaternion = Quat::from_rotation_x(std::f32::consts::FRAC_PI_4);
+let yaw_quaternion = Quat::from_rotation_y(std::f32::consts::FRAC_PI_4);
+let roll_quaternion = Quat::from_rotation_z(std::f32::consts::FRAC_PI_4);
 ```
-
 ---
 
 ## 🎯 Creating Quaternions in Bevy: Four Methods

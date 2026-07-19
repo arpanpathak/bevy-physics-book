@@ -70,30 +70,62 @@ let point_c = transformation.transform_point2(Vec2::new(0.0, -20.0));
 
 ## 🧠 The Deep Insight: Columns Are Basis Vectors
 
-A 3×3 matrix in 2D has three columns. Each column is a VECTOR that tells you where one of the original axes goes:
+This is the single most important insight about matrices. If you understand this, you understand ALL matrix operations intuitively.
+
+**A matrix is not just a grid of numbers. It's a set of column vectors that describe where the STANDARD AXES end up after the transformation.**
+
+Think about it this way. In 2D space, every point is defined by two axes: X (horizontal) and Y (vertical). The point (3, 2) means "go 3 units along X, then 2 units along Y." But what are X and Y? They're just arrows:
 
 ```
-+------------------------------------------------------------+
-|                 WHAT THE COLUMNS MEAN                      |
-+------------------------------------------------------------+
-|                                                            |
-|  Column 0 (first column)  = Where the X-axis goes          |
-|  Column 1 (second column) = Where the Y-axis goes          |
-|  Column 2 (third column)  = Where the ORIGIN goes          |
-|                                                            |
-|  When you multiply: mat × (x, y, 1)                        |
-|                                                            |
-|  You're computing:  x × column_0 + y × column_1 + 1 × column_2
-|                                                            |
-|  This is a LINEAR COMBINATION of the columns!              |
-+------------------------------------------------------------+
+X axis arrow = (1, 0)  -> points right
+Y axis arrow = (0, 1)  -> points up
 ```
 
-Let's verify this with concrete examples:
+When you apply a matrix transformation to the whole world, you're really just saying:
 
-The identity matrix: columns are the STANDARD basis vectors.
- Scale matrix: columns are just the axes, but LONGER.
- Rotation matrix: columns are the axes, but ROTATED.
+**"Take the X arrow and put it where column 0 says. Take the Y arrow and put it where column 1 says. Take the origin and put it where column 2 says."**
+
+This is why the columns work the way they do:
+
+| Column | What It Represents | Identity Value |
+|--------|-------------------|----------------|
+| **Column 0** | Where the X-axis ENDS UP after transformation | (1, 0, 0) |
+| **Column 1** | Where the Y-axis ENDS UP after transformation | (0, 1, 0) |
+| **Column 2** | Where the ORIGIN (0,0) ENDS UP after transformation | (0, 0, 1) |
+
+**What happens when you multiply a matrix by a point?**
+
+The formula mat x point does this:
+
+```
+result = x x column_0 + y x column_1 + 1 x column_2
+```
+
+This is called a LINEAR COMBINATION of the columns. You're building the output point by:
+1. Taking x units of the new X-axis (column 0)
+2. Adding y units of the new Y-axis (column 1)
+3. Adding 1 unit of the new origin position (column 2)
+
+**Let's verify with concrete examples:**
+
+The **identity** matrix has columns (1,0,0), (0,1,0), (0,0,1):
+
+```
+When you multiply: identity x (3, 2, 1)
+You get: 3 x (1,0,0) + 2 x (0,1,0) + 1 x (0,0,1)
+       = (3, 0, 0) + (0, 2, 0) + (0, 0, 1)
+       = (3, 2, 1)
+```
+
+Same point. The identity matrix means "the axes don't change." Makes sense.
+
+A **scale** matrix for 2x has columns (2,0,0), (0,1,0), (0,0,1):
+
+```
+3 x (2,0,0) + 2 x (0,1,0) + 1 x (0,0,1) = (6, 2, 1)
+```
+
+The X-axis was stretched to (2,0), so the point's x-coordinate doubled. The Y-axis stayed as (0,1), so y stayed the same.
 
 ```rust
 let identity_matrix = Mat3::IDENTITY;
