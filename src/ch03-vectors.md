@@ -121,23 +121,35 @@ let new_position = position + velocity;   // 📍 WHERE I'LL BE
 
 ## ➕ Addition: How Everything Moves
 
-Vector addition is the SINGLE most important operation in game physics. It's how everything moves.
+Vector addition is the SINGLE most important operation in game physics. It's how everything moves. Let me explain why.
+
+**Think about what "moving" actually means.** You're at position A. You want to be at position B. The difference between B and A is a vector - it tells you how far and which way to go. Adding that difference to your current position gives you the new position.
 
 ```
-  Visual: Adding two vectors
-    a = (3, 1), b = (1, 2)
-    
+position + movement = new_position
+   (A)      (B-A)        (B)
+```
+
+This is so fundamental that we often don't think about it. But every frame of every game, this exact operation happens for every moving object.
+
+**The geometric meaning:** Place two vectors tip-to-tail. The result goes from the first tail to the second tip.
+
+```
+  Visual: Adding (3, 1) + (1, 2) = (4, 3)
+
     y
     |
-    3 ----> a + b = (4, 3)     <- Place b's tail at a's head.
-    |    \                       The result goes from a's tail
-    2 --> b   \                   to b's head.
-    | \   \
-    1->a  \
-    |\
+    3 ----> (4, 3)    <- The result: start at (0,0), go to (4,3)
+    |    /
+    2 --> b   /        <- b = (1, 2) placed at a's tip
+    | \   /
+    1->a  /            <- a = (3, 1) from the origin
+    |\/
     ----+---> x
         1 2 3 4
 ```
+
+**Why this works for physics:** Position and velocity are BOTH Vec2. Adding them is physically meaningful - "where I am plus how I'm moving tells me where I'll be."
 
 ```rust
 /// Moving a character by adding velocity to position:
@@ -145,15 +157,17 @@ let character_position = Vec2::new(100.0, 200.0);
 let velocity = Vec2::new(50.0, 0.0);  // Moving right 50 px/s
 let delta_time = 1.0 / 60.0;          // One frame
 
-// 🎯 THIS IS THE ENTIRE PHYSICS ENGINE, IN ONE LINE:
+// THIS IS THE ENTIRE PHYSICS ENGINE, IN ONE LINE:
 let new_position = character_position + velocity * delta_time;
 // = (100, 200) + (0.833, 0) = (100.833, 200)
 // The character moved 0.833 pixels to the right this frame.
 
-// 💡 `velocity * delta_time` converts "pixels per second" to
-//    "pixels this frame." This is called the "delta" or change.
-//    Adding that change to position gives the new position.
+// Why velocity * delta_time? Because velocity is measured in
+// "pixels per SECOND." Multiplying by delta_time (seconds per frame)
+// converts it to "pixels THIS FRAME." This is called the "delta."
 ```
+
+Every frame of every physics simulation does exactly this. All the complexity of forces, collisions, and constraints eventually feeds into this single addition.
 
 ---
 
