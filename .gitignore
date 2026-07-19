@@ -1,0 +1,12 @@
+# 🔧 Ignore editor/OS cruft
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.iml
+
+# 📦 Ignore generated files
+node_modules/
+*.wasm
