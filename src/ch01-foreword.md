@@ -77,15 +77,15 @@ Each chapter builds on the previous. Code examples use **Bevy 0.15+** and are **
 
 ```
         Realism
-           ↑
-    ╔═══════════════════╗
-    ║   "Good Enough"   ║
-    ║   Physics Zone    ║
-    ╚═══════════════════╝
-           ↑
-    ┌───────────────────┐
-    │   Performance     │ ← Always the bottleneck!
-    └───────────────────┘
+           |
+    +-----------------------+
+    |   "Good Enough"       |
+    |   Physics Zone        |
+    +-----------------------+
+           |
+    +-----------------------+
+    |   Performance         |  <- Always the bottleneck!
+    +-----------------------+
 ```
 
 **The Golden Rule of Game Physics:** ⭐
