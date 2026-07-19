@@ -360,47 +360,75 @@ fn safe_normalize(v: Vec2, default_direction: Vec2) -> Vec2 {
 
 ## 🎯 The Dot Product: Angle Without Trigonometry
 
-The dot product is the single most useful vector operation in game physics. Here's why:
+The dot product is the single most useful vector operation in game physics. If you understand only one operation deeply, make it this one.
 
-**The dot product tells you the ANGLE between two vectors WITHOUT computing the angle.**
+**What does the dot product DO?**
 
-**The formula:**
+It takes two vectors and returns a single number (a scalar). That number tells you how much one vector "projects onto" another - or in plain English, **how much they point in the same direction.**
 
-```
-a · b = a.x × b.x + a.y × b.y
-```
+**But WHY does multiplying components and adding them work?**
 
-Which is equivalent to:
+Imagine you have a vector a = (3, 1). It points 3 units right and 1 unit up. Now imagine another vector b = (2, 0) - it points purely right.
 
 ```
-a · b = ‖a‖ × ‖b‖ × cos(θ)
+a . b = (3)(2) + (1)(0) = 6
 ```
 
-**The key insight:** If both vectors are UNIT vectors (length = 1), the formula simplifies to:
+What does 6 mean? It means **a has 6 units of "rightwardness"** when measured against b. The x-component of a (which is 3) multiplied by b's x (which is 2) gives us the contribution from the x-axis. The y-components contribute nothing because b has no y. The dot product extracts how much of a is parallel to b.
+
+**The complete geometric meaning:**
 
 ```
-a · b = cos(θ)
+a . b = ‖a‖ × ‖b‖ × cos(θ)
 ```
 
-That's it. Just the cosine of the angle. No `atan`, no `acos`, no trig functions needed. Just multiply components and add them up.
+Where θ is the angle BETWEEN the two vectors. This formula packs three pieces of information:
 
-### What the Sign Tells You
+1. **‖a‖** - the length of a (how much vector a there is)
+2. **‖b‖** - the length of b (how much vector b there is)
+3. **cos(θ)** - how aligned they are (1.0 = same direction, 0.0 = perpendicular, -1.0 = opposite)
+
+**The magic happens with UNIT vectors.**
+
+If BOTH vectors have length 1 (they're "unit vectors"), the formula collapses:
+
+```
+a . b = cos(θ)
+```
+
+Just the cosine of the angle. Nothing else. This means:
+- Two vectors pointing the SAME direction: dot = cos(0) = +1.0
+- Two vectors at RIGHT ANGLES: dot = cos(90) = 0.0
+- Two vectors pointing OPPOSITE: dot = cos(180) = -1.0
+- Two vectors at 45 degrees: dot = cos(45) ≈ 0.707
+
+You now know the angle between any two directions using only four multiplications and three additions. No trig functions, no atan, no acos.
+
+**Wait, why do we multiply components instead of computing cos directly?**
+
+Because cos(θ) is EXPENSIVE to compute (it uses a Taylor series internally). The dot product uses only multiplication and addition - operations that CPUs can do in a single clock cycle. It's 10-100x faster than calling cos().
+
+**What does the result mean in practice?**
 
 ```rust
 let forward = Vec2::new(1.0, 0.0);  // Unit vector pointing right
 
 // POSITIVE: Same general direction (angle < 90)
-forward.dot(Vec2::new(1.0, 0.5).normalize());  // = 0.894
-// The target is AHEAD of me
+// The dot product equals cos(angle), and cos is positive for angles < 90
+forward.dot(Vec2::new(1.0, 0.5).normalize());  // = 0.894 -> angle ≈ 26 degrees
 
 // ZERO: Perpendicular (angle = 90)
-forward.dot(Vec2::new(0.0, 1.0));  // = 0.0
-// The target is exactly to my LEFT
+// cos(90) = 0, so the dot product is exactly 0
+forward.dot(Vec2::new(0.0, 1.0));  // = 0.0 -> angle is exactly 90 degrees
 
 // NEGATIVE: Opposite direction (angle > 90)
-forward.dot(Vec2::new(-1.0, 0.0));  // = -1.0
-// The target is BEHIND me
+// cos is negative for angles > 90
+forward.dot(Vec2::new(-1.0, 0.0));  // = -1.0 -> angle is exactly 180 degrees
 ```
+
+**The key insight:** The sign of the dot product tells you FRONT vs BACK. The magnitude (when using unit vectors) tells you exactly HOW MUCH in front or back.
+
+### Game Uses
 
 ### Game Uses
 
