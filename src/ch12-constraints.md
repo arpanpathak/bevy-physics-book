@@ -31,42 +31,99 @@ Without constraints:    With constraints:
 
 The simplest and most useful constraint:
 
-```rust
-/// 🔗 Distance constraint: keeps two points at a fixed distance
-fn distance_constraint(
-    pos_a: &mut Vec2,
-    pos_b: &mut Vec2,
-    inv_mass_a: f32,
-    inv_mass_b: f32,
+/// Resolves a **distance constraint** between two particles.
+///
+/// A distance constraint ensures that two particles remain at a fixed
+/// distance from each other — like a rigid rod connecting them.
+///
+/// # How It Works
+///
+/// 1. Compute the current distance between the two particles.
+/// 2. Compare it to the target (rest) distance.
+/// 3. If there's a difference, push the particles toward or away from
+///    each other along the line connecting them.
+/// 4. The amount each particle moves is PROPORTIONAL to its inverse mass
+///    (heavier particles move less).
+///
+/// # The Correction Formula
+///
+/// ```text
+/// displacement = direction × (current_distance - target_distance) × stiffness
+/// particle_1 -= displacement × (inverse_mass_1 / total_inverse_mass)
+/// particle_2 += displacement × (inverse_mass_2 / total_inverse_mass)
+/// ```
+///
+/// This is a **position-based** constraint solver — we directly modify
+/// positions rather than applying forces. This is what makes Verlet
+/// integration so powerful: constraints become trivial position adjustments.
+///
+/// # Arguments
+/// * `position_of_first_particle` - The position of particle 1. Modified in-place.
+/// * `position_of_second_particle` - The position of particle 2. Modified in-place.
+/// * `inverse_mass_of_first_particle` - 1/mass of particle 1 (0 = infinite mass).
+/// * `inverse_mass_of_second_particle` - 1/mass of particle 2 (0 = infinite mass).
+/// * `target_distance` - The desired distance between the two particles.
+/// * `stiffness` - How rigid the constraint is (0.0 to 1.0).
+///   1.0 = perfectly rigid, 0.5 = soft/springy.
+pub fn distance_constraint(
+    position_of_first_particle: &mut Vec2,
+    position_of_second_particle: &mut Vec2,
+    inverse_mass_of_first_particle: f32,
+    inverse_mass_of_second_particle: f32,
     target_distance: f32,
-    stiffness: f32,  // 0.0 = no correction, 1.0 = full correction
+    stiffness: f32,
 ) {
-    // 📐 Vector between the two points
-    let delta = *pos_a - *pos_b;
-    let current_distance = delta.length();
-    
-    // ⛔ Avoid division by zero
+    // Step 1: Compute the vector from particle 2 to particle 1.
+    // This tells us the direction we need to push/pull along.
+    let vector_between_particles =
+        *position_of_first_particle - *position_of_second_particle;
+
+    // Step 2: Compute the current distance (the length of the vector).
+    let current_distance = vector_between_particles.length();
+
+    // ⛔ Guard against division by zero.
+    // If both particles are at the exact same position, the direction
+    // vector is undefined. We just bail out — the constraint can't
+    // be resolved until the particles separate.
     if current_distance < 0.0001 {
         return;
     }
-    
-    // 🧭 Direction (normalized)
-    let direction = delta / current_distance;
-    
-    // 📏 How far off are we?
-    let error = current_distance - target_distance;
-    
-    // 🧮 Correction amount (with stiffness for soft constraints)
-    let correction = direction * error * stiffness;
-    
-    // 🔄 Apply correction proportional to inverse masses
-    // Heavier object (lower inv mass) moves less
-    let total_inv_mass = inv_mass_a + inv_mass_b;
-    
-    if total_inv_mass > 0.0 {
-        *pos_a -= correction * (inv_mass_a / total_inv_mass);
-        *pos_b += correction * (inv_mass_b / total_inv_mass);
+
+    // Step 3: Compute the direction (unit vector from particle 2 to particle 1).
+    let direction_from_second_to_first =
+        vector_between_particles / current_distance;
+
+    // Step 4: How far off are we from the target distance?
+    // Positive = particles are too far apart (need to pull together).
+    // Negative = particles are too close (need to push apart).
+    let distance_error = current_distance - target_distance;
+
+    // Step 5: Compute the correction displacement.
+    // The stiffness factor allows soft constraints where we only
+    // partially correct the error each frame.
+    let correction_displacement =
+        direction_from_second_to_first * distance_error * stiffness;
+
+    // Step 6: Distribute the correction based on inverse masses.
+    // Heavier particles (lower inverse mass) move less.
+    // This conserves the center of mass of the system.
+    let total_inverse_mass =
+        inverse_mass_of_first_particle + inverse_mass_of_second_particle;
+
+    if total_inverse_mass > 0.0 {
+        // Particle 1 moves proportional to its OWN inverse mass
+        // (actually, proportional to the OTHER particle's mass share)
+        *position_of_first_particle -=
+            correction_displacement
+            * (inverse_mass_of_first_particle / total_inverse_mass);
+
+        // Particle 2 moves in the OPPOSITE direction
+        *position_of_second_particle +=
+            correction_displacement
+            * (inverse_mass_of_second_particle / total_inverse_mass);
     }
+    // If total_inverse_mass is 0, both particles are immovable (mass = ∞).
+    // Nothing we can do — they're pinned to the world.
 }
 ```
 
@@ -95,17 +152,31 @@ Using Verlet integration, constraints become **trivially simple**:
 ```rust
 /// ⛓️ A chain made of Verlet particles with distance constraints
 
-/// 📍 A single particle in our chain
+/// 📍 A single particle in a Verlet chain simulation.
+///
+/// Verlet integration stores the PREVIOUS position instead of velocity.
+/// This allows the integration to be done purely through position
+/// manipulation, which makes constraints trivially simple to implement.
 #[derive(Component)]
 struct ChainParticle {
-    prev_pos: Vec2,
+    /// The position of this particle in the PREVIOUS frame.
+    /// Used by the Verlet integrator to compute motion:
+    /// new_position = 2 × current - previous + acceleration × dt²
+    previous_position: Vec2,
 }
 
-/// 🔗 A constraint between two particles
+/// 🔗 A distance constraint between two particles in the chain.
+///
+/// This is a rigid rod connecting two particles. The constraint solver
+/// will push/pull the particles so they maintain exactly `rest_length`
+/// distance from each other.
 #[derive(Component)]
 struct ChainLink {
-    entity_a: Entity,
-    entity_b: Entity,
+    /// The particle at one end of the rod.
+    first_particle_entity: Entity,
+    /// The particle at the other end of the rod.
+    second_particle_entity: Entity,
+    /// The desired distance between the two particles (the rod length).
     rest_length: f32,
 }
 
@@ -138,8 +209,8 @@ fn spawn_chain(
     // Create distance constraints between adjacent particles
     for i in 0..link_count {
         commands.spawn(ChainLink {
-            entity_a: entities[i],
-            entity_b: entities[i + 1],
+            first_particle_entity: entities[i],
+            second_particle_entity: entities[i + 1],
             rest_length: link_length,
         });
     }
@@ -157,29 +228,30 @@ fn update_chain(
     let gravity = settings.gravity;
     
     // ─── 1️⃣ Verlet integration step ───
-    for (mut pos, mut particle) in particle_query.iter_mut() {
-        let current = pos.0;
+    for (mut position, mut particle) in particle_query.iter_mut() {
+        let current_position = position.0;
         
-        // Verlet: new_pos = 2×current - prev + acceleration × dt²
-        pos.0 = pos.0 * 2.0 - particle.prev_pos + gravity * dt * dt;
+        // Verlet formula: new_position = 2 × current - previous + acceleration × dt²
+        // The acceleration is just gravity in this case.
+        position.0 = position.0 * 2.0 - particle.previous_position + gravity * dt * dt;
         
-        // Store current as previous for next frame
-        particle.prev_pos = current;
+        // Store current position as previous for the next frame.
+        particle.previous_position = current_position;
     }
     
     // ─── 2️⃣ Apply constraints (multiple iterations!) ───
     for _ in 0..5 {  // Multiple iterations = more stable
         for link in link_query.iter() {
-            let (mut pos_a, mut pos_b) = 
-                get_pair_mut!(particle_query, link.entity_a, link.entity_b);
+            let (mut position_of_first_particle, mut position_of_second_particle) = 
+                get_pair_mut!(particle_query, link.first_particle_entity, link.second_particle_entity);
             
             distance_constraint(
-                &mut pos_a.0,
-                &mut pos_b.0,
-                1.0,  // inv_mass = 1 for all particles
+                &mut position_of_first_particle.0,
+                &mut position_of_second_particle.0,
+                1.0,  // inverse_mass = 1 for all particles (equal weight)
                 1.0,
                 link.rest_length,
-                1.0,  // Full stiffness
+                1.0,  // Full stiffness (perfectly rigid constraint)
             );
         }
     }
