@@ -1,36 +1,42 @@
-//! # 🏗️ Chapter 14: Bevy ECS Physics Architecture
-//! Run with: `cargo run -p ch14`
+/// # 🏗️ ECS Architecture Demo
+///
+/// Demonstrates the Bevy ECS plugin architecture for physics.
+/// The physics engine is fully modular and reusable.
+///
+/// MODULE STRUCTURE:
+///   src/
+///     main.rs              - App setup and entity spawning
+///     physics/
+///       mod.rs             - PhysicsPlugin definition
+///       components.rs      - Position, Velocity, Mass, etc.
+///       systems.rs         - Integration, forces, sync
+///
+/// This pattern allows any Bevy project to add physics by writing:
+///   .add_plugins(physics::PhysicsPlugin)
+///
+/// Run with: `cargo run -p ch14`
 use bevy::prelude::*;
-
-#[derive(Component)] struct Position(Vec2);
-#[derive(Component)] struct Velocity(Vec2);
-#[derive(Component)] struct Mass(f32);
-#[derive(Resource)] struct Gravity(Vec2);
-
-fn apply_gravity(mut query: Query<(&Mass, &mut Velocity)>, gravity: Res<Gravity>, time: Res<Time>) {
-    let dt = time.delta_secs();
-    for (mass, mut vel) in query.iter_mut() {
-        vel.0 += gravity.0 * mass.0 * dt;
-    }
-}
-
-fn integrate(mut query: Query<(&Velocity, &mut Position)>, time: Res<Time>) {
-    let dt = time.delta_secs();
-    for (vel, mut pos) in query.iter_mut() { pos.0 += vel.0 * dt; }
-}
-
-fn setup(mut commands: Commands) {
-    commands.insert_resource(Gravity(Vec2::new(0.0, -9.81)));
-    commands.spawn(Camera2dBundle::default());
-    commands.spawn((Position(Vec2::ZERO), Velocity(Vec2::new(10.0, 50.0)), Mass(1.0)));
-    println!("🏗️ ECS Physics Architecture initialized!");
-}
-
+mod physics;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(Gravity(Vec2::new(0.0, -9.81)))
-        .add_systems(Startup, setup)
-        .add_systems(Update, (apply_gravity, integrate).chain())
+        .add_plugins(physics::PhysicsPlugin)
+        .add_systems(Startup, setup_scene)
         .run();
+}
+fn setup_scene(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
+    commands.spawn((
+        physics::components::Position::new(0.0, 200.0),
+        physics::components::Velocity::new(100.0, 50.0),
+        physics::components::Acceleration::default(),
+        physics::components::Mass::default(),
+        physics::components::ForceAccumulator::default(),
+        SpriteBundle {
+            sprite: Sprite::from_color(Color::srgb(0.5, 0.3, 1.0), Vec2::new(30.0, 30.0)),
+            ..default()
+        },
+    ));
+    println!("🏗️ ECS Architecture demo! Physics runs via PhysicsPlugin.");
+    println!("📦 All physics components and systems are in separate files.");
 }

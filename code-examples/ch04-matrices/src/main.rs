@@ -18,11 +18,15 @@ fn main() {
     let transformed = transform.transform_point2(point);
     println!("📍 Point ({:.0}, {:.0}) → ({:.1}, {:.1})", point.x, point.y, transformed.x, transformed.y);
 
-    // ─── Decompose ───
-    let (scale, angle, translation) = transform.to_scale_angle_translation();
-    println!("📏 Scale: ({:.1}, {:.1})", scale.x, scale.y);
-    println!("🔄 Rotation: {:.1}°", angle.to_degrees());
-    println!("📍 Translation: ({:.1}, {:.1})", translation.x, translation.y);
+    // ─── Individual transforms for verification ───
+    // Manually verify each step of the composition:
+    let scaled_point = s.transform_point2(point);
+    let rotated_point = r.transform_point2(scaled_point);
+    let final_point = t.transform_point2(rotated_point);
+    println!("🔍 Step-by-step: scale→({:.1},{:.1}) rotate→({:.1},{:.1}) translate→({:.1},{:.1})",
+        scaled_point.x, scaled_point.y,
+        rotated_point.x, rotated_point.y,
+        final_point.x, final_point.y);
 
     // ─── Inverse ───
     let inverse = transform.inverse();

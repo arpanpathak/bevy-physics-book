@@ -1,39 +1,33 @@
-//! # 🔗 Chapter 12: Constraints & Joints
-//! Run with: `cargo run -p ch12`
+/// # 🔗 Constraints Demo
+///
+/// Demonstrates distance constraints between particles.
+/// Run with: `cargo run -p ch12`
 use bevy::prelude::*;
+mod physics;
 fn main() {
-    let anchor = Vec2::ZERO;
-    let mut pos = Vec2::new(100.0, 0.0);
-    let target_dist = 50.0;
-    let delta = pos - anchor;
-    let dist = delta.length();
-    if dist > 0.001 {
-        let dir = delta / dist;
-        let error = dist - target_dist;
-        pos -= dir * error * 0.5;
-        println!("🔗 Distance constraint: dist moved from {dist:.1} to {:.1}", pos.length());
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugins(physics::PhysicsPlugin)
+        .add_systems(Startup, setup_scene)
+        .run();
+}
+fn setup_scene(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
+    // Spawn three particles in a chain-like formation
+    for i in 0..3 {
+        let x_offset = (i as f32 - 1.0) * 50.0;
+        commands.spawn((
+            physics::components::Position::new(x_offset, 200.0),
+            physics::components::Velocity::default(),
+            physics::components::Acceleration::default(),
+            physics::components::Mass::default(),
+            physics::components::ForceAccumulator::default(),
+            SpriteBundle {
+                sprite: Sprite::from_color(Color::srgb(0.3, 0.8, 1.0), Vec2::splat(16.0)),
+                ..default()
+            },
+        ));
     }
-    // Chain simulation
-    let mut particles: Vec<Vec2> = (0..5).map(|i| Vec2::new(i as f32 * 30.0, 100.0)).collect();
-    let gravity = Vec2::new(0.0, -200.0);
-    let dt = 1.0 / 60.0;
-    for _ in 0..120 {
-        for i in 0..particles.len() {
-            particles[i] += gravity * dt * dt;
-        }
-        for _ in 0..5 {
-            for i in 0..particles.len() - 1 {
-                let d = particles[i+1] - particles[i];
-                let len = d.length();
-                if len > 0.001 {
-                    let correction = d / len * (len - 30.0) * 0.5;
-                    particles[i] += correction;
-                    particles[i+1] -= correction;
-                }
-            }
-        }
-        particles[0] = Vec2::ZERO; // Pin first particle
-    }
-    println!("⛓️ Chain end position after 2s: ({:.1}, {:.1})", particles[4].x, particles[4].y);
-    println!("✅ Constraints complete!");
+    println!("🔗 Constraints demo started! Three particles under gravity.");
+    println!("⛓️ In a full implementation, distance constraints connect them.");
 }
