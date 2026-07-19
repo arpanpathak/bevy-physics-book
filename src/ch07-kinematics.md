@@ -250,7 +250,7 @@ Height vs Time for the jump:
   -10 │  ╲
   
   The velocity DECREASES LINEARLY. That's what "v = u + at" looks like.
-  At the peak, velocity is zero — the player is momentarily weightless.
+  At the peak, velocity is zero  -  the player is momentarily weightless.
 ```
 
 ---
@@ -314,12 +314,12 @@ pub fn kinematics_step(
     // v_new = v_old + a × dt     (integrate acceleration)
     *velocity += *acceleration * delta_time;
     
-    // x_new = x_old + v_new × dt  (integrate velocity — uses NEW velocity!)
+    // x_new = x_old + v_new × dt  (integrate velocity  -  uses NEW velocity!)
     *position += *velocity * delta_time;
 }
 ```
 
-**That's it.** That's the entire physics of motion. Everything else in game physics — forces, collisions, constraints — is just figuring out what `acceleration` should be. The motion itself is always these two lines.
+**That's it.** That's the entire physics of motion. Everything else in game physics  -  forces, collisions, constraints  -  is just figuring out what `acceleration` should be. The motion itself is always these two lines.
 
 ---
 
@@ -354,7 +354,7 @@ KINEMATICS = THE LANGUAGE OF MOTION
   That's all. Everything else is implementation.
 ```
 
-> **The real value of kinematics isn't the formulas — it's the way of thinking. Every game physics problem reduces to: "What's the acceleration? OK, now integrate twice." Master that mental model, and you can simulate anything that moves.** 🏃
+> **The real value of kinematics isn't the formulas  -  it's the way of thinking. Every game physics problem reduces to: "What's the acceleration? OK, now integrate twice." Master that mental model, and you can simulate anything that moves.** 🏃
 
 ---
 

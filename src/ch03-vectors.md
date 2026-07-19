@@ -112,7 +112,7 @@ let movement_this_frame = Vec2::new(50.0, 0.0);
 let position = Vec2::new(100.0, 200.0);  // 📍 WHERE I AM
 let velocity = Vec2::new(50.0, -20.0);   // 🏃 HOW I'M MOVING
 let new_position = position + velocity;   // 📍 WHERE I'LL BE
-// = (150, 180) — moved right and up slightly
+// = (150, 180)  -  moved right and up slightly
 ```
 
 **This ability to mix positions and directions with the SAME math is why vectors are the foundation of ALL game physics.**
@@ -194,9 +194,9 @@ Multiplying a vector by a number changes its length but NOT its direction:
 let unit_direction = Vec2::new(1.0, 0.0);  // Points right
 
 /// 🏃 DIFFERENT SPEEDS, SAME DIRECTION:
-let slow_velocity = unit_direction * 50.0;   // (50, 0) — slow movement
-let fast_velocity = unit_direction * 200.0;  // (200, 0) — fast movement
-let backward = unit_direction * (-1.0);      // (-1, 0) — reversed direction
+let slow_velocity = unit_direction * 50.0;   // (50, 0)  -  slow movement
+let fast_velocity = unit_direction * 200.0;  // (200, 0)  -  fast movement
+let backward = unit_direction * (-1.0);      // (-1, 0)  -  reversed direction
 
 /// THE CORE PATTERN: Direction × Speed = Velocity
 ///
@@ -310,12 +310,12 @@ let unit = vector.normalize();     // = (0.6, 0.8), Length = 1.0
 let input_w = Vec2::new(0.0, 1.0);
 input_w.length();  // = 1.0 → speed = 1.0 × desired_speed ✅
 
-// Pressing W + D (up + right) — WITHOUT normalize:
+// Pressing W + D (up + right)  -  WITHOUT normalize:
 let input_wd = Vec2::new(1.0, 1.0);
 input_wd.length();  // = 1.414 → speed = 1.414 × desired_speed ❌
 // The player moves 41% FASTER diagonally!
 
-// Pressing W + D — WITH normalize:
+// Pressing W + D  -  WITH normalize:
 let input_wd_normalized = Vec2::new(1.0, 1.0).normalize();
 input_wd_normalized.length();  // = 1.0 → speed = 1.0 × desired_speed ✅
 // Consistent speed in ALL directions!
@@ -457,7 +457,7 @@ VECTORS ARE THE LANGUAGE OF SPACE:
   ALL OF GAME PHYSICS flows from these few operations.
 ```
 
-> **If vectors don't click for you, nothing else in this book will. Take the time to play with them. Write a small program that spawns two objects and makes one chase the other. Use `distance()`, `normalize()`, and `dot()`. Watch them work. Once vectors make intuitive sense, everything else — matrices, quaternions, kinematics, collisions — is just building on the same foundation.** 🧮
+> **If vectors don't click for you, nothing else in this book will. Take the time to play with them. Write a small program that spawns two objects and makes one chase the other. Use `distance()`, `normalize()`, and `dot()`. Watch them work. Once vectors make intuitive sense, everything else  -  matrices, quaternions, kinematics, collisions  -  is just building on the same foundation.** 🧮
 
 ---
 
