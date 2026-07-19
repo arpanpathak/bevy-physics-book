@@ -1,8 +1,0 @@
-/Users/arpanpathak/Projects/rust/bevy-physics-book/code-examples/target/debug/deps/bevy_render_macros-de69dcd94c9a0ba8.d: /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/lib.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/as_bind_group.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/extract_component.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/extract_resource.rs
-
-/Users/arpanpathak/Projects/rust/bevy-physics-book/code-examples/target/debug/deps/libbevy_render_macros-de69dcd94c9a0ba8.dylib: /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/lib.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/as_bind_group.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/extract_component.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/extract_resource.rs
-
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/lib.rs:
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/as_bind_group.rs:
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/extract_component.rs:
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_render_macros-0.15.3/src/extract_resource.rs:

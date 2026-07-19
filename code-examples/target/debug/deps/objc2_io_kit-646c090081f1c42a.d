@@ -1,9 +1,0 @@
-/Users/arpanpathak/Projects/rust/bevy-physics-book/code-examples/target/debug/deps/objc2_io_kit-646c090081f1c42a.d: /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/lib.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/consumes_argument.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/mod.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/hid.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/macros.rs
-
-/Users/arpanpathak/Projects/rust/bevy-physics-book/code-examples/target/debug/deps/libobjc2_io_kit-646c090081f1c42a.rmeta: /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/lib.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/consumes_argument.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/mod.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/hid.rs /Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/macros.rs
-
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/lib.rs:
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/consumes_argument.rs:
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/mod.rs:
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/generated/hid.rs:
-/Users/arpanpathak/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/objc2-io-kit-0.3.2/src/macros.rs:

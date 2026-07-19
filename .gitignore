@@ -13,3 +13,6 @@ node_modules/
 
 # 📚 mdBook output
 book/
+
+# 🦀 Rust build artifacts (code-examples)
+code-examples/target/
