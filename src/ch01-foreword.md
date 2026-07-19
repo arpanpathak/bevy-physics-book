@@ -114,6 +114,21 @@ Real physics engines (like NASA's) use double-precision matrix decompositions wi
 
 Want to skip the explanations and just see something move on screen? Follow these exact steps:
 
+### 0. Install Rust (if you haven't already)
+
+Open a terminal and run:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Then close and reopen your terminal. Verify it worked:
+
+```bash
+rustc --version   # Should show rustc 1.8x or later
+cargo --version   # Should show cargo 1.8x or later
+```
+
 ### 1. Create a new Rust project
 
 Open a terminal and run:
