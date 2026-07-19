@@ -709,6 +709,10 @@ Ready to level up? Try these:
 7. **🎵 Add sound** that pitches based on collision velocity
 8. **📈 Add performance metrics** to profile the physics
 
+> 💡 **Full source code for this chapter:** [code-examples/ch15-physics-sandbox/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch15-physics-sandbox)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Bevy ECS Architecture](ch14-ecs-architecture.md)** | **[Next: Appendix →](ch16-appendix.md)**

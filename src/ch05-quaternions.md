@@ -439,6 +439,10 @@ Quaternion = (cos(θ/2), axis × sin(θ/2))
 
 > **Quaternions are THE professional choice for 3D rotation. No gimbal lock, perfect SLERP, compact storage. The 4D math looks intimidating but in practice you just call `.slerp()` and `from_axis_angle()`  -  Bevy handles the dark magic. Your players will never experience gimbal lock again.** 🌀
 
+> 💡 **Full source code for this chapter:** [code-examples/ch05-quaternions/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch05-quaternions)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Matrices & Transformations](ch04-matrices.md)** | **[Next: Trigonometry →](ch06-trigonometry.md)**

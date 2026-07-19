@@ -345,6 +345,10 @@ fn main() {
 }
 ```
 
+> 💡 **Full source code for this chapter:** [code-examples/ch16-appendix/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch16-appendix)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Mini Physics Sandbox](ch15-physics-sandbox.md)** | **[Back to Index →](ch01-foreword.md)**

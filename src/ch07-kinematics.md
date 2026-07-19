@@ -356,6 +356,10 @@ KINEMATICS = THE LANGUAGE OF MOTION
 
 > **The real value of kinematics isn't the formulas  -  it's the way of thinking. Every game physics problem reduces to: "What's the acceleration? OK, now integrate twice." Master that mental model, and you can simulate anything that moves.** 🏃
 
+> 💡 **Full source code for this chapter:** [code-examples/ch07-kinematics/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch07-kinematics)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Trigonometry](ch06-trigonometry.md)** | **[Next: Dynamics →](ch08-dynamics.md)**

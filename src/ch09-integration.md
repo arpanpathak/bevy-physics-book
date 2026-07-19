@@ -727,6 +727,10 @@ fn verlet_step(
 
 > **The integrator is the HEART of your physics engine. Everything else  -  forces, collisions, constraints  -  feeds INTO the integrator. Choose Symplectic Euler by default. It's stable, energy-conserving, and simple. Only reach for Verlet or RK4 when you have a specific need they're uniquely suited for.** 🏆
 
+> 💡 **Full source code for this chapter:** [code-examples/ch09-integration/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch09-integration)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Dynamics](ch08-dynamics.md)** | **[Next: Collision Detection →](ch10-collision-detection.md)**

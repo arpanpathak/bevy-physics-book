@@ -822,6 +822,10 @@ data layouts and compile-time parallelism guarantees.
 
 > **The ECS architecture lets you write physics code that's simultaneously correct (compile-time access checks), fast (cache-friendly iteration), and parallel (non-conflicting systems run simultaneously). No other pattern gives you all three.** 🏗️
 
+> 💡 **Full source code for this chapter:** [code-examples/ch14-ecs-architecture/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch14-ecs-architecture)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Spatial Partitioning](ch13-spatial-partitioning.md)** | **[Next: Mini Physics Sandbox →](ch15-physics-sandbox.md)**

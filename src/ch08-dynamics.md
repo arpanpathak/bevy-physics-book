@@ -451,6 +451,10 @@ DYNAMICS = WHY THINGS MOVE
 
 > **Dynamics is WHERE GAME FEEL COMES FROM. The same game with gravity = -200 vs gravity = -2000 feels COMPLETELY different. Drag of 0.1 vs 10.0 changes whether movement feels like ice or mud. Forces aren't just physics  -  they're the VOCABULARY of game feel. Tune them, don't just copy them.** 💪
 
+> 💡 **Full source code for this chapter:** [code-examples/ch08-dynamics/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch08-dynamics)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Kinematics](ch07-kinematics.md)** | **[Next: Integration Methods →](ch09-integration.md)**

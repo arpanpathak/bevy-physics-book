@@ -626,6 +626,10 @@ MATRICES ARE COMPOSABLE TRANSFORMATIONS:
 
 > **If vectors are nouns (the things), matrices are verbs (what happens to things). A single 3×3 matrix encodes translation, rotation, and scale. Multiplying matrices composes them. Applying a matrix to a vector moves it through space. This is the entire spatial mathematics of game engines. Master matrices, and you master how objects LIVE in your game world.** 🔢
 
+> 💡 **Full source code for this chapter:** [code-examples/ch04-matrices/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch04-matrices)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Vector Mathematics](ch03-vectors.md)** | **[Next: Quaternions →](ch05-quaternions.md)**

@@ -461,4 +461,10 @@ VECTORS ARE THE LANGUAGE OF SPACE:
 
 ---
 
+> 💡 **Full source code for this chapter:** [code-examples/ch03-vectors/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch03-vectors)
+
+The runnable project includes Cargo.toml, main.rs, and complete module files.
+
+---
+
 **[<- Previous: Setup](ch02-setup.md)** | **[Next: Matrices ->](ch04-matrices.md)**

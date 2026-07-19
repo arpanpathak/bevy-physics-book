@@ -459,6 +459,10 @@ TRIGONOMETRY IS THE BRIDGE BETWEEN ANGLES AND VECTORS:
 
 > **Trig is the machinery hidden behind almost every game feature: aiming, movement, camera control, projectile physics, wave effects, field-of-view, and more. `cos`, `sin`, and `atan2`  -  master these three functions and you can build anything involving angles and positions.** 📐
 
+> 💡 **Full source code for this chapter:** [code-examples/ch06-trigonometry/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch06-trigonometry)
+> 
+> The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 ---
 
 **[← Previous: Quaternions](ch05-quaternions.md)** | **[Next: Kinematics →](ch07-kinematics.md)**
