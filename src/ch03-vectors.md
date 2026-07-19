@@ -346,58 +346,73 @@ The dot product is the single most useful vector operation in game physics. Here
 
 **The dot product tells you the ANGLE between two vectors WITHOUT computing the angle.**
 
-```rust
-/// FORMULA: a · b = a.x × b.x + a.y × b.y
-/// 
-/// MEANING:  a · b = ‖a‖ × ‖b‖ × cos(θ)
-/// 
-/// If BOTH vectors are UNIT vectors (length = 1):
-///   a · b = cos(θ)   <- JUST THE COSINE OF THE ANGLE!
-///
-/// This is HUGE. You don't need atan, acos, or any trig.
-/// Just multiply components and add them up. That's it.
+**The formula:**
+
 ```
+a · b = a.x × b.x + a.y × b.y
+```
+
+Which is equivalent to:
+
+```
+a · b = ‖a‖ × ‖b‖ × cos(θ)
+```
+
+**The key insight:** If both vectors are UNIT vectors (length = 1), the formula simplifies to:
+
+```
+a · b = cos(θ)
+```
+
+That's it. Just the cosine of the angle. No `atan`, no `acos`, no trig functions needed. Just multiply components and add them up.
 
 ### What the Sign Tells You
 
 ```rust
 let forward = Vec2::new(1.0, 0.0);  // Unit vector pointing right
 
-// ✅ POSITIVE: Same general direction (angle < 90°)
-forward.dot(Vec2::new(1.0, 0.5).normalize());  // ≈ 0.894
-// "The target is AHEAD of me"
+// POSITIVE: Same general direction (angle < 90)
+forward.dot(Vec2::new(1.0, 0.5).normalize());  // = 0.894
+// The target is AHEAD of me
 
-// ✅ ZERO: Perpendicular (angle = 90°)
+// ZERO: Perpendicular (angle = 90)
 forward.dot(Vec2::new(0.0, 1.0));  // = 0.0
-// "The target is exactly to my LEFT"
+// The target is exactly to my LEFT
 
-// ❌ NEGATIVE: Opposite direction (angle > 90°)
+// NEGATIVE: Opposite direction (angle > 90)
 forward.dot(Vec2::new(-1.0, 0.0));  // = -1.0
-// "The target is BEHIND me"
+// The target is BEHIND me
 ```
 
 ### Game Uses
 
+**1. Is the target in front of or behind me?**
+
 ```rust
-/// 🎯 1. Is the target in front of or behind me?
 fn is_in_front_of(facing_direction: Vec2, target_position: Vec2) -> bool {
     facing_direction.dot(target_position.normalize()) > 0.0
 }
+```
 
-/// 👁️ 2. Is the target within my field of view?
+**2. Is the target within my field of view?**
+
+```rust
 fn is_in_field_of_view(
     facing_direction: Vec2,
     direction_to_target: Vec2,
     half_fov_degrees: f32,
 ) -> bool {
     let cosine_of_half_fov = (half_fov_degrees.to_radians()).cos();
-    // cos(θ) decreases as θ increases. So if our dot product
+    // cos(theta) decreases as theta increases. So if our dot product
     // is GREATER than cos(half_fov), the angle is SMALLER than
     // half_fov -> we can see them!
     facing_direction.dot(direction_to_target.normalize()) > cosine_of_half_fov
 }
+```
 
-/// 💡 3. How much of this force is pushing in a specific direction?
+**3. How much of this force is pushing in a specific direction?**
+
+```rust
 let force_vector = Vec2::new(10.0, 5.0);
 let upward_normal = Vec2::new(0.0, 1.0);
 let upward_force = force_vector.dot(upward_normal);  // = 5.0
@@ -408,27 +423,46 @@ let upward_force = force_vector.dot(upward_normal);  // = 5.0
 
 ## 🔄 The 2D Cross Product: Left or Right?
 
-The 2D cross product (also called "perp dot") tells you which SIDE one vector is on relative to another:
+The 2D cross product (also called "perp dot") tells you which SIDE one vector is on relative to another.
+
+**The formula:**
+
+```
+a × b = a.x × b.y - a.y × b.x
+```
+
+**What the result means:**
+
+| Result | Meaning |
+|--------|---------|
+| **Positive** | b is to the LEFT of a |
+| **Negative** | b is to the RIGHT of a |
+| **Zero** | a and b are parallel (same or opposite direction) |
+
+**In code:**
 
 ```rust
-/// FORMULA: a × b = a.x × b.y - a.y × b.x
-///
-/// INTERPRETATION:
-///   Positive -> b is to the LEFT of a
-///   Negative -> b is to the RIGHT of a
-///   Zero     -> a and b are parallel (pointing same or opposite)
-
 let rightward = Vec2::new(1.0, 0.0);
 
-rightward.perp_dot(Vec2::new(0.0, 1.0));   // = 1.0  -> up is LEFT of right
-rightward.perp_dot(Vec2::new(0.0, -1.0));  // = -1.0 -> down is RIGHT of right
-rightward.perp_dot(Vec2::new(1.0, 0.0));   // = 0.0  -> parallel (same direction)
+// Up is to the LEFT of rightward
+rightward.perp_dot(Vec2::new(0.0, 1.0));   // = 1.0
 
-/// 🎮 Game use: Which way should I turn?
+// Down is to the RIGHT of rightward
+rightward.perp_dot(Vec2::new(0.0, -1.0));  // = -1.0
+
+// Parallel: same direction
+rightward.perp_dot(Vec2::new(1.0, 0.0));   // = 0.0
+```
+
+**Game use: Which way should I turn?**
+
+The cross product tells AI which direction to rotate to face a target:
+
+```rust
 fn turn_direction(facing: Vec2, target_direction: Vec2) -> f32 {
     let cross = facing.perp_dot(target_direction);
-    if cross > 0.0 { 1.0 }     // Turn LEFT
-    else if cross < 0.0 { -1.0 }  // Turn RIGHT
+    if cross > 0.0 { 1.0 }       // Turn LEFT
+    else if cross < 0.0 { -1.0 } // Turn RIGHT
     else { 0.0 }                 // Already facing target
 }
 ```
