@@ -1,0 +1,8 @@
+[package]
+name = "ch10"
+version = "0.1.0"
+edition = "2021"
+description = "bevy-physics-book: Collision detection"
+
+[dependencies]
+bevy = "0.15"

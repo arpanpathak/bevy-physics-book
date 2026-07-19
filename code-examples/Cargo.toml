@@ -1,0 +1,18 @@
+[workspace]
+members = [
+    "ch02-setup",
+    "ch03-vectors",
+    "ch04-matrices",
+    "ch05-quaternions",
+    "ch06-trigonometry",
+    "ch07-kinematics",
+    "ch08-dynamics",
+    "ch09-integration",
+    "ch10-collision-detection",
+    "ch11-collision-response",
+    "ch12-constraints",
+    "ch13-spatial-partitioning",
+    "ch14-ecs-architecture",
+]
+
+resolver = "2"

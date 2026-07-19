@@ -1,0 +1,8 @@
+[package]
+name = "physics-sandbox"
+version = "0.1.0"
+edition = "2021"
+description = "🎮 Interactive physics sandbox built with Bevy — spawn balls, adjust gravity, watch physics in action!"
+
+[dependencies]
+bevy = "0.15"

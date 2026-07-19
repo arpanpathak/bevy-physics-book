@@ -1,0 +1,8 @@
+[package]
+name = "ch06"
+version = "0.1.0"
+edition = "2021"
+description = "bevy-physics-book: Trigonometry for game physics"
+
+[dependencies]
+bevy = "0.15"

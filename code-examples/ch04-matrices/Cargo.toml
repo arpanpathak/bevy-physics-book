@@ -1,0 +1,8 @@
+[package]
+name = "ch04"
+version = "0.1.0"
+edition = "2021"
+description = "bevy-physics-book: Matrices and transformations"
+
+[dependencies]
+bevy = "0.15"

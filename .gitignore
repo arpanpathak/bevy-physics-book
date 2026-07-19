@@ -10,3 +10,6 @@
 # 📦 Ignore generated files
 node_modules/
 *.wasm
+
+# 📚 mdBook output
+book/

@@ -1,0 +1,8 @@
+[package]
+name = "ch07"
+version = "0.1.0"
+edition = "2021"
+description = "bevy-physics-book: Kinematics"
+
+[dependencies]
+bevy = "0.15"

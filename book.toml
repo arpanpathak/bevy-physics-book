@@ -1,0 +1,25 @@
+[book]
+authors = ["Arpan Pathak"]
+description = "🎮 A comprehensive guide to building physics engines with Bevy & Rust — covering vectors, matrices, quaternions, kinematics, dynamics, collision detection/response, constraints, spatial partitioning, ECS architecture, and a complete physics sandbox."
+language = "en"
+title = "🎮 Rust Game Development Physics Math ⚡"
+
+[output.html]
+additional-css = ["theme/custom.css"]
+additional-js = []
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/arpanpathak/bevy-physics-book"
+edit-url-template = "https://github.com/arpanpathak/bevy-physics-book/edit/main/src/{path}"
+site-url = "/bevy-physics-book/"
+cname = "bevy-physics-book.arpanpathak.dev"
+
+[output.html.fold]
+enable = true
+level = 1
+
+[output.html.playground]
+editable = false
+
+[rust]
+edition = "2021"
