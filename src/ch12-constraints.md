@@ -16,12 +16,12 @@
 
 ```
 Without constraints:    With constraints:
-    ○   ○   ○              ○───○───○
+    o   o   o              o---o---o
     (independent)         (connected!)
     
     Positions can be      Fixed distances,
     anywhere.             pivot points.
-            ↓                    ↓
+            v                    v
     Chaos!                Structure!
 ```
 
@@ -132,15 +132,15 @@ Distance Constraint:
 
     Before:                     After:
     
-    ○───────○                    ○───────○
-    │       │                    │       │
-    │   too │                    │  just │
-    │   far │                    │ right │
-    │       │                    │       │
-    ○       ○                    ○───────○
+    o-------o                    o-------o
+    |       |                    |       |
+    |   too |                    |  just |
+    |   far |                    | right |
+    |       |                    |       |
+    o       o                    o-------o
     
     dist ≠ target               dist = target ✅
-    → APPLY CONSTRAINT!
+    -> APPLY CONSTRAINT!
 ```
 
 ---
@@ -227,7 +227,7 @@ fn update_chain(
     let dt = settings.fixed_dt;
     let gravity = settings.gravity;
     
-    // ─── 1️⃣ Verlet integration step ───
+    // --- 1️⃣ Verlet integration step ---
     for (mut position, mut particle) in particle_query.iter_mut() {
         let current_position = position.0;
         
@@ -239,7 +239,7 @@ fn update_chain(
         particle.previous_position = current_position;
     }
     
-    // ─── 2️⃣ Apply constraints (multiple iterations!) ───
+    // --- 2️⃣ Apply constraints (multiple iterations!) ---
     for _ in 0..5 {  // Multiple iterations = more stable
         for link in link_query.iter() {
             let (mut position_of_first_particle, mut position_of_second_particle) = 
@@ -270,21 +270,21 @@ Chain Simulation:
 
     Frame 1:            Frame 10:           Frame 60:
     
-    ●───●───●            ●                   ●
-    │   │   │            │╲                  │╲
-    │   │   │            │ ╲                 │ ╲
-    │   │   │            ●  ╲                ●  ╲
-    ●───●───●            │   ╲               │   ●
-        ↑                │    ●              │   │
-    Start: rigid         │    │              │   │
-                         ●    │              ●   │
-                              │              │   │
-                              ●              │   ●
-                                             │   │
-                          Mid: falling       │   │
-                          with drag          ●   │
-                                                  │
-                                                  ●
+    *---*---*            *                   *
+    |   |   |            |\                  |\
+    |   |   |            | \                 | \
+    |   |   |            *  \                *  \
+    *---*---*            |   \               |   *
+        ^                |    *              |   |
+    Start: rigid         |    |              |   |
+                         *    |              *   |
+                              |              |   |
+                              *              |   *
+                                             |   |
+                          Mid: falling       |   |
+                          with drag          *   |
+                                                  |
+                                                  *
                                              End: draped
                                              over peg!
 ```
@@ -355,13 +355,13 @@ fn solve_hinge_joint(
 ///
 /// Structure:
 ///     head
-///      │
+///      |
 ///     torso
-///    ╱    ╲
+///    \    \
 ///  arm    arm
-///    ╲    ╱
+///    \    \
 ///     hips
-///    ╱    ╲
+///    \    \
 ///  leg    leg
 
 #[derive(Component)]
@@ -491,11 +491,11 @@ fn constraint_solver(
 
 /// 💡 Constraint iteration insights:
 ///
-/// 1 iteration  → Jelly-like, very soft
-/// 3 iterations → Noticeably stiffer
-/// 5 iterations → Good for most games
-/// 10 iterations → Very stiff, near-rigid
-/// 20+ iterations → Overkill (diminishing returns)
+/// 1 iteration  -> Jelly-like, very soft
+/// 3 iterations -> Noticeably stiffer
+/// 5 iterations -> Good for most games
+/// 10 iterations -> Very stiff, near-rigid
+/// 20+ iterations -> Overkill (diminishing returns)
 ///
 /// Each iteration compounds the corrections, converging
 /// toward a valid configuration (like Gauss-Seidel).
@@ -530,4 +530,4 @@ The runnable project includes Cargo.toml, main.rs, and complete module files.
 
 ---
 
-**[← Previous: Collision Response](ch11-collision-response.md)** | **[Next: Spatial Partitioning →](ch13-spatial-partitioning.md)**
+**[<- Previous: Collision Response](ch11-collision-response.md)** | **[Next: Spatial Partitioning ->](ch13-spatial-partitioning.md)**

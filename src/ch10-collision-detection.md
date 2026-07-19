@@ -10,14 +10,14 @@ Collision detection has two phases for performance:
 
 ```
 Phase 1: BROAD PHASE 🗺️        Phase 2: NARROW PHASE 🔍
-┌──────────────────────┐       ┌──────────────────────┐
-│ "Which pairs MIGHT   │       │ "Are these two       │
-│  be colliding?"      │  ──►  │  actually colliding?"│
-│                      │       │                      │
-│ Fast & approximate   │       │ Slow & precise       │
-│ Uses bounding boxes  │       │ Uses actual shapes   │
-│ O(n) or O(n log n)   │       │ O(pairs in broad)    │
-└──────────────────────┘       └──────────────────────┘
++----------------------+       +----------------------+
+| "Which pairs MIGHT   |       | "Are these two       |
+|  be colliding?"      |  -->  |  actually colliding?"|
+|                      |       |                      |
+| Fast & approximate   |       | Slow & precise       |
+| Uses bounding boxes  |       | Uses actual shapes   |
+| O(n) or O(n log n)   |       | O(pairs in broad)    |
++----------------------+       +----------------------+
 ```
 
 ---
@@ -62,7 +62,7 @@ impl Aabb {
         self.min.x <= other.max.x && self.max.x >= other.min.x
         // Check Y axis: is there a gap?
         && self.min.y <= other.max.y && self.max.y >= other.min.y
-        // ✅ Both axes overlap → collision!
+        // ✅ Both axes overlap -> collision!
     }
     
     /// 📏 Get the overlap amount on each axis
@@ -82,14 +82,14 @@ AABB Overlap Check:
 
   X Axis (separate):          X & Y Axes (overlap):
   
-     ┌────┐                        ┌────┐
-     │ A  │               Y        │ A  │
-     └────┘               ▲       └────┘
-           ┌────┐         │         ┌────┐
-           │ B  │         │         │ B  │
-           └────┘         └──►     └────┘
+     +----+                        +----+
+     | A  |               Y        | A  |
+     +----+               ^       +----+
+           +----+         |         +----+
+           | B  |         |         | B  |
+           +----+         +-->     +----+
   
-  X gap → no collision     X overlap ✅ + Y overlap ✅ = COLLISION!
+  X gap -> no collision     X overlap ✅ + Y overlap ✅ = COLLISION!
 ```
 
 ---
@@ -158,14 +158,14 @@ mod tests {
     fn circles_overlap() {
         let a = Circle { center: Vec2::ZERO, radius: 5.0 };
         let b = Circle { center: Vec2::new(3.0, 0.0), radius: 5.0 };
-        assert!(a.overlaps(&b));  // Centers 3 apart, radii sum to 10 → overlap!
+        assert!(a.overlaps(&b));  // Centers 3 apart, radii sum to 10 -> overlap!
     }
     
     #[test]
     fn circles_dont_overlap() {
         let a = Circle { center: Vec2::ZERO, radius: 5.0 };
         let b = Circle { center: Vec2::new(20.0, 0.0), radius: 5.0 };
-        assert!(!a.overlaps(&b));  // Centers 20 apart, radii sum to 10 → no overlap!
+        assert!(!a.overlaps(&b));  // Centers 20 apart, radii sum to 10 -> no overlap!
     }
 }
 ```
@@ -175,17 +175,17 @@ Circle-Circle Collision:
 
     Colliding:                     Not Colliding:
     
-      ╱‾‾‾╲                         ╱‾‾‾╲          ╱‾‾‾╲
-     ╱     ╲                       ╱     ╲        ╱     ╲
-    │   A   │                      │  A   │      │   B  │
-     ╲     ╱                       ╲     ╱        ╲     ╱
-      ╲___╱                         ╲___╱          ╲___╱
-      ╱‾‾‾╲                          ↑
-     ╱     ╲                      dist > r₁ + r₂
-    │   B   │                     
-     ╲     ╱                      No collision! ❌
-      ╲___╱
-        ↑
+      \‾‾‾\                         \‾‾‾\          \‾‾‾\
+     \     \                       \     \        \     \
+    |   A   |                      |  A   |      |   B  |
+     \     \                       \     \        \     \
+      \___\                         \___\          \___\
+      \‾‾‾\                          ^
+     \     \                      dist > r₁ + r₂
+    |   B   |                     
+     \     \                      No collision! ❌
+      \___\
+        ^
     dist ≤ r₁ + r₂
     Collision! ✅
 ```
@@ -212,23 +212,23 @@ fn circle_vs_aabb(circle: &Circle, aabb: &Aabb) -> bool {
 
 /// 💡 Key insight: "Closest point on rectangle to circle"
 /// We clamp the circle center to the rectangle bounds.
-/// If the clamped point is within the circle's radius → collision!
+/// If the clamped point is within the circle's radius -> collision!
 ```
 
 ```
 Circle vs AABB:
 
-    ┌──────────────────────┐
-    │                      │
-    │        ●──┐          │
-    │      circle│←closest │
-    │        │  │ point    │
-    │        │  │          │
-    │        ▼  │          │
-    └────────┼──┘──────────┘
-             │
+    +----------------------+
+    |                      |
+    |        *--+          |
+    |      circle|<-closest |
+    |        |  | point    |
+    |        |  |          |
+    |        v  |          |
+    +--------+--+----------+
+             |
              dist < radius?
-             Yes → collision! ✅
+             Yes -> collision! ✅
 ```
 
 ---
@@ -244,7 +244,7 @@ The **SAT** is the most general 2D collision test. It works for ANY convex polyg
 /// a line (axis) where their projections don't overlap.
 ///
 /// In practice: Check every edge of both polygons as a potential
-/// separating axis. If all axes overlap → collision!
+/// separating axis. If all axes overlap -> collision!
 struct Polygon {
     vertices: Vec<Vec2>,
 }
@@ -294,14 +294,14 @@ impl Polygon {
             let (min_a, max_a) = self.project_onto_axis(axis);
             let (min_b, max_b) = other.project_onto_axis(axis);
             
-            // ❌ Gap found on this axis → no collision
+            // ❌ Gap found on this axis -> no collision
             if max_a < min_b || max_b < min_a {
                 return false;
             }
-            // ✅ Overlap on this axis → continue checking
+            // ✅ Overlap on this axis -> continue checking
         }
         
-        // ✅ Overlap on ALL axes → COLLISION!
+        // ✅ Overlap on ALL axes -> COLLISION!
         true
     }
 }
@@ -312,21 +312,21 @@ SAT Visualization:
 
     Two boxes, checking one axis:
     
-          ┌────┐
-          │ A  │
-          └────┘
-                ┌────┐
-                │ B  │
-                └────┘
+          +----+
+          | A  |
+          +----+
+                +----+
+                | B  |
+                +----+
     
     Projection onto axis:
     
-    A:  ████████░░░░░░░░░
-    B:  ░░░░░░░░████████
+    A:  ########.........
+    B:  ........########
     
-    ════ Gap! No collision on this axis → NO COLLISION! ✅
+     Gap! No collision on this axis -> NO COLLISION! ✅
     
-    If ALL axes have overlap → collision found! 💥
+    If ALL axes have overlap -> collision found! 💥
 ```
 
 ---
@@ -535,30 +535,30 @@ fn check_collision(
 Collision Detection Flow:
 
     Entities with colliders
-            │
-            ▼
+            |
+            v
     🗺️ BROAD PHASE (quick rejection)
     "Could they be touching?"
     (AABB overlap check, spatial hash, etc.)
-            │
-        Maybe │ No
-            │ 
-            ▼
+            |
+        Maybe | No
+            | 
+            v
     🔍 NARROW PHASE (exact check)     ❌ Skip
     "Are they actually touching?"
     (Circle, AABB, SAT, etc.)
-            │
-        Yes │ No
-            │ 
-            ▼
+            |
+        Yes | No
+            | 
+            v
     💥 COLLISION!                     ❌ Skip
     (Emit event, resolve)
     
     Shape combinations:
-    • Circle vs Circle   → dist ≤ r₁ + r₂        ⚡ Fastest
-    • AABB vs AABB       → axis overlaps          ⚡ Fast
-    • Circle vs AABB     → clamp test             ⚡ Fast
-    • Polygon vs Polygon → SAT (all axes)         🐢 Slower
+    • Circle vs Circle   -> dist ≤ r₁ + r₂        ⚡ Fastest
+    • AABB vs AABB       -> axis overlaps          ⚡ Fast
+    • Circle vs AABB     -> clamp test             ⚡ Fast
+    • Polygon vs Polygon -> SAT (all axes)         🐢 Slower
 ```
 
 > 💡 **Full source code for this chapter:** [code-examples/ch10-collision-detection/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch10-collision-detection)
@@ -569,4 +569,4 @@ The runnable project includes Cargo.toml, main.rs, and complete module files.
 
 ---
 
-**[← Previous: Integration Methods](ch09-integration.md)** | **[Next: Collision Response →](ch11-collision-response.md)**
+**[<- Previous: Integration Methods](ch09-integration.md)** | **[Next: Collision Response ->](ch11-collision-response.md)**

@@ -43,11 +43,11 @@ Modern CPUs are **memory-bound**, not compute-bound. When you iterate `Vec<Physi
 
 ```
 Memory Layout (OO):
-┌─────────────────────────────────────────────────────────┐
-│ pos │ vel │ acc │ mass │ collider │ is_static │ sprite │ ... 
-│ pos │ vel │ acc │ mass │ collider │ is_static │ sprite │ ... 
-│ pos │ vel │ acc │ mass │ collider │ is_static │ sprite │ ... 
-╰─── Loading ALL of this just to update velocity!
++---------------------------------------------------------+
+| pos | vel | acc | mass | collider | is_static | sprite | ... 
+| pos | vel | acc | mass | collider | is_static | sprite | ... 
+| pos | vel | acc | mass | collider | is_static | sprite | ... 
++----- Loading ALL of this just to update velocity!
      Most of it is wasted cache space! 💀
 ```
 
@@ -55,9 +55,9 @@ With **ECS**, data is stored in **contiguous arrays per component**:
 
 ```
 Memory Layout (ECS):
-Position:  │ p1 │ p2 │ p3 │ p4 │ p5 │ p6 │ p7 │ ... ╰── Only positions!
-Velocity:  │ v1 │ v2 │ v3 │ v4 │ v5 │ v6 │ v7 │ ... ╰── Only velocities!
-Mass:      │ m1 │ m2 │ m3 │ m4 │ m5 │ m6 │ m7 │ ... ╰── Only masses!
+Position:  | p1 | p2 | p3 | p4 | p5 | p6 | p7 | ... +---- Only positions!
+Velocity:  | v1 | v2 | v3 | v4 | v5 | v6 | v7 | ... +---- Only velocities!
+Mass:      | m1 | m2 | m3 | m4 | m5 | m6 | m7 | ... +---- Only masses!
 
 When physics runs, it ONLY touches Velocity + Mass + Position.
 NO wasted cache bandwidth on colliders, sprites, health, etc. ⚡
@@ -162,23 +162,23 @@ This is the most important implementation detail to understand:
 
 ```
 World
-├── Archetype 1: [Position, Velocity, Mass]
-│   ├── Entities: [Entity(1), Entity(4), Entity(7)]
-│   ├── Position:  [p1, p4, p7]     ← Contiguous array! 
-│   ├── Velocity:  [v1, v4, v7]     ← Same order!
-│   └── Mass:      [m1, m4, m7]
-│
-├── Archetype 2: [Position, Velocity, Mass, Collider]
-│   ├── Entities: [Entity(2), Entity(5)]
-│   ├── Position:  [p2, p5]
-│   ├── Velocity:  [v2, v5]
-│   ├── Mass:      [m2, m5]
-│   └── Collider:  [c2, c5]
-│
-└── Archetype 3: [Position, Sprite]  ← No Velocity! (static objects)
-    ├── Entities: [Entity(3), Entity(6)]
-    ├── Position:  [p3, p6]
-    └── Sprite:    [s3, s6]
++-- Archetype 1: [Position, Velocity, Mass]
+|   +-- Entities: [Entity(1), Entity(4), Entity(7)]
+|   +-- Position:  [p1, p4, p7]     <- Contiguous array! 
+|   +-- Velocity:  [v1, v4, v7]     <- Same order!
+|   +-- Mass:      [m1, m4, m7]
+|
++-- Archetype 2: [Position, Velocity, Mass, Collider]
+|   +-- Entities: [Entity(2), Entity(5)]
+|   +-- Position:  [p2, p5]
+|   +-- Velocity:  [v2, v5]
+|   +-- Mass:      [m2, m5]
+|   +-- Collider:  [c2, c5]
+|
++-- Archetype 3: [Position, Sprite]  <- No Velocity! (static objects)
+    +-- Entities: [Entity(3), Entity(6)]
+    +-- Position:  [p3, p6]
+    +-- Sprite:    [s3, s6]
 ```
 
 **Archetype** = a unique combination of component types. Every entity belongs to exactly one archetype. When you add or remove a component, the entity **moves** to a different archetype (this is called an "archetype move").
@@ -257,8 +257,8 @@ Without ordering, Bevy analyzes component access:
 
 ```
 System      Reads        Writes       Can run with...
-───────────────────────────────────────────────────────
-system_a    Position     Velocity     ─
+-------------------------------------------------------
+system_a    Position     Velocity     -
 system_b    Velocity     Transform    system_d ✅ (no overlap)
 system_c    Transform    Sprite       system_d ✅
 system_d    Position,    (none)       system_b ✅, system_c ✅
@@ -268,7 +268,7 @@ system_d    Position,    (none)       system_b ✅, system_c ✅
 Bevy's scheduler produces:
 
 ```
-Frame ─► [system_a] ─► [system_b, system_d] ─► [system_c] ─► render
+Frame -> [system_a] -> [system_b, system_d] -> [system_c] -> render
            (alone)       (parallel!)              (alone)
 ```
 
@@ -281,7 +281,7 @@ Physics has **strict ordering requirements** that MUST be enforced:
 // If integrate runs first, gravity has no effect this frame!
 app.add_systems(Update, (apply_gravity, integrate, detect_collisions));
 
-// ✅ CORRECT: Forces → Integrate → Detect → Resolve
+// ✅ CORRECT: Forces -> Integrate -> Detect -> Resolve
 app.add_systems(Update, (
     clear_forces,
     apply_gravity,
@@ -382,18 +382,18 @@ Queries are how systems access component data. Understanding their full power is
 ### Basic Query Patterns
 
 ```rust
-// ─── Read multiple components ───
+// --- Read multiple components ---
 fn read(query: Query<(&Position, &Velocity, &Mass)>) {
     // All three must exist on the entity
     for (pos, vel, mass) in query.iter() { /* ... */ }
 }
 
-// ─── Write one, read others ───
+// --- Write one, read others ---
 fn write(query: Query<(&Velocity, &mut Position)>) {
     for (vel, mut pos) in query.iter_mut() { /* ... */ }
 }
 
-// ─── Optional components ───
+// --- Optional components ---
 fn with_optional(
     query: Query<(
         &Position,
@@ -412,17 +412,17 @@ fn with_optional(
 Filters let you include or exclude entities based on component presence:
 
 ```rust
-// ─── With: Only include entities that ALSO have this component ───
+// --- With: Only include entities that ALSO have this component ---
 fn only_players(query: Query<&Transform, With<Player>>) {
     // Only entities that have BOTH Transform AND Player
 }
 
-// ─── Without: Exclude entities that have this component ───
+// --- Without: Exclude entities that have this component ---
 fn only_non_sleeping(query: Query<&mut Velocity, Without<Sleeping>>) {
     // Skip sleeping entities  -  they don't need physics updates
 }
 
-// ─── Or/And/Nor: Combine filters ───
+// --- Or/And/Nor: Combine filters ---
 fn complex_filter(
     query: Query<
         &Position,
@@ -441,14 +441,14 @@ fn complex_filter(
 Bevy tracks whether components have been modified:
 
 ```rust
-// ─── Only entities whose Position changed this frame ───
+// --- Only entities whose Position changed this frame ---
 fn react_to_movement(query: Query<&Transform, Changed<Transform>>) {
     for tf in query.iter() {
         // Trigger something when transform changes
     }
 }
 
-// ─── Only entities where Velocity was JUST added ───
+// --- Only entities where Velocity was JUST added ---
 fn on_spawn(query: Query<&Velocity, Added<Velocity>>) {
     for vel in query.iter() {
         // This runs exactly ONCE when Velocity is first added
@@ -456,7 +456,7 @@ fn on_spawn(query: Query<&Velocity, Added<Velocity>>) {
     }
 }
 
-// ─── Removed detection ───
+// --- Removed detection ---
 fn on_collider_removed(
     mut removals: RemovedComponents<Collider>,
     // ...
@@ -647,16 +647,16 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app
-            // ─── Core systems ───
+            // --- Core systems ---
             .add_plugins(PhysicsPlugin::default())
             .add_plugins(RenderPlugin::default())
             
-            // ─── Game-specific ───
+            // --- Game-specific ---
             .add_plugins(PlayerPlugin)
             .add_plugins(AiPlugin)
             .add_plugins(WeaponPlugin)
             
-            // ─── Game systems run AFTER physics ───
+            // --- Game systems run AFTER physics ---
             .add_systems(Update, (
                 player_input,
                 enemy_ai,
@@ -674,32 +674,32 @@ Understanding when things happen is crucial:
 
 ```
 App::new()
-  │
-  ├── .add_plugins(...)          ← Register plugins (NO execution yet)
-  ├── .add_systems(Startup, ...) ← Register startup systems
-  ├── .add_systems(Update, ...)  ← Register per-frame systems
-  │
-  └── .run()                     ← ENTER THE MAIN LOOP
-        │
-        ├── 🏗️  Startup Phase ──► Runs ALL Startup systems (once)
-        │     ├── setup_camera()
-        │     ├── spawn_initial_objects()
-        │     └── init_resources()
-        │
-        └── 🔄  Main Loop (every frame)
-              │
-              ├── 📥  Event Readers advance (drain previous frame)
-              ├── 🔄  Scheduler: Determine parallel execution plan
-              ├── ⚡  Run Update systems in scheduled order
-              │     ├── [parallel group] physics systems
-              │     ├── SYNC POINT (apply Commands)
-              │     ├── [parallel group] game systems
-              │     └── SYNC POINT (apply Commands)
-              │
-              ├── 🎨  Render (separate schedule: Render)
-              │     └── Bevy's renderer reads Transform components
-              │
-              └── 🔁  Next frame...
+  |
+  +-- .add_plugins(...)          <- Register plugins (NO execution yet)
+  +-- .add_systems(Startup, ...) <- Register startup systems
+  +-- .add_systems(Update, ...)  <- Register per-frame systems
+  |
+  +-- .run()                     <- ENTER THE MAIN LOOP
+        |
+        +-- 🏗️  Startup Phase --> Runs ALL Startup systems (once)
+        |     +-- setup_camera()
+        |     +-- spawn_initial_objects()
+        |     +-- init_resources()
+        |
+        +-- 🔄  Main Loop (every frame)
+              |
+              +-- 📥  Event Readers advance (drain previous frame)
+              +-- 🔄  Scheduler: Determine parallel execution plan
+              +-- ⚡  Run Update systems in scheduled order
+              |     +-- [parallel group] physics systems
+              |     +-- SYNC POINT (apply Commands)
+              |     +-- [parallel group] game systems
+              |     +-- SYNC POINT (apply Commands)
+              |
+              +-- 🎨  Render (separate schedule: Render)
+              |     +-- Bevy's renderer reads Transform components
+              |
+              +-- 🔁  Next frame...
 ```
 
 ### Sync Points
@@ -711,9 +711,9 @@ fn spawn_bomb(mut commands: Commands) { commands.spawn(Bomb); }  // Writes
 fn read_bombs(query: Query<&Bomb>) { /* ... */ }                  // Reads
 
 // Scheduler sees: spawn writes Bomb, read reads Bomb
-// → Forces a SYNC POINT between them
-// → ALL parallel execution stops, commands are drained
-// → Then read_bombs can see the new Bomb
+// -> Forces a SYNC POINT between them
+// -> ALL parallel execution stops, commands are drained
+// -> Then read_bombs can see the new Bomb
 
 // 💡 Sync points are expensive! Minimize them by:
 // 1. Batching spawn/despawn
@@ -729,63 +729,63 @@ Here's what happens in one physics frame, traced end to end:
 
 ```
 📅 FRAME N
-│
-├── 1. EVENT ADVANCE
-│   ├── CollisionEvent reader is cleared
-│   └── Previous frame's events are available
-│
-├── 2. PHYSICS SYSTEMS RUN (in order)
-│   │
-│   ├── clear_forces()
-│   │   └── Query: &mut ForceAccumulator
-│   │   └── All forces reset to zero
-│   │
-│   ├── apply_gravity()
-│   │   └── Query: &Mass, &mut ForceAccumulator
-│   │   └── Res: PhysicsSettings.gravity
-│   │   └── Each entity: forces += gravity × mass
-│   │
-│   ├── apply_drag()
-│   │   └── Query: &Velocity, &mut ForceAccumulator
-│   │   └── Each entity: forces -= velocity × damping
-│   │
-│   ├── integrate()
-│   │   └── Query: &ForceAccumulator, &Mass, &mut Acceleration, &mut Velocity, &mut Position
-│   │   └── a = F/m, v += a·dt, x += v·dt
-│   │
-│   ├── broad_phase()
-│   │   └── Build spatial grid from &Position
-│   │   └── Emit candidate pairs
-│   │
-│   ├── narrow_phase()
-│   │   └── Query: &Position, &Collider
-│   │   └── Check actual overlap for each pair
-│   │   └── Emit CollisionEvent
-│   │
-│   ├── resolve_collisions()
-│   │   └── Read CollisionEvent
-│   │   └── Query: &mut Position, &mut Velocity, &Mass
-│   │   └── Apply impulses, separate overlapping objects
-│   │
-│   └── sync_to_render()
-│       └── Query: &Position, &mut Transform
-│       └── transform.translation = position
-│
-├── 3. SYNC POINT (Commands execute)
-│   └── Despawned entities removed
-│   └── New entities added
-│   └── Components added/removed processed
-│   └── Archetype moves happen
-│
-├── 4. GAME SYSTEMS RUN
-│   ├── player_input()      ← Reads keyboard, writes Velocity
-│   ├── enemy_ai()          ← Reads Position, writes Velocity
-│   └── camera_follow()     ← Reads Position, writes Transform
-│
-├── 5. SECOND SYNC POINT
-│
-└── 6. RENDER
-    └── Bevy draws using Transform & Sprite components
+|
++-- 1. EVENT ADVANCE
+|   +-- CollisionEvent reader is cleared
+|   +-- Previous frame's events are available
+|
++-- 2. PHYSICS SYSTEMS RUN (in order)
+|   |
+|   +-- clear_forces()
+|   |   +-- Query: &mut ForceAccumulator
+|   |   +-- All forces reset to zero
+|   |
+|   +-- apply_gravity()
+|   |   +-- Query: &Mass, &mut ForceAccumulator
+|   |   +-- Res: PhysicsSettings.gravity
+|   |   +-- Each entity: forces += gravity × mass
+|   |
+|   +-- apply_drag()
+|   |   +-- Query: &Velocity, &mut ForceAccumulator
+|   |   +-- Each entity: forces -= velocity × damping
+|   |
+|   +-- integrate()
+|   |   +-- Query: &ForceAccumulator, &Mass, &mut Acceleration, &mut Velocity, &mut Position
+|   |   +-- a = F/m, v += a·dt, x += v·dt
+|   |
+|   +-- broad_phase()
+|   |   +-- Build spatial grid from &Position
+|   |   +-- Emit candidate pairs
+|   |
+|   +-- narrow_phase()
+|   |   +-- Query: &Position, &Collider
+|   |   +-- Check actual overlap for each pair
+|   |   +-- Emit CollisionEvent
+|   |
+|   +-- resolve_collisions()
+|   |   +-- Read CollisionEvent
+|   |   +-- Query: &mut Position, &mut Velocity, &Mass
+|   |   +-- Apply impulses, separate overlapping objects
+|   |
+|   +-- sync_to_render()
+|       +-- Query: &Position, &mut Transform
+|       +-- transform.translation = position
+|
++-- 3. SYNC POINT (Commands execute)
+|   +-- Despawned entities removed
+|   +-- New entities added
+|   +-- Components added/removed processed
+|   +-- Archetype moves happen
+|
++-- 4. GAME SYSTEMS RUN
+|   +-- player_input()      <- Reads keyboard, writes Velocity
+|   +-- enemy_ai()          <- Reads Position, writes Velocity
+|   +-- camera_follow()     <- Reads Position, writes Transform
+|
++-- 5. SECOND SYNC POINT
+|
++-- 6. RENDER
+    +-- Bevy draws using Transform & Sprite components
 ```
 
 ---
@@ -828,4 +828,4 @@ data layouts and compile-time parallelism guarantees.
 
 ---
 
-**[← Previous: Spatial Partitioning](ch13-spatial-partitioning.md)** | **[Next: Mini Physics Sandbox →](ch15-physics-sandbox.md)**
+**[<- Previous: Spatial Partitioning](ch13-spatial-partitioning.md)** | **[Next: Mini Physics Sandbox ->](ch15-physics-sandbox.md)**

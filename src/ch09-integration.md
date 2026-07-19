@@ -9,10 +9,10 @@
 Physics is **continuous**  -  it happens at every infinitesimal moment. But computers are **discrete**  -  they process frames. Integration bridges this gap:
 
 ```
-Reality (continuous):  ●━━━━━━━━━━━━━━━━━━━━━━━━━━━━●
+Reality (continuous):  *----------------------------*
                        motion happens everywhere
 
-Computer (discrete):   ●──────●──────●──────●──────●
+Computer (discrete):   *------*------*------*------*
                        we only see snapshots
 
 Integration:           "Guess what happens BETWEEN the dots"
@@ -24,7 +24,7 @@ Integration:           "Guess what happens BETWEEN the dots"
 
 ```
 Method          Accuracy    Stability    Speed    Complexity
-──────────────────────────────────────────────────────────────
+--------------------------------------------------------------
 Explicit Euler    ⭐☆☆☆       ⭐☆☆☆     ⚡⚡⚡⚡      🧩
 Symplectic Euler  ⭐⭐☆☆       ⭐⭐⭐☆     ⚡⚡⚡⚡      🧩
 Verlet            ⭐⭐⭐☆       ⭐⭐⭐⭐     ⚡⚡⚡       🧩🧩
@@ -75,7 +75,7 @@ pub fn explicit_euler(
     delta_time: f32,
 ) {
     // Step 1: Update the velocity by adding the acceleration over this timestep.
-    // This is the discrete approximation of: dv/dt = a  →  Δv = a × Δt
+    // This is the discrete approximation of: dv/dt = a  ->  Δv = a × Δt
     *current_velocity += *acceleration * delta_time;
 
     // Step 2: Update the position using velocity at the START of the timestep.
@@ -214,7 +214,7 @@ impl VerletParticle {
     ///   this value, meaning the particle starts at rest.
     pub fn new(starting_position: Vec2) -> Self {
         Self {
-            // Start with both positions equal → velocity = 0
+            // Start with both positions equal -> velocity = 0
             previous_position: starting_position,
             current_position: starting_position,
             // No forces acting yet
@@ -390,7 +390,7 @@ pub fn rk4_step(
     delta_time: f32,
     acceleration_function: &dyn Fn(&PhysicsState) -> Vec2,
 ) -> PhysicsState {
-    // ─── Sample 1: Derivative at the START of the timestep ───
+    // --- Sample 1: Derivative at the START of the timestep ---
     let k1_derivative = evaluate_derivative(
         current_state,
         /* time_offset: */ 0.0,
@@ -401,7 +401,7 @@ pub fn rk4_step(
         acceleration_function,
     );
 
-    // ─── Sample 2: Derivative at the MIDPOINT, using k1 to estimate ───
+    // --- Sample 2: Derivative at the MIDPOINT, using k1 to estimate ---
     let k2_derivative = evaluate_derivative(
         current_state,
         delta_time * 0.5,
@@ -409,7 +409,7 @@ pub fn rk4_step(
         acceleration_function,
     );
 
-    // ─── Sample 3: Derivative at the MIDPOINT again, using k2 (refined) ───
+    // --- Sample 3: Derivative at the MIDPOINT again, using k2 (refined) ---
     let k3_derivative = evaluate_derivative(
         current_state,
         delta_time * 0.5,
@@ -417,7 +417,7 @@ pub fn rk4_step(
         acceleration_function,
     );
 
-    // ─── Sample 4: Derivative at the END, using k3 ───
+    // --- Sample 4: Derivative at the END, using k3 ---
     let k4_derivative = evaluate_derivative(
         current_state,
         delta_time,
@@ -425,7 +425,7 @@ pub fn rk4_step(
         acceleration_function,
     );
 
-    // ─── Combine: Weighted average (Simpson's rule weights) ───
+    // --- Combine: Weighted average (Simpson's rule weights) ---
     // Midpoints (k2, k3) get weight 2, endpoints (k1, k4) get weight 1.
     // Divide by 6 to normalize.
     let combined_position_derivative = (
@@ -442,7 +442,7 @@ pub fn rk4_step(
         + k4_derivative.derivative_of_velocity
     ) / 6.0;
 
-    // ─── Apply the combined derivative to advance the state ───
+    // --- Apply the combined derivative to advance the state ---
     PhysicsState {
         position: current_state.position + combined_position_derivative * delta_time,
         velocity: current_state.velocity + combined_velocity_derivative * delta_time,
@@ -507,12 +507,12 @@ fn evaluate_derivative(
 /// into fixed-size physics timesteps:
 ///
 /// ```text
-/// Frame 1 (took 33ms):  accumulator = 33ms → run 2 physics steps (16.67ms each)
+/// Frame 1 (took 33ms):  accumulator = 33ms -> run 2 physics steps (16.67ms each)
 ///                                              remainder = 0ms
-/// Frame 2 (took 8ms):   accumulator = 8ms  → run 0 physics steps (not enough yet)
+/// Frame 2 (took 8ms):   accumulator = 8ms  -> run 0 physics steps (not enough yet)
 ///                                              remainder = 8ms
-/// Frame 3 (took 17ms):  accumulator = 25ms → run 1 physics step (16.67ms)
-///                                              remainder = 8.33ms  ← interpolate!
+/// Frame 3 (took 17ms):  accumulator = 25ms -> run 1 physics step (16.67ms)
+///                                              remainder = 8.33ms  <- interpolate!
 /// ```
 ///
 /// This decouples PHYSICS FRAMERATE from RENDER FRAMERATE.
@@ -564,10 +564,10 @@ pub fn fixed_timestep_physics_system(
         &Mass,
     )>,
 ) {
-    // ─── Step 1: Accumulate the real frame time ───
+    // --- Step 1: Accumulate the real frame time ---
     accumulator.accumulated_time += time.delta_secs();
 
-    // ─── Step 2: Clamp to prevent spiral-of-death ───
+    // --- Step 2: Clamp to prevent spiral-of-death ---
     // If the game freezes (e.g., from a background app switch),
     // accumulated_time could be huge. We cap it to prevent
     // running hundreds of physics steps in one frame.
@@ -577,7 +577,7 @@ pub fn fixed_timestep_physics_system(
         .accumulated_time
         .min(max_accumulation);
 
-    // ─── Step 3: Consume fixed-size chunks ───
+    // --- Step 3: Consume fixed-size chunks ---
     // Each iteration runs EXACTLY one physics timestep.
     // The accumulator ensures that over time, the simulation
     // advances at exactly the physics framerate, regardless
@@ -593,7 +593,7 @@ pub fn fixed_timestep_physics_system(
         accumulator.accumulated_time -= accumulator.physics_timestep;
     }
 
-    // ─── Step 4 (Optional): Interpolation ───
+    // --- Step 4 (Optional): Interpolation ---
     // The remaining `accumulated_time / physics_timestep` fraction
     // can be used to INTERPOLATE between the last two physics states
     // for rendering, giving buttery-smooth visuals even with 30 Hz physics.
@@ -606,7 +606,7 @@ pub fn fixed_timestep_physics_system(
 /// This is the core physics pipeline, executed at the fixed timestep:
 /// 1. Zero out acceleration (forces don't persist between frames)
 /// 2. Apply forces (gravity, drag, etc.)  -  accumulated in Acceleration
-/// 3. Integrate: acceleration → velocity → position
+/// 3. Integrate: acceleration -> velocity -> position
 ///
 /// # Arguments
 /// * `physics_query` - All entities with physics components.
@@ -629,7 +629,7 @@ fn run_single_physics_step(
 
         // Step 2: Integrate using Symplectic Euler.
         // v_new = v_old + a × Δt
-        // x_new = x_old + v_new × Δt  ← uses NEW velocity!
+        // x_new = x_old + v_new × Δt  <- uses NEW velocity!
         if mass.0 > 0.0 {
             velocity.0 += acceleration_from_forces * delta_time;
             position.0 += velocity.0 * delta_time;
@@ -733,4 +733,4 @@ fn verlet_step(
 
 ---
 
-**[← Previous: Dynamics](ch08-dynamics.md)** | **[Next: Collision Detection →](ch10-collision-detection.md)**
+**[<- Previous: Dynamics](ch08-dynamics.md)** | **[Next: Collision Detection ->](ch10-collision-detection.md)**

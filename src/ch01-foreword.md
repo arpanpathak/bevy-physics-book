@@ -199,4 +199,4 @@ A window will appear with an orange square moving diagonally across a black back
 
 ---
 
-> **[Next Chapter: Setting Up Your Bevy Physics Playground →](ch02-setup.md)**
+> **[Next Chapter: Setting Up Your Bevy Physics Playground ->](ch02-setup.md)**

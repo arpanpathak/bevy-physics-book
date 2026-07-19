@@ -70,13 +70,13 @@ A **vector** is a quantity that has both **magnitude** (how much) and **directio
 
 ```
         y
-        │
-    5   │   ┌───► (3, 4)         ← This arrow IS the vector (3, 4)
-        │   │   ╱
-        │   │  ╱  length = 5     ← magnitude = √(3² + 4²) = 5
-        │   │ ╱
-        │   │╱  angle ≈ 53°     ← direction = arctan(4/3) ≈ 53°
-        └───┼───────────────► x
+        |
+    5   |   +---> (3, 4)         <- This arrow IS the vector (3, 4)
+        |   |   \
+        |   |  \  length = 5     <- magnitude = √(3² + 4²) = 5
+        |   | \
+        |   |\  angle ≈ 53°     <- direction = arctan(4/3) ≈ 53°
+        +---+---------------> x
             0   3
     
     The vector (3, 4) says: "go 3 units right and 4 units up"
@@ -128,14 +128,14 @@ Vector addition is the SINGLE most important operation in game physics. It's how
     a = (3, 1), b = (1, 2)
     
     y
-    │
-    3 ────► a + b = (4, 3)     ← Place b's tail at a's head.
-    │    ╱                       The result goes from a's tail
-    2 ──► b   ╱                   to b's head.
-    │ ╱   ╱
-    1─►a  ╱
-    │╱
-    ────┼───► x
+    |
+    3 ----> a + b = (4, 3)     <- Place b's tail at a's head.
+    |    \                       The result goes from a's tail
+    2 --> b   \                   to b's head.
+    | \   \
+    1->a  \
+    |\
+    ----+---> x
         1 2 3 4
 ```
 
@@ -225,12 +225,12 @@ The **magnitude** (length) of a vector is the straight-line distance from its ta
   This is the Pythagorean theorem! x and y are the legs
   of a right triangle, and the vector IS the hypotenuse:
   
-         │
-       y │   ┌───► v = (x, y)
-         │   │  ╱
-         │   │ ╱  ‖v‖ = √(x² + y²) 
-         │   │╱
-         └───┼────────►
+         |
+       y |   +---> v = (x, y)
+         |   |  \
+         |   | \  ‖v‖ = √(x² + y²) 
+         |   |\
+         +---+-------->
              x
 ```
 
@@ -240,8 +240,8 @@ let length = vector.length();           // = 5.0  (computes sqrt)
 let length_squared = vector.length_squared(); // = 25.0 (no sqrt!)
 
 // 💡 When to use which:
-// length()          → When you need the ACTUAL distance value
-// length_squared()  → When you're COMPARING distances (much faster!)
+// length()          -> When you need the ACTUAL distance value
+// length_squared()  -> When you're COMPARING distances (much faster!)
 //
 // Why? sqrt() is expensive. But if a < b, then sqrt(a) < sqrt(b).
 // So comparing squared values gives IDENTICAL results without sqrt.
@@ -308,16 +308,16 @@ let unit = vector.normalize();     // = (0.6, 0.8), Length = 1.0
 ```rust
 // Pressing W (up) only:
 let input_w = Vec2::new(0.0, 1.0);
-input_w.length();  // = 1.0 → speed = 1.0 × desired_speed ✅
+input_w.length();  // = 1.0 -> speed = 1.0 × desired_speed ✅
 
 // Pressing W + D (up + right)  -  WITHOUT normalize:
 let input_wd = Vec2::new(1.0, 1.0);
-input_wd.length();  // = 1.414 → speed = 1.414 × desired_speed ❌
+input_wd.length();  // = 1.414 -> speed = 1.414 × desired_speed ❌
 // The player moves 41% FASTER diagonally!
 
 // Pressing W + D  -  WITH normalize:
 let input_wd_normalized = Vec2::new(1.0, 1.0).normalize();
-input_wd_normalized.length();  // = 1.0 → speed = 1.0 × desired_speed ✅
+input_wd_normalized.length();  // = 1.0 -> speed = 1.0 × desired_speed ✅
 // Consistent speed in ALL directions!
 ```
 
@@ -352,7 +352,7 @@ The dot product is the single most useful vector operation in game physics. Here
 /// MEANING:  a · b = ‖a‖ × ‖b‖ × cos(θ)
 /// 
 /// If BOTH vectors are UNIT vectors (length = 1):
-///   a · b = cos(θ)   ← JUST THE COSINE OF THE ANGLE!
+///   a · b = cos(θ)   <- JUST THE COSINE OF THE ANGLE!
 ///
 /// This is HUGE. You don't need atan, acos, or any trig.
 /// Just multiply components and add them up. That's it.
@@ -393,7 +393,7 @@ fn is_in_field_of_view(
     let cosine_of_half_fov = (half_fov_degrees.to_radians()).cos();
     // cos(θ) decreases as θ increases. So if our dot product
     // is GREATER than cos(half_fov), the angle is SMALLER than
-    // half_fov → we can see them!
+    // half_fov -> we can see them!
     facing_direction.dot(direction_to_target.normalize()) > cosine_of_half_fov
 }
 
@@ -414,15 +414,15 @@ The 2D cross product (also called "perp dot") tells you which SIDE one vector is
 /// FORMULA: a × b = a.x × b.y - a.y × b.x
 ///
 /// INTERPRETATION:
-///   Positive → b is to the LEFT of a
-///   Negative → b is to the RIGHT of a
-///   Zero     → a and b are parallel (pointing same or opposite)
+///   Positive -> b is to the LEFT of a
+///   Negative -> b is to the RIGHT of a
+///   Zero     -> a and b are parallel (pointing same or opposite)
 
 let rightward = Vec2::new(1.0, 0.0);
 
-rightward.perp_dot(Vec2::new(0.0, 1.0));   // = 1.0  → up is LEFT of right
-rightward.perp_dot(Vec2::new(0.0, -1.0));  // = -1.0 → down is RIGHT of right
-rightward.perp_dot(Vec2::new(1.0, 0.0));   // = 0.0  → parallel (same direction)
+rightward.perp_dot(Vec2::new(0.0, 1.0));   // = 1.0  -> up is LEFT of right
+rightward.perp_dot(Vec2::new(0.0, -1.0));  // = -1.0 -> down is RIGHT of right
+rightward.perp_dot(Vec2::new(1.0, 0.0));   // = 0.0  -> parallel (same direction)
 
 /// 🎮 Game use: Which way should I turn?
 fn turn_direction(facing: Vec2, target_direction: Vec2) -> f32 {
@@ -440,13 +440,13 @@ fn turn_direction(facing: Vec2, target_direction: Vec2) -> f32 {
 ```
 VECTORS ARE THE LANGUAGE OF SPACE:
 
-  Addition:     pos += vel × dt         ← Motion (the ONE equation)
-  Subtraction:  target - origin          ← Finding what's between points
-  Scalar ×:     direction × speed        ← Speed control
-  Magnitude:    ‖v‖ = √(x² + y²)         ← Distance
-  Normalize:    v / ‖v‖                  ← Pure direction (length = 1)
-  Dot:          a · b = cos(θ)           ← Front/behind/sideways
-  Perp Dot:     a × b = left/right test  ← Which way to turn
+  Addition:     pos += vel × dt         <- Motion (the ONE equation)
+  Subtraction:  target - origin          <- Finding what's between points
+  Scalar ×:     direction × speed        <- Speed control
+  Magnitude:    ‖v‖ = √(x² + y²)         <- Distance
+  Normalize:    v / ‖v‖                  <- Pure direction (length = 1)
+  Dot:          a · b = cos(θ)           <- Front/behind/sideways
+  Perp Dot:     a × b = left/right test  <- Which way to turn
 
   THE KEY INSIGHT:
   Position and direction are the SAME type (Vec2).

@@ -18,10 +18,10 @@ for a in all_objects {
     }
 }
 
-// n=10   → 45 checks    ✅ Fine
-// n=100  → 4,950 checks  ⚠️ Getting slow
-// n=1000 → 499,500 checks ❌ Too slow!
-// n=10000 → 49,995,000 checks 💀 Game Over!
+// n=10   -> 45 checks    ✅ Fine
+// n=100  -> 4,950 checks  ⚠️ Getting slow
+// n=1000 -> 499,500 checks ❌ Too slow!
+// n=10000 -> 49,995,000 checks 💀 Game Over!
 ```
 
 **Spatial partitioning** solves this by only checking nearby objects.
@@ -40,7 +40,7 @@ for a in all_objects {
 struct SpatialGrid {
     /// Cell size (should be > largest object size)
     cell_size: f32,
-    /// Grid cells: (cell_x, cell_y) → list of entities
+    /// Grid cells: (cell_x, cell_y) -> list of entities
     cells: HashMap<(i32, i32), Vec<Entity>>,
     /// Entity positions (for boundary checks)
     entity_positions: HashMap<Entity, Vec2>,
@@ -142,8 +142,8 @@ fn broad_phase_spatial_grid(
 
 /// 💡 Spatial Grid Performance:
 ///
-/// Without grid:  n=1000 → ~500,000 checks
-/// With grid:     n=1000 → ~9,000 checks (cell visitation)
+/// Without grid:  n=1000 -> ~500,000 checks
+/// With grid:     n=1000 -> ~9,000 checks (cell visitation)
 ///
 /// That's 55× FASTER! And the advantage grows with n.
 ```
@@ -422,4 +422,4 @@ The runnable project includes Cargo.toml, main.rs, and complete module files.
 
 ---
 
-**[← Previous: Constraints & Joints](ch12-constraints.md)** | **[Next: Bevy ECS Architecture →](ch14-ecs-architecture.md)**
+**[<- Previous: Constraints & Joints](ch12-constraints.md)** | **[Next: Bevy ECS Architecture ->](ch14-ecs-architecture.md)**

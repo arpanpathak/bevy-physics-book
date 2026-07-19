@@ -39,18 +39,18 @@ A **unit circle** is a circle with radius 1 centered at the origin. The angle θ
 
 ```
             sin(θ) axis (Y)
-                ↑
-                │
-     Quadrant II│Quadrant I
-       (-,+)    │    (+,+)
-                │
-  ←─────────────┼─────────────→ cos(θ) axis (X)
-  (-1, 0)       │(1, 0)          cos(θ) = x-coordinate
-                │                sin(θ) = y-coordinate
-  Quadrant III  │Quadrant IV
-       (-,-)    │    (+,-)
-                │
-                ↓
+                ^
+                |
+     Quadrant II|Quadrant I
+       (-,+)    |    (+,+)
+                |
+  <--------------+--------------> cos(θ) axis (X)
+  (-1, 0)       |(1, 0)          cos(θ) = x-coordinate
+                |                sin(θ) = y-coordinate
+  Quadrant III  |Quadrant IV
+       (-,-)    |    (+,-)
+                |
+                v
     (0, -1)
 ```
 
@@ -71,7 +71,7 @@ pub fn verify_unit_circle_property() {
             "Angle {angle}: length = {length}, expected 1.0");
     }
     // This passes for ALL angles. This is the Pythagorean identity:
-    // cos²(θ) + sin²(θ) = 1  →  ‖(cos(θ), sin(θ))‖ = 1
+    // cos²(θ) + sin²(θ) = 1  ->  ‖(cos(θ), sin(θ))‖ = 1
 }
 ```
 
@@ -82,17 +82,17 @@ If the unit circle seems abstract, the RIGHT TRIANGLE definition is more intuiti
 ```
 For a right triangle with angle θ at the origin:
 
-           │
-           │
-      hyp  │  opp          sin(θ) = opposite / hypotenuse
-     ╱    │                cos(θ) = adjacent / hypotenuse
-    ╱ θ   │                tan(θ) = opposite / adjacent
-   ────────┘
+           |
+           |
+      hyp  |  opp          sin(θ) = opposite / hypotenuse
+     \    |                cos(θ) = adjacent / hypotenuse
+    \ θ   |                tan(θ) = opposite / adjacent
+   --------+
    adj
 
 On the unit circle (hypotenuse = 1):
-  cos(θ) = adjacent  ← the x-coordinate
-  sin(θ) = opposite  ← the y-coordinate
+  cos(θ) = adjacent  <- the x-coordinate
+  sin(θ) = opposite  <- the y-coordinate
 ```
 
 ---
@@ -167,15 +167,15 @@ pub fn tangent_example(angle_radians: f32) -> f32 {
 ///   2. Uses the SIGNS of BOTH arguments to determine the correct quadrant
 ///
 /// Range: [-π, π] = [-180°, 180°]
-///   (0, 1)  →  π/2   (up)
-///   (1, 0)  →  0     (right)
-///   (0, -1) → -π/2   (down)
-///   (-1, 0) →  π     (left)
+///   (0, 1)  ->  π/2   (up)
+///   (1, 0)  ->  0     (right)
+///   (0, -1) -> -π/2   (down)
+///   (-1, 0) ->  π     (left)
 pub fn angle_of_vector(vector: Vec2) -> f32 {
     vector.y.atan2(vector.x)
 }
 
-/// ─── Complete: Aim a weapon toward the mouse cursor ───
+/// --- Complete: Aim a weapon toward the mouse cursor ---
 pub fn aim_toward_target(
     shooter_position: Vec2,
     target_position: Vec2,
@@ -190,7 +190,7 @@ pub fn aim_toward_target(
     angle_to_target
 }
 
-/// ─── Complete: Move in the direction of an angle ───
+/// --- Complete: Move in the direction of an angle ---
 pub fn velocity_from_angle(angle_radians: f32, speed: f32) -> Vec2 {
     Vec2::new(
         angle_radians.cos() * speed,  // X component
@@ -200,23 +200,23 @@ pub fn velocity_from_angle(angle_radians: f32, speed: f32) -> Vec2 {
 
 /// These two functions form a ROUND-TRIP:
 ///
-/// vector → atan2 → angle → cos/sin → same vector (up to length)
-///   (3, 4)  →  0.927  →  (0.6, 0.8)  →  direction of (3, 4)!
+/// vector -> atan2 -> angle -> cos/sin -> same vector (up to length)
+///   (3, 4)  ->  0.927  ->  (0.6, 0.8)  ->  direction of (3, 4)!
 ///
-/// angle → cos/sin → vector → atan2 → same angle
-///   0.927  →  (0.6, 0.8)  →  0.927  →  ✅
+/// angle -> cos/sin -> vector -> atan2 -> same angle
+///   0.927  ->  (0.6, 0.8)  ->  0.927  ->  ✅
 pub fn demonstrate_round_trip() {
     let original_vector = Vec2::new(3.0, 4.0);
     
-    // Vector → angle
+    // Vector -> angle
     let angle = original_vector.y.atan2(original_vector.x); // ≈ 0.927 rad
     
-    // Angle → unit vector (same direction)
+    // Angle -> unit vector (same direction)
     let reconstructed_direction = Vec2::new(angle.cos(), angle.sin());
     
     // They should point in the same direction
     let dot_product = original_vector.normalize().dot(reconstructed_direction);
-    assert!((dot_product - 1.0).abs() < 0.0001); // ≈ 1.0 → same direction! ✅
+    assert!((dot_product - 1.0).abs() < 0.0001); // ≈ 1.0 -> same direction! ✅
 }
 ```
 
@@ -360,14 +360,14 @@ pub fn projectile_position_at_time(
 ```
 Projectile trajectory at different launch angles:
 
-  angle = 75°:     ╱‾‾╲     High arc, short range
-                   ╱    ╲
+  angle = 75°:     \‾‾\     High arc, short range
+                   \    \
                   
-  angle = 45°:    ╱╲       MAXIMUM RANGE 🏆
-                 ╱  ╲
+  angle = 45°:    \\       MAXIMUM RANGE 🏆
+                 \  \
                  
-  angle = 15°:   ╱╲        Low arc, long range
-                ╱  ╲
+  angle = 15°:   \\        Low arc, long range
+                \  \
                
   The 45° angle gives the BEST balance of vertical and horizontal
   velocity. sin(45°) = cos(45°) = 0.707  -  equal components!
@@ -391,10 +391,10 @@ pub fn is_target_in_field_of_view(
     field_of_view_half_angle: f32,   // In radians (e.g., 45° = π/4)
     maximum_detection_distance: f32,
 ) -> bool {
-    // ─── Step 1: Compute the vector from observer to target ───
+    // --- Step 1: Compute the vector from observer to target ---
     let vector_to_target = target_position - observer_position;
     
-    // ─── Step 2: Quick distance rejection (avoids trig entirely) ───
+    // --- Step 2: Quick distance rejection (avoids trig entirely) ---
     // If the target is too far, don't bother with angle check.
     let distance_squared = vector_to_target.length_squared();
     let max_distance_squared = maximum_detection_distance * maximum_detection_distance;
@@ -402,21 +402,21 @@ pub fn is_target_in_field_of_view(
         return false; // Too far away
     }
     
-    // ─── Step 3: Compute cos(θ) using the DOT PRODUCT ───
+    // --- Step 3: Compute cos(θ) using the DOT PRODUCT ---
     // a · b = |a| × |b| × cos(θ)
     // Since observer_facing IS a unit vector (|a| = 1):
     // observer_facing · normalized(to_target) = cos(θ)
     let direction_to_target_normalized = vector_to_target.normalize_or_zero();
     let cosine_of_angle = observer_facing_direction.dot(direction_to_target_normalized);
     
-    // ─── Step 4: Compare against cos(fov_angle) ───
+    // --- Step 4: Compare against cos(fov_angle) ---
     // cos(θ) is a DECREASING function from 0 to π:
-    //   θ = 0° → cos(θ) = 1 (directly ahead)
-    //   θ = 45° → cos(θ) = 0.707
-    //   θ = 90° → cos(θ) = 0 (to the side)
-    //   θ = 180° → cos(θ) = -1 (behind)
+    //   θ = 0° -> cos(θ) = 1 (directly ahead)
+    //   θ = 45° -> cos(θ) = 0.707
+    //   θ = 90° -> cos(θ) = 0 (to the side)
+    //   θ = 180° -> cos(θ) = -1 (behind)
     //
-    // So if cos(θ) > cos(fov), then θ < fov → target IS inside FOV
+    // So if cos(θ) > cos(fov), then θ < fov -> target IS inside FOV
     let cosine_of_field_of_view = field_of_view_half_angle.cos();
     cosine_of_angle > cosine_of_field_of_view
 }
@@ -428,9 +428,9 @@ pub fn is_target_in_field_of_view(
 
 | Operation | Formula | Bevy Code | When to Use |
 |-----------|---------|-----------|-------------|
-| Angle → X component | x = cos(θ) × speed | `angle.cos() * speed` | Moving along an angle |
-| Angle → Y component | y = sin(θ) × speed | `angle.sin() * speed` | Moving along an angle |
-| Vector → Angle | θ = atan2(y, x) | `vector.y.atan2(vector.x)` | Aiming toward a point |
+| Angle -> X component | x = cos(θ) × speed | `angle.cos() * speed` | Moving along an angle |
+| Angle -> Y component | y = sin(θ) × speed | `angle.sin() * speed` | Moving along an angle |
+| Vector -> Angle | θ = atan2(y, x) | `vector.y.atan2(vector.x)` | Aiming toward a point |
 | Smooth oscillation | f(t) = A×sin(2πft) | `amplitude * (freq * t * TAU).sin()` | Bouncing, waves |
 | Circular motion | (r·cos(t), r·sin(t)) | `Vec2::new(t.cos(), t.sin()) * r` | Orbiting, spinning |
 | Field of view | cos(θ) = dot product | `facing.dot(to_target)` | Vision cones |
@@ -443,8 +443,8 @@ pub fn is_target_in_field_of_view(
 ```
 TRIGONOMETRY IS THE BRIDGE BETWEEN ANGLES AND VECTORS:
 
-  Angle → Vector:     Vec2::new(angle.cos(), angle.sin()) × speed
-  Vector → Angle:     vector.y.atan2(vector.x)
+  Angle -> Vector:     Vec2::new(angle.cos(), angle.sin()) × speed
+  Vector -> Angle:     vector.y.atan2(vector.x)
   Oscillation:        amplitude × (frequency × t).sin()
   FOV Check:          facing.dot(to_target) > cos(half_fov)
   
@@ -465,4 +465,4 @@ TRIGONOMETRY IS THE BRIDGE BETWEEN ANGLES AND VECTORS:
 
 ---
 
-**[← Previous: Quaternions](ch05-quaternions.md)** | **[Next: Kinematics →](ch07-kinematics.md)**
+**[<- Previous: Quaternions](ch05-quaternions.md)** | **[Next: Kinematics ->](ch07-kinematics.md)**

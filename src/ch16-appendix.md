@@ -11,7 +11,7 @@
 ```rust
 use bevy::prelude::*;
 
-// ─── CREATION ───
+// --- CREATION ---
 Vec2::new(x, y)                    // Explicit
 Vec2::ZERO                         // (0, 0)
 Vec2::ONE                          // (1, 1)
@@ -19,30 +19,30 @@ Vec2::X                            // (1, 0)
 Vec2::Y                            // (0, 1)
 Vec2::splat(v)                     // (v, v)  -  all components same
 
-// ─── BASIC OPERATIONS ───
+// --- BASIC OPERATIONS ---
 a + b                              // Component-wise addition
 a - b                              // Component-wise subtraction
 a * s                              // Scalar multiplication
 a / s                              // Scalar division
 -a                                 // Negation
 
-// ─── PROPERTIES ───
+// --- PROPERTIES ---
 a.length()                         // Magnitude: √(x² + y²)
 a.length_squared()                 // Squared magnitude: x² + y²
 a.normalize()                      // Unit vector (length = 1)
 a.normalize_or_zero()              // Safe normalize (returns ZERO for zero vectors)
 
-// ─── PRODUCTS ───
+// --- PRODUCTS ---
 a.dot(b)                           // Dot product: a.x·b.x + a.y·b.y
 a.perp_dot(b)                      // 2D cross: a.x·b.y - a.y·b.x
 a.perp()                           // Perpendicular: (-a.y, a.x)
 
-// ─── DISTANCE ───
+// --- DISTANCE ---
 a.distance(b)                      // Euclidean distance
 a.distance_squared(b)              // Squared distance (faster!)
 a.angle_between(b)                 // Angle between vectors (radians)
 
-// ─── INTERPOLATION ───
+// --- INTERPOLATION ---
 a.lerp(b, t)                       // Linear interpolation: a + (b-a)·t
 ```
 
@@ -51,20 +51,20 @@ a.lerp(b, t)                       // Linear interpolation: a + (b-a)·t
 ```rust
 use bevy::prelude::*;
 
-// ─── 2D TRANSFORM MATRICES (Mat3) ───
+// --- 2D TRANSFORM MATRICES (Mat3) ---
 Mat3::IDENTITY                     // No transformation
 Mat3::from_translation(Vec2::new(tx, ty))  // Translation
 Mat3::from_angle(θ)                // Rotation by θ radians
 Mat3::from_scale(Vec2::new(sx, sy)) // Scaling
 
-// ─── APPLICATION ───
+// --- APPLICATION ---
 m.transform_point2(p)              // Transform a point (includes translation)
 m.transform_vector2(v)             // Transform a direction (no translation)
 
-// ─── DECOMPOSITION ───
+// --- DECOMPOSITION ---
 m.to_scale_angle_translation()     // Extract (scale, angle, translation)
 
-// ─── COMPOSITION ───
+// --- COMPOSITION ---
 t * r * s                          // Apply S, then R, then T
 ```
 
@@ -73,7 +73,7 @@ t * r * s                          // Apply S, then R, then T
 ```rust
 use bevy::prelude::*;
 
-// ─── CREATION ───
+// --- CREATION ---
 Quat::IDENTITY                     // No rotation
 Quat::from_rotation_x(θ)           // Rotation around X axis
 Quat::from_rotation_y(θ)           // Rotation around Y axis
@@ -82,16 +82,16 @@ Quat::from_axis_angle(axis, θ)     // Rotation around arbitrary axis
 Quat::from_euler(EulerRot::XYZ, pitch, yaw, roll)  // From Euler angles
 Quat::from_rotation_arc(from, to)  // Rotation that turns `from` into `to`
 
-// ─── APPLICATION ───
+// --- APPLICATION ---
 q * Vec3::new(x, y, z)             // Rotate a vector
 
-// ─── COMBINATION ───
+// --- COMBINATION ---
 b * a                              // Apply a, then b
 
-// ─── INTERPOLATION ───
+// --- INTERPOLATION ---
 a.slerp(b, t)                      // Spherical linear interpolation
 
-// ─── CONVERSION ───
+// --- CONVERSION ---
 q.to_euler(EulerRot::XYZ)          // To Euler angles (pitch, yaw, roll)
 ```
 
@@ -351,4 +351,4 @@ fn main() {
 
 ---
 
-**[← Previous: Mini Physics Sandbox](ch15-physics-sandbox.md)** | **[Back to Index →](ch01-foreword.md)**
+**[<- Previous: Mini Physics Sandbox](ch15-physics-sandbox.md)** | **[Back to Index ->](ch01-foreword.md)**

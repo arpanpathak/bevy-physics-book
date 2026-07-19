@@ -71,20 +71,20 @@ let point_c = transformation.transform_point2(Vec2::new(0.0, -20.0));
 A 3×3 matrix in 2D has three columns. Each column is a VECTOR that tells you where one of the original axes goes:
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│                 WHAT THE COLUMNS MEAN                      │
-├────────────────────────────────────────────────────────────┤
-│                                                            │
-│  Column 0 (first column)  = Where the X-axis goes          │
-│  Column 1 (second column) = Where the Y-axis goes          │
-│  Column 2 (third column)  = Where the ORIGIN goes          │
-│                                                            │
-│  When you multiply: mat × (x, y, 1)                        │
-│                                                            │
-│  You're computing:  x × column_0 + y × column_1 + 1 × column_2
-│                                                            │
-│  This is a LINEAR COMBINATION of the columns!              │
-└────────────────────────────────────────────────────────────┘
++------------------------------------------------------------+
+|                 WHAT THE COLUMNS MEAN                      |
++------------------------------------------------------------+
+|                                                            |
+|  Column 0 (first column)  = Where the X-axis goes          |
+|  Column 1 (second column) = Where the Y-axis goes          |
+|  Column 2 (third column)  = Where the ORIGIN goes          |
+|                                                            |
+|  When you multiply: mat × (x, y, 1)                        |
+|                                                            |
+|  You're computing:  x × column_0 + y × column_1 + 1 × column_2
+|                                                            |
+|  This is a LINEAR COMBINATION of the columns!              |
++------------------------------------------------------------+
 ```
 
 Let's verify this with concrete examples:
@@ -92,15 +92,15 @@ Let's verify this with concrete examples:
 ```rust
 /// The identity matrix: columns are the STANDARD basis vectors.
 let identity_matrix = Mat3::IDENTITY;
-// Column 0: (1, 0, 0) → X-axis stays at (1, 0)  -  unchanged.
-// Column 1: (0, 1, 0) → Y-axis stays at (0, 1)  -  unchanged.
-// Column 2: (0, 0, 1) → Origin stays at (0, 0)  -  unchanged.
+// Column 0: (1, 0, 0) -> X-axis stays at (1, 0)  -  unchanged.
+// Column 1: (0, 1, 0) -> Y-axis stays at (0, 1)  -  unchanged.
+// Column 2: (0, 0, 1) -> Origin stays at (0, 0)  -  unchanged.
 // Result: point = 1×X + 0×Y + 0×origin = (x, y)  -  THE SAME POINT.
 
 /// Scale matrix: columns are just the axes, but LONGER.
 let scale_matrix = Mat3::from_scale(Vec2::new(2.0, 3.0));
-// Column 0: (2, 0, 0) → X-axis now points to (2, 0)  -  twice as long.
-// Column 1: (0, 3, 0) → Y-axis now points to (0, 3)  -  three times as long.
+// Column 0: (2, 0, 0) -> X-axis now points to (2, 0)  -  twice as long.
+// Column 1: (0, 3, 0) -> Y-axis now points to (0, 3)  -  three times as long.
 // Result: point = x×(2,0) + y×(0,3) = (2x, 3y)  -  stretched!
 
 /// Rotation matrix: columns are the axes, but ROTATED.
@@ -168,7 +168,7 @@ let moved_point = move_right_and_up.transform_point2(original_point);
 ///   y' = r·sin(φ + θ) = r·sin(φ)·cos(θ) + r·cos(φ)·sin(θ)
 ///
 /// Substituting x = r·cos(φ) and y = r·sin(φ):
-///   x' = x·cos(θ) - y·sin(θ)   ← THE ROTATION FORMULA
+///   x' = x·cos(θ) - y·sin(θ)   <- THE ROTATION FORMULA
 ///   y' = x·sin(θ) + y·cos(θ)
 ///
 /// The columns are literally:
@@ -205,10 +205,10 @@ let rotated_diagonal = rotate_90.transform_point2(diagonal);
 ///   [0   0   1]   [1]   [1   ]
 ///
 /// Special cases:
-///   sx = sy = 2.0  → Uniform scale (everything gets 2× bigger)
-///   sx = 2, sy = 1 → Stretch horizontally only
-///   sx = -1, sy = 1 → Mirror/reflect across the Y axis
-///   sx = sy = 0.5  → Shrink to half size
+///   sx = sy = 2.0  -> Uniform scale (everything gets 2× bigger)
+///   sx = 2, sy = 1 -> Stretch horizontally only
+///   sx = -1, sy = 1 -> Mirror/reflect across the Y axis
+///   sx = sy = 0.5  -> Shrink to half size
 pub fn create_scale_matrix(factors: Vec2) -> Mat3 {
     Mat3::from_scale(factors)
 }
@@ -243,7 +243,7 @@ pub fn compose_transforms(
     rotate: Mat3,
     scale: Mat3,
 ) -> Mat3 {
-    // Read right-to-left: Scale → Rotate → Translate
+    // Read right-to-left: Scale -> Rotate -> Translate
     translate * rotate * scale
 }
 ```
@@ -287,7 +287,7 @@ let result = transform.transform_point2(input_point);
 
 ### THE CARDINAL RULE: T × R × S  -  Always
 
-This order (Scale → Rotate → Translate) is NON-NEGOTIABLE for game physics:
+This order (Scale -> Rotate -> Translate) is NON-NEGOTIABLE for game physics:
 
 ```rust
 /// Why T × R × S and NOT S × R × T?
@@ -324,25 +324,25 @@ pub fn build_wrong_transform(
 ) -> Mat3 {
     Mat3::from_scale(scale_factor)
         * Mat3::from_angle(rotation_radians)
-        * Mat3::from_translation(position) // ← Translation first = WRONG!
+        * Mat3::from_translation(position) // <- Translation first = WRONG!
 }
 ```
 
 ```
 T × R × S (Correct):
-  ┌──────┐     ┌──────┐     .───.
-  │      │     │      │    (     )──.
-  │scale │──► │rotate│──► │translate│──► ●
-  └──────┘     └──────┘     '───'  └────┘
+  +------+     +------+     .---.
+  |      |     |      |    (     )--.
+  |scale |--> |rotate|--> |translate|--> *
+  +------+     +------+     '---'  +----+
   Safe at      Clean           Just
   origin!      rotation!       moves it!
 
 S × R × T (Wrong):
-  ┌──────┐     .───.           ╱╲
-  │      │    ╱     ╲         ╱  ╲
-  │tran. │──►╱rotate ╲──►   ╱scale╲ ← SHEAR!
-  └──────┘    ╲     ╱       ╱      ╲
-               '───'        ╱
+  +------+     .---.           \\
+  |      |    \     \         \  \
+  |tran. |-->\rotate \-->   \scale\ <- SHEAR!
+  +------+    \     \       \      \
+               '---'        \
   Rotates around origin, NOT around object center!
 ```
 
@@ -387,8 +387,8 @@ let translated = rotated + Vec2::new(100.0, 50.0); // Manual addition!
 /// Without it, tx and ty would be multiplied by 0 and have no effect.
 ///
 /// Bevy handles this automatically:
-/// - transform_point2(p)  → treats p as (p.x, p.y, 1)  → INCLUDES translation
-/// - transform_vector2(v) → treats v as (v.x, v.y, 0)  → IGNORES translation
+/// - transform_point2(p)  -> treats p as (p.x, p.y, 1)  -> INCLUDES translation
+/// - transform_vector2(v) -> treats v as (v.x, v.y, 0)  -> IGNORES translation
 pub fn demonstrate_point_vs_vector(transform: Mat3) {
     let point = Vec2::new(10.0, 20.0);
     
@@ -438,11 +438,11 @@ pub fn demonstrate_inverse() {
 
 /// USES FOR THE INVERSE:
 ///
-/// 1. World → Local coordinate conversion.
+/// 1. World -> Local coordinate conversion.
 ///    Given a point in world space, transform it to an object's local space:
 ///    local_point = object_transform.inverse().transform_point2(world_point)
 ///
-/// 2. Camera → World conversion (mouse picking).
+/// 2. Camera -> World conversion (mouse picking).
 ///    world_position = camera_transform.inverse().transform_point2(screen_position)
 ///
 /// 3. Physics constraint solving in local space (avoids coordinate confusion).
@@ -539,7 +539,7 @@ impl PhysicsTransform {
 /// Each part is positioned RELATIVE to the body.
 /// When the body moves or rotates, the parts follow automatically.
 pub fn spaceship_transform_example() {
-    // ─── Spaceship body transform ───
+    // --- Spaceship body transform ---
     let ship_world_position = Vec2::new(400.0, 300.0);
     let ship_rotation = std::f32::consts::FRAC_PI_6; // 30° tilt
     let ship_scale = Vec2::splat(1.0);
@@ -548,14 +548,14 @@ pub fn spaceship_transform_example() {
         * Mat3::from_angle(ship_rotation)
         * Mat3::from_scale(ship_scale);
     
-    // ─── Child part local transforms ───
+    // --- Child part local transforms ---
     // These are defined relative to the BODY's center.
     // They get composed with the body's global transform.
     let left_wing_local = Mat3::from_translation(Vec2::new(-30.0, 10.0));
     let right_wing_local = Mat3::from_translation(Vec2::new(30.0, 10.0));
     let engine_local = Mat3::from_translation(Vec2::new(0.0, -40.0));
     
-    // ─── Child part WORLD transforms ───
+    // --- Child part WORLD transforms ---
     // Compose: body × local = world position of the part
     let left_wing_world = body_transform * left_wing_local;
     let right_wing_world = body_transform * right_wing_local;
@@ -570,7 +570,7 @@ pub fn spaceship_transform_example() {
     //   - First-person cameras (head moves with body)
 }
 
-/// 🖥️ System: Sync PhysicsTransform → Bevy's Transform for rendering.
+/// 🖥️ System: Sync PhysicsTransform -> Bevy's Transform for rendering.
 ///
 /// This bridges our physics engine (which uses PhysicsTransform)
 /// with Bevy's renderer (which uses Transform).
@@ -605,18 +605,18 @@ pub fn sync_physics_to_render_system(
 ```
 MATRICES ARE COMPOSABLE TRANSFORMATIONS:
 
-  ┌─────────────────────────────────────────────────────┐
-  │  A matrix is NOT a grid of numbers.                 │
-  │  A matrix IS a transformation encoded as numbers.   │
-  │                                                     │
-  │  Columns = Where the basis vectors go               │
-  │  Multiplication = Composition (combine transforms)  │
-  │  T × R × S = The sacred order (Scale, Rotate, Move) │
-  │  Inverse = Undo any transformation                  │
-  │                                                     │
-  │  transform_point2(p)  → Position (includes translation)
-  │  transform_vector2(v) → Direction (NO translation)  │
-  └─────────────────────────────────────────────────────┘
+  +-----------------------------------------------------+
+  |  A matrix is NOT a grid of numbers.                 |
+  |  A matrix IS a transformation encoded as numbers.   |
+  |                                                     |
+  |  Columns = Where the basis vectors go               |
+  |  Multiplication = Composition (combine transforms)  |
+  |  T × R × S = The sacred order (Scale, Rotate, Move) |
+  |  Inverse = Undo any transformation                  |
+  |                                                     |
+  |  transform_point2(p)  -> Position (includes translation)
+  |  transform_vector2(v) -> Direction (NO translation)  |
+  +-----------------------------------------------------+
 
   ONE matrix = ONE spatial relationship.
   Compose with multiplication. Apply with transform_point2.
@@ -632,4 +632,4 @@ MATRICES ARE COMPOSABLE TRANSFORMATIONS:
 
 ---
 
-**[← Previous: Vector Mathematics](ch03-vectors.md)** | **[Next: Quaternions →](ch05-quaternions.md)**
+**[<- Previous: Vector Mathematics](ch03-vectors.md)** | **[Next: Quaternions ->](ch05-quaternions.md)**

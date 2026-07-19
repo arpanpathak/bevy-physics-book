@@ -10,26 +10,26 @@ After detecting a collision, we must **resolve** it:
 
 ```
 Collision Detected! 💥
-        │
-        ▼
-┌─────────────────────┐
-│ 1. SEPARATE         │  ← Push objects apart (position correction)
-│    (Fix overlap)    │
-└─────────────────────┘
-        │
-        ▼
-┌─────────────────────┐
-│ 2. COMPUTE IMPULSE  │  ← Calculate velocity change
-│    (Fix velocity)   │
-└─────────────────────┘
-        │
-        ▼
-┌─────────────────────┐
-│ 3. APPLY IMPULSE    │  ← Update velocities
-│    (Make it bounce) │
-└─────────────────────┘
-        │
-        ▼
+        |
+        v
++---------------------+
+| 1. SEPARATE         |  <- Push objects apart (position correction)
+|    (Fix overlap)    |
++---------------------+
+        |
+        v
++---------------------+
+| 2. COMPUTE IMPULSE  |  <- Calculate velocity change
+|    (Fix velocity)   |
++---------------------+
+        |
+        v
++---------------------+
+| 3. APPLY IMPULSE    |  <- Update velocities
+|    (Make it bounce) |
++---------------------+
+        |
+        v
     All resolved! ✅
 ```
 
@@ -64,7 +64,7 @@ fn resolve_collision(
     restitution: f32,     // Bounciness (0 = inelastic, 1 = perfectly elastic)
     friction: f32,        // Surface roughness
 ) {
-    // ─── STEP 1: POSITION CORRECTION ───
+    // --- STEP 1: POSITION CORRECTION ---
     // Push objects apart proportional to their masses
     // Heavier objects move less
     let total_mass = mass_a + mass_b;
@@ -78,7 +78,7 @@ fn resolve_collision(
         *pos_b -= normal * penetration * ratio_b;
     }
     
-    // ─── STEP 2: RELATIVE VELOCITY ───
+    // --- STEP 2: RELATIVE VELOCITY ---
     // How fast are they approaching each other?
     let rel_vel = *vel_a - *vel_b;
     let rel_vel_along_normal = rel_vel.dot(normal);
@@ -88,7 +88,7 @@ fn resolve_collision(
         return;
     }
     
-    // ─── STEP 3: IMPULSE MAGNITUDE ───
+    // --- STEP 3: IMPULSE MAGNITUDE ---
     // j = -(1 + e) × v_rel · n / (1/m₁ + 1/m₂)
     //
     // Where:
@@ -108,13 +108,13 @@ fn resolve_collision(
     // 💥 The impulse magnitude!
     let j = -(1.0 + restitution) * rel_vel_along_normal / inv_mass_sum;
     
-    // ─── STEP 4: APPLY NORMAL IMPULSE ───
+    // --- STEP 4: APPLY NORMAL IMPULSE ---
     // v_new = v_old + (j × n) / m
     let impulse = normal * j;
     *vel_a += impulse * inv_mass_a;
     *vel_b -= impulse * inv_mass_b;
     
-    // ─── STEP 5: FRICTION (tangential impulse) ───
+    // --- STEP 5: FRICTION (tangential impulse) ---
     // Friction opposes sliding motion along the surface
     let tangent = rel_vel - normal * rel_vel_along_normal;
     
@@ -141,11 +141,11 @@ fn resolve_collision(
 ```rust
 /// 🎾 Restitution coefficient e = how bouncy is the collision?
 ///
-/// e = 0.0   → Perfectly inelastic (balls of clay, sticky)
-/// e = 0.3   → Slightly bouncy (a basketball)
-/// e = 0.5   → Moderately bouncy (a tennis ball)
-/// e = 0.8   → Very bouncy (a superball)
-/// e = 1.0   → Perfectly elastic (ideal, no energy loss)
+/// e = 0.0   -> Perfectly inelastic (balls of clay, sticky)
+/// e = 0.3   -> Slightly bouncy (a basketball)
+/// e = 0.5   -> Moderately bouncy (a tennis ball)
+/// e = 0.8   -> Very bouncy (a superball)
+/// e = 1.0   -> Perfectly elastic (ideal, no energy loss)
 ///
 /// Combined restitution (when two objects collide):
 /// e_combined = min(e_a, e_b)   -  conservative
@@ -183,12 +183,12 @@ const MATERIALS: [(&str, f32, f32); 8] = [
 ```
 Bounce Heights (drop from 10m):
 
-    e=1.0:   10m ───┐  ┌───┐  ┌───┐  ┌───  (bounces forever!)
-                     │  │   │  │   │  │
-    e=0.5:   10m ───┐  ┌─┐ ┌─┐ ┌─┐ ┌─┐┌─  (decays slowly)
-                     │  │ │ │ │ │ │ │ ││
-    e=0.0:   10m ───┐                                     (splat!)
-                     │
+    e=1.0:   10m ---+  +---+  +---+  +---  (bounces forever!)
+                     |  |   |  |   |  |
+    e=0.5:   10m ---+  +-+ +-+ +-+ +-++-  (decays slowly)
+                     |  | | | | | | | ||
+    e=0.0:   10m ---+                                     (splat!)
+                     |
     
     Game feel tip: Slightly lower restitution than real life.
     Players expect things to settle down eventually! 🎮
@@ -289,7 +289,7 @@ fn check_kinetic_energy(
     }
     
     // ⭐ KE should not increase (conservative or dissipative)
-    // If KE increases → energy is being CREATED → BUG!
+    // If KE increases -> energy is being CREATED -> BUG!
     println!("📊 Kinetic energy: {:.2}", total_ke);
 }
 ```
@@ -415,4 +415,4 @@ The runnable project includes Cargo.toml, main.rs, and complete module files.
 
 ---
 
-**[← Previous: Collision Detection](ch10-collision-detection.md)** | **[Next: Constraints & Joints →](ch12-constraints.md)**
+**[<- Previous: Collision Detection](ch10-collision-detection.md)** | **[Next: Constraints & Joints ->](ch12-constraints.md)**

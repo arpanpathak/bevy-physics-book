@@ -9,19 +9,19 @@
 A complete, interactive physics sandbox where you can:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    PHYSICS SANDBOX 🎮                    │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  🖱️ Click to spawn circles                              │
-│  ◀️ ▶️ Adjust gravity                                   │
-│  🧹 Clear all objects                                   │
-│  🔄 Toggle debug visualization                          │
-│  💥 Objects collide and bounce                          │
-│  📦 Objects stack on each other                         │
-│  🌊 Everything is affected by gravity                   │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
++---------------------------------------------------------+
+|                    PHYSICS SANDBOX 🎮                    |
++---------------------------------------------------------+
+|                                                         |
+|  🖱️ Click to spawn circles                              |
+|  ◀️ ▶️ Adjust gravity                                   |
+|  🧹 Clear all objects                                   |
+|  🔄 Toggle debug visualization                          |
+|  💥 Objects collide and bounce                          |
+|  📦 Objects stack on each other                         |
+|  🌊 Everything is affected by gravity                   |
+|                                                         |
++---------------------------------------------------------+
 ```
 
 ---
@@ -30,12 +30,12 @@ A complete, interactive physics sandbox where you can:
 
 ```
 sandbox/
-├── Cargo.toml
-└── src/
-    ├── main.rs              # 🎬 Entry point
-    ├── physics.rs           # 🧠 Physics engine (our code from before)
-    ├── sandbox.rs           # 🎮 Sandbox interactions
-    └── debug.rs             # 🕵️ Debug visualization
++-- Cargo.toml
++-- src/
+    +-- main.rs              # 🎬 Entry point
+    +-- physics.rs           # 🧠 Physics engine (our code from before)
+    +-- sandbox.rs           # 🎮 Sandbox interactions
+    +-- debug.rs             # 🕵️ Debug visualization
 ```
 
 ---
@@ -65,9 +65,9 @@ bevy = "0.15"
 
 use bevy::prelude::*;
 
-// ═══════════════════════════════════════════════════════════
+// -
 // 📍 COMPONENTS
-// ═══════════════════════════════════════════════════════════
+// -
 
 /// 📍 Position in world space
 #[derive(Component, Clone, Copy)]
@@ -122,9 +122,9 @@ pub struct CollisionEvent {
     pub penetration: f32,
 }
 
-// ═══════════════════════════════════════════════════════════
+// -
 // ⚙️ RESOURCES
-// ═══════════════════════════════════════════════════════════
+// -
 
 /// 🌍 Physics world settings
 #[derive(Resource)]
@@ -189,9 +189,9 @@ impl SpatialGrid {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
+// -
 // 🔄 SYSTEMS
-// ═══════════════════════════════════════════════════════════
+// -
 
 /// 🧹 Clear force accumulators
 fn clear_forces(mut query: Query<&mut ForceAccumulator>) {
@@ -208,7 +208,7 @@ fn apply_gravity(
     }
 }
 
-/// 📐 F = ma → Integrate
+/// 📐 F = ma -> Integrate
 fn integrate(
     mut query: Query<(&ForceAccumulator, &Mass, &mut Acceleration, &mut Velocity, &mut Position)>,
     settings: Res<PhysicsSettings>,
@@ -216,7 +216,7 @@ fn integrate(
     let dt = settings.fixed_dt;
     
     for (forces, mass, mut acc, mut vel, mut pos) in query.iter_mut() {
-        // F = ma → a = F/m
+        // F = ma -> a = F/m
         acc.0 = if mass.0 > 0.0 { forces.0 / mass.0 } else { Vec2::ZERO };
         
         // 🔄 Semi-implicit Euler integration
@@ -458,7 +458,7 @@ pub fn spawn_on_click(
         None => return,
     };
     
-    // Convert screen → world coordinates
+    // Convert screen -> world coordinates
     let (camera, camera_transform) = cameras.single();
     let world_pos = camera.viewport_to_world_2d(camera_transform, cursor);
     
@@ -603,12 +603,12 @@ pub fn debug_ui(
 //! Run with: cargo run
 //!
 //! Controls:
-//!   🖱️ Click → Spawn ball
-//!   ◀️ ▶️ ⬆️ ⬇️ → Adjust gravity
-//!   🧹 C → Clear all objects
-//!   🔄 R → Reset gravity
-//!   💥 E → Explosion (spawn 20 balls)
-//!   🕵️ F3 → Toggle debug visualization
+//!   🖱️ Click -> Spawn ball
+//!   ◀️ ▶️ ⬆️ ⬇️ -> Adjust gravity
+//!   🧹 C -> Clear all objects
+//!   🔄 R -> Reset gravity
+//!   💥 E -> Explosion (spawn 20 balls)
+//!   🕵️ F3 -> Toggle debug visualization
 
 use bevy::prelude::*;
 
@@ -715,4 +715,4 @@ Ready to level up? Try these:
 
 ---
 
-**[← Previous: Bevy ECS Architecture](ch14-ecs-architecture.md)** | **[Next: Appendix →](ch16-appendix.md)**
+**[<- Previous: Bevy ECS Architecture](ch14-ecs-architecture.md)** | **[Next: Appendix ->](ch16-appendix.md)**

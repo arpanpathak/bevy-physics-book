@@ -14,7 +14,7 @@ DYNAMICS:    "Find acceleration from forces and mass."
 
   The pipeline:
   
-  Forces ──► Sum forces ──► a = F/m ──► Integrate ──► Move!
+  Forces --> Sum forces --> a = F/m --> Integrate --> Move!
   (causes)    (accumulate)  (Newton II)  (kinematics)  (result)
 ```
 
@@ -39,9 +39,9 @@ WHAT THIS MEANS IN CODE:
     when no net force exists.
 
 GAME EXAMPLE: A puck on an ice rink (no friction)
-  • Frame 1: puck moving at (50, 0), no forces → velocity stays (50, 0)
-  • Frame 2: puck moving at (50, 0), no forces → velocity stays (50, 0)
-  • Frame 100: STILL moving at (50, 0) → infinite slide!
+  • Frame 1: puck moving at (50, 0), no forces -> velocity stays (50, 0)
+  • Frame 2: puck moving at (50, 0), no forces -> velocity stays (50, 0)
+  • Frame 100: STILL moving at (50, 0) -> infinite slide!
   
   In a real game, we ADD friction (a force) to make it stop.
 ```
@@ -51,7 +51,7 @@ GAME EXAMPLE: A puck on an ice rink (no friction)
 ```
 The net force on an object equals its mass times its acceleration.
 
-  F = m × a     →     a = F / m     (the form we actually use)
+  F = m × a     ->     a = F / m     (the form we actually use)
   
   Force is a VECTOR. Mass is a SCALAR.
   Acceleration is a VECTOR in the SAME direction as the net force.
@@ -59,14 +59,14 @@ The net force on an object equals its mass times its acceleration.
 INTUITION:
   Push an empty shopping cart:   it accelerates easily (low mass)
   Push a full shopping cart:     it accelerates slowly (high mass)  
-  Push a wall:                   it doesn't accelerate at all (∞ mass → static)
+  Push a wall:                   it doesn't accelerate at all (∞ mass -> static)
 
-  SAME PUSH, DIFFERENT MASSES → DIFFERENT ACCELERATIONS.
+  SAME PUSH, DIFFERENT MASSES -> DIFFERENT ACCELERATIONS.
 
 CODE IMPACT:
-  • mass = 1.0  → a = F (force and acceleration are equal numerically)
-  • mass = 10.0 → a = F/10 (heavy object, small acceleration)
-  • mass = 0.0  → a = undefined! We treat this as "static object"
+  • mass = 1.0  -> a = F (force and acceleration are equal numerically)
+  • mass = 10.0 -> a = F/10 (heavy object, small acceleration)
+  • mass = 0.0  -> a = undefined! We treat this as "static object"
 ```
 
 ### 3️⃣ Action-Reaction  -  "Forces Are Symmetric"
@@ -75,7 +75,7 @@ CODE IMPACT:
 For every action force, there's an equal and opposite reaction force.
 
 This means forces ALWAYS come in pairs:
-  • You push on a wall → the wall pushes back with EQUAL force
+  • You push on a wall -> the wall pushes back with EQUAL force
   • The ground pushes up on you with the same force gravity pulls down
   • When objects collide, the force on A = -force on B
 
@@ -92,36 +92,36 @@ CODE IMPACT:
 Every frame, every physics object follows this EXACT pipeline:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    ONE FRAME OF PHYSICS                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  1️⃣  CLEAR FORCES                                               │
-│      ForceAccumulator = (0, 0)                                   │
-│      ↳ Why? Forces don't persist between frames. If you pushed  │
-│        an object last frame, it's still moving (inertia), but   │
-│        the PUSH is gone. Only velocity persists.                 │
-│                                                                   │
-│  2️⃣  ACCUMULATE FORCES                                          │
-│      ForceAccumulator += gravity_force                           │
-│      ForceAccumulator += drag_force                              │
-│      ForceAccumulator += player_input_force                      │
-│      ForceAccumulator += collision_impulse                       │
-│      ↳ Every system that generates a force adds it here.        │
-│        At the end, ForceAccumulator = TOTAL force this frame.    │
-│                                                                   │
-│  3️⃣  F = ma  →  a = F / m                                      │
-│      Acceleration = ForceAccumulator / Mass                      │
-│      ↳ This is Newton's Second Law. Converts force into         │
-│        the acceleration that kinematics needs.                   │
-│                                                                   │
-│  4️⃣  INTEGRATE (kinematics)                                     │
-│      Velocity += Acceleration × dt                               │
-│      Position += Velocity × dt                                   │
-│      ↳ Now the acceleration becomes motion.                      │
-│        This is the kinematics chapter in action.                 │
-│                                                                   │
-└─────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------+
+|                    ONE FRAME OF PHYSICS                          |
++-----------------------------------------------------------------+
+|                                                                   |
+|  1️⃣  CLEAR FORCES                                               |
+|      ForceAccumulator = (0, 0)                                   |
+|      ↳ Why? Forces don't persist between frames. If you pushed  |
+|        an object last frame, it's still moving (inertia), but   |
+|        the PUSH is gone. Only velocity persists.                 |
+|                                                                   |
+|  2️⃣  ACCUMULATE FORCES                                          |
+|      ForceAccumulator += gravity_force                           |
+|      ForceAccumulator += drag_force                              |
+|      ForceAccumulator += player_input_force                      |
+|      ForceAccumulator += collision_impulse                       |
+|      ↳ Every system that generates a force adds it here.        |
+|        At the end, ForceAccumulator = TOTAL force this frame.    |
+|                                                                   |
+|  3️⃣  F = ma  ->  a = F / m                                      |
+|      Acceleration = ForceAccumulator / Mass                      |
+|      ↳ This is Newton's Second Law. Converts force into         |
+|        the acceleration that kinematics needs.                   |
+|                                                                   |
+|  4️⃣  INTEGRATE (kinematics)                                     |
+|      Velocity += Acceleration × dt                               |
+|      Position += Velocity × dt                                   |
+|      ↳ Now the acceleration becomes motion.                      |
+|        This is the kinematics chapter in action.                 |
+|                                                                   |
++-----------------------------------------------------------------+
 ```
 
 ### Why Forces MUST Be Cleared Each Frame
@@ -185,10 +185,10 @@ pub fn apply_gravity_to_all_objects(
 
 /// 💡 GAME FEEL: Adjust gravity for the desired feel.
 ///
-///   Realistic gravity (Earth):    g = (0, -9.81)  → slow, floaty
-///   Platformer gravity (Mario):   g = (0, -60)    → snappy, responsive
-///   Moon gravity:                  g = (0, -1.62)  → floaty jumps
-///   "Juice" gravity:              g = (0, -100)   → dramatic falls
+///   Realistic gravity (Earth):    g = (0, -9.81)  -> slow, floaty
+///   Platformer gravity (Mario):   g = (0, -60)    -> snappy, responsive
+///   Moon gravity:                  g = (0, -1.62)  -> floaty jumps
+///   "Juice" gravity:              g = (0, -100)   -> dramatic falls
 ///
 /// There's no "correct" gravity for a game  -  only what feels right.
 ```
@@ -213,7 +213,7 @@ pub fn apply_gravity_to_all_objects(
 ///   After two seconds: v = v₀ × e^(-2b/m)
 ///   After three seconds: v ≈ 0 (effectively stopped)
 ///
-///   Higher b → faster decay → objects stop sooner.
+///   Higher b -> faster decay -> objects stop sooner.
 pub fn apply_linear_drag_to_objects(
     mut force_query: Query<(&Velocity, &mut ForceAccumulator, &LinearDamping)>,
 ) {
@@ -227,11 +227,11 @@ pub fn apply_linear_drag_to_objects(
 
 /// TUNING GUIDE for damping coefficient:
 ///
-///   b = 0.0    → No drag. Object slides forever (in space).
-///   b = 0.1    → Very subtle drag. Ice-like movement.
-///   b = 1.0    → Noticeable drag. Movement feels "heavy."
-///   b = 5.0    → Strong drag. Like moving through honey.
-///   b = 10.0   → Extreme drag. Stops almost immediately.
+///   b = 0.0    -> No drag. Object slides forever (in space).
+///   b = 0.1    -> Very subtle drag. Ice-like movement.
+///   b = 1.0    -> Noticeable drag. Movement feels "heavy."
+///   b = 5.0    -> Strong drag. Like moving through honey.
+///   b = 10.0   -> Extreme drag. Stops almost immediately.
 ///
 /// For most games, start with b = 0.5 and adjust until it feels right.
 #[derive(Component)]
@@ -269,8 +269,8 @@ impl Default for LinearDamping {
 ///     where ω = √(k/m) = natural frequency
 ///     and T = 2π/ω = period of oscillation
 ///
-///   Higher k → faster oscillation, stiffer feel.
-///   Higher m → slower oscillation, heavier feel.
+///   Higher k -> faster oscillation, stiffer feel.
+///   Higher m -> slower oscillation, heavier feel.
 pub fn apply_spring_force_to_attached_object(
     object_position: Vec2,
     spring_anchor: Vec2,
@@ -295,14 +295,14 @@ SPRING OSCILLATION VISUALIZED:
   Position vs Time for a Spring:
   
   x
-  │   ╱╲      ╱╲      ╱╲
-  │  ╱  ╲    ╱  ╲    ╱  ╲
-  │ ╱    ╲  ╱    ╲  ╱    ╲
-  ─┼──────╲╱──────╲╱──────╲──► t
-  │        ╲      ╱        ╲
-  │         ╲    ╱          ╲
-  │          ╲  ╱            ╲
-  │           ╲╱              ╲
+  |   \\      \\      \\
+  |  \  \    \  \    \  \
+  | \    \  \    \  \    \
+  -+------\\------\\------\--> t
+  |        \      \        \
+  |         \    \          \
+  |          \  \            \
+  |           \\              \
   
   WITHOUT DAMPING: Oscillates forever (theoretical)
   WITH DAMPING: Gradually settles at rest position
@@ -313,7 +313,7 @@ SPRING OSCILLATION VISUALIZED:
 
 ---
 
-## 🧮 The Bridge System: F = ma → a = F/m
+## 🧮 The Bridge System: F = ma -> a = F/m
 
 ```rust
 /// THE CRITICAL BRIDGE between Dynamics and Kinematics.
@@ -345,7 +345,7 @@ pub fn convert_forces_to_acceleration(
             // The object accelerates downward at 500 px/s²
             acceleration.0 = force_accumulator.total_force() / mass.0;
         } else {
-            // mass = 0.0 → static/infinite mass object
+            // mass = 0.0 -> static/infinite mass object
             // These objects NEVER accelerate  -  they're immovable.
             // Think: walls, floors, pillars, the ground.
             acceleration.0 = Vec2::ZERO;
@@ -370,10 +370,10 @@ Let's trace ONE object through ONE complete physics frame:
 ///   dt: 1/60 ≈ 0.01667
 
 pub fn trace_complete_physics_frame() {
-    // ─── START OF FRAME ───
+    // --- START OF FRAME ---
     
     // Step 1: CLEAR forces
-    //   ForceAccumulator = (0, 0)  ← No leftover forces
+    //   ForceAccumulator = (0, 0)  <- No leftover forces
     
     // Step 2: APPLY GRAVITY
     //   F_gravity = m × g = 2.0 × (0, -500) = (0, -1000)
@@ -384,7 +384,7 @@ pub fn trace_complete_physics_frame() {
     //   No drag initially because velocity is zero.
     //   ForceAccumulator = (0, -1000) + (0, 0) = (0, -1000)
     
-    // Step 4: F = ma → a = F/m
+    // Step 4: F = ma -> a = F/m
     //   a = (0, -1000) / 2.0 = (0, -500)
     //   Acceleration = (0, -500)
     
@@ -395,10 +395,10 @@ pub fn trace_complete_physics_frame() {
     //   New Velocity: (0, -8.33)   -  falling slowly
     //   New Position: (0, 299.86)  -  slightly lower
     
-    // ─── FRAME 2 ───
+    // --- FRAME 2 ---
     //   Clear: ForceAccumulator = (0, 0)
     //   Gravity: (0, -1000)
-    //   Drag: -0.1 × (0, -8.33) = (0, 0.833)  ← upward! Opposing fall!
+    //   Drag: -0.1 × (0, -8.33) = (0, 0.833)  <- upward! Opposing fall!
     //   Total: (0, -1000) + (0, 0.833) = (0, -999.167)
     //   a = (0, -999.167) / 2.0 = (0, -499.58)
     //   v = (0, -8.33) + (0, -499.58) × 0.01667 = (0, -16.66)
@@ -407,7 +407,7 @@ pub fn trace_complete_physics_frame() {
     //   Velocity increased to -16.66 (falling faster)
     //   Drag is starting to oppose the fall
     
-    // ─── FRAME 60 (~1 second) ───
+    // --- FRAME 60 (~1 second) ---
     //   Terminal velocity approach: drag ≈ gravity
     //   Velocity ≈ (0, -500)  -  falling at constant speed
     //   Drag = -0.1 × (0, -500) = (0, 50)
@@ -428,14 +428,14 @@ DYNAMICS = WHY THINGS MOVE
 
   The complete pipeline (MEMORIZE THIS SEQUENCE):
   
-  ╔══════════════════════════════════════════════════════════╗
-  ║  1. CLEAR:      ForceAccumulator = (0, 0)               ║
-  ║  2. ACCUMULATE: ForceAccumulator += Forces (gravity,     ║
-  ║                   drag, thrust, collisions, ...)         ║
-  ║  3. CONVERT:    Acceleration = ForceAccumulator / Mass   ║
-  ║  4. INTEGRATE:  Velocity += Acceleration × dt            ║
-  ║                  Position += Velocity × dt                ║
-  ╚══════════════════════════════════════════════════════════╝
+  ++
+  |  1. CLEAR:      ForceAccumulator = (0, 0)               |
+  |  2. ACCUMULATE: ForceAccumulator += Forces (gravity,     |
+  |                   drag, thrust, collisions, ...)         |
+  |  3. CONVERT:    Acceleration = ForceAccumulator / Mass   |
+  |  4. INTEGRATE:  Velocity += Acceleration × dt            |
+  |                  Position += Velocity × dt                |
+  ++
   
   F = ma is the ENGINE:
   • Forces are the INPUT (what we control)
@@ -457,4 +457,4 @@ DYNAMICS = WHY THINGS MOVE
 
 ---
 
-**[← Previous: Kinematics](ch07-kinematics.md)** | **[Next: Integration Methods →](ch09-integration.md)**
+**[<- Previous: Kinematics](ch07-kinematics.md)** | **[Next: Integration Methods ->](ch09-integration.md)**

@@ -93,18 +93,18 @@ ls -la
 
 ```
 my_physics_game/
-├── Cargo.toml          📋 THE RECIPE CARD
-│                       Contains: project name, version, dependencies list.
-│                       When you add "bevy = 0.15" here, Cargo downloads
-│                       the entire Bevy engine and all its dependencies.
-│
-├── src/
-│   └── main.rs         📝 THE ENTRY POINT
-│                       Contains the main() function. When you run
-│                       "cargo run", this is the file that executes.
-│                       Initially contains: fn main() { println!("Hello!"); }
-│
-└── .git/               📦 VERSION CONTROL (optional for us)
++-- Cargo.toml          📋 THE RECIPE CARD
+|                       Contains: project name, version, dependencies list.
+|                       When you add "bevy = 0.15" here, Cargo downloads
+|                       the entire Bevy engine and all its dependencies.
+|
++-- src/
+|   +-- main.rs         📝 THE ENTRY POINT
+|                       Contains the main() function. When you run
+|                       "cargo run", this is the file that executes.
+|                       Initially contains: fn main() { println!("Hello!"); }
+|
++-- .git/               📦 VERSION CONTROL (optional for us)
                         Git repository for tracking changes to your code.
                         Created automatically by cargo new.
 ```
@@ -185,13 +185,13 @@ Your project structure should now look like:
 
 ```
 my_physics_game/
-├── Cargo.toml                  # Dependencies
-├── src/
-│   ├── main.rs                 # Entry point
-│   └── physics/
-│       ├── mod.rs              # Physics plugin definition
-│       ├── components.rs       # Position, Velocity, Mass, etc.
-│       └── systems.rs          # Integration, forces, rendering sync
++-- Cargo.toml                  # Dependencies
++-- src/
+|   +-- main.rs                 # Entry point
+|   +-- physics/
+|       +-- mod.rs              # Physics plugin definition
+|       +-- components.rs       # Position, Velocity, Mass, etc.
+|       +-- systems.rs          # Integration, forces, rendering sync
 ```
 
 ### Why This Structure?
@@ -200,21 +200,21 @@ Each file has one job. This is called **separation of concerns**:
 
 ```
 src/
-├── main.rs              🎬 THE ORCHESTRATOR
-│                        Only sets up the app and spawns entities.
-│                        Doesn't know HOW physics works - only that it exists.
-│
-└── physics/             🧠 THE PHYSICS ENGINE (reusable module)
-    ├── mod.rs           📝 THE PUBLIC API
-    │                    Exposes PhysicsPlugin. External code just adds it.
-    │                    "What can outsiders see?" -> Only the plugin.
-    │
-    ├── components.rs    📍 THE VOCABULARY
-    │                    Defines Position, Velocity, Mass, ForceAccumulator.
-    │                    PURE DATA. No logic. Just structs with fields.
-    │                    "What concepts exist?" -> Position, Velocity, etc.
-    │
-    └── systems.rs       🔄 THE GRAMMAR
++-- main.rs              🎬 THE ORCHESTRATOR
+|                        Only sets up the app and spawns entities.
+|                        Doesn't know HOW physics works - only that it exists.
+|
++-- physics/             🧠 THE PHYSICS ENGINE (reusable module)
+    +-- mod.rs           📝 THE PUBLIC API
+    |                    Exposes PhysicsPlugin. External code just adds it.
+    |                    "What can outsiders see?" -> Only the plugin.
+    |
+    +-- components.rs    📍 THE VOCABULARY
+    |                    Defines Position, Velocity, Mass, ForceAccumulator.
+    |                    PURE DATA. No logic. Just structs with fields.
+    |                    "What concepts exist?" -> Position, Velocity, etc.
+    |
+    +-- systems.rs       🔄 THE GRAMMAR
                          Defines how components transform each frame.
                          PURE LOGIC. Functions that read/write components.
                          "What happens each frame?" -> Integrate, sync, etc.
@@ -295,13 +295,13 @@ Velocity and Position are BOTH `Vec2`. They can be added together because they'r
 
 **The connection to Newton's Second Law:**
 ```
-F = m × a   →   a = F / m
+F = m × a   ->   a = F / m
 ```
 Acceleration is where FORCES live. Gravity, drag, thrust, wind - they all produce acceleration, which changes velocity, which changes position.
 
 **The pipeline:**
 ```
-Forces → a = F/m → v += a×dt → x += v×dt
+Forces -> a = F/m -> v += a×dt -> x += v×dt
 (cause)  (Newton)  (integrate)  (integrate)
 ```
 
@@ -326,9 +326,9 @@ pub struct Acceleration(pub Vec2);
 **What it represents:** INERTIA - resistance to changing velocity. Newton's Second Law: `F = m × a`, so `a = F / m`. Higher mass = same force produces less acceleration.
 
 **Practical values:**
-- `mass = 1.0` → Normal dynamic object. Force = acceleration numerically.
-- `mass = 10.0` → Heavy object. Same force gives 1/10 the acceleration.
-- `mass = 0.0` → STATIC object. NEVER moves. Walls, floors, pillars. Handled as special case to avoid division by zero.
+- `mass = 1.0` -> Normal dynamic object. Force = acceleration numerically.
+- `mass = 10.0` -> Heavy object. Same force gives 1/10 the acceleration.
+- `mass = 0.0` -> STATIC object. NEVER moves. Walls, floors, pillars. Handled as special case to avoid division by zero.
 
 **The mass canceling trick:** Since `a = F/m` and gravity's `F = m × g`, we get `a = (m × g) / m = g`. The MASS CANCELS OUT. All objects fall at the same rate regardless of mass. A feather and a boulder fall identically in vacuum.
 
@@ -346,8 +346,8 @@ pub struct Mass(pub f32);
 **What it represents:** A temporary buffer that collects ALL forces acting on an entity during a single frame. Forces are ADDED to this buffer by various systems (gravity, drag, input), then the TOTAL is divided by mass to get acceleration.
 
 **Why clear every frame?** Forces are like pushes. If you push a box across the floor:
-- WHILE you're pushing: force is present → box accelerates
-- AFTER you stop: force is GONE → box slows (friction)
+- WHILE you're pushing: force is present -> box accelerates
+- AFTER you stop: force is GONE -> box slows (friction)
 - But the VELOCITY persists (inertia) until friction stops it
 
 If forces were NOT cleared, every force would be "always on." Gravity applied once would stay forever, accumulating MORE each frame. Objects would accelerate to infinite speed.
@@ -415,7 +415,7 @@ Here's how the four components interact every single frame. Read top to bottom:
 > The runnable project includes Cargo.toml, main.rs, and the complete physics module in separate files.
 ///
 /// This is where Newton's Second Law lives:
-///   F = ma  →  a = F/m
+///   F = ma  ->  a = F/m
 ///
 /// In our engine, we:
 ///   1. ACCUMULATE forces on an entity (gravity + drag + thrust + ...)
@@ -426,21 +426,21 @@ Here's how the four components interact every single frame. Read top to bottom:
 /// THE ACCELERATION PIPELINE:
 ///
 ///   Frame Start
-///       │
-///       ▼
-///   acc = (0, 0)          ← Clear acceleration from last frame
-///       │
-///       ▼
-///   acc += gravity         ← Add gravitational acceleration
-///   acc += drag / mass     ← Add drag force (converted to accel)
-///   acc += thrust / mass   ← Add player input force
-///       │
-///       ▼
-///   vel += acc × dt        ← Integrate: acceleration → velocity
-///   pos += vel × dt        ← Integrate: velocity → position
-///       │
-///       ▼
-///   acc = (0, 0)          ← Clear for next frame
+///       |
+///       v
+///   acc = (0, 0)          <- Clear acceleration from last frame
+///       |
+///       v
+///   acc += gravity         <- Add gravitational acceleration
+///   acc += drag / mass     <- Add drag force (converted to accel)
+///   acc += thrust / mass   <- Add player input force
+///       |
+///       v
+///   vel += acc × dt        <- Integrate: acceleration -> velocity
+///   pos += vel × dt        <- Integrate: velocity -> position
+///       |
+///       v
+///   acc = (0, 0)          <- Clear for next frame
 ///
 /// IMPORTANT: Acceleration is RECALCULATED every frame.
 /// We don't "store" acceleration between frames  -  it's ephemeral,
@@ -462,17 +462,17 @@ pub struct Acceleration(pub Vec2);
 ///
 /// MATHEMATICAL MEANING:
 /// Mass is the proportionality constant between force and acceleration:
-///   F = ma  →  a = F/m
+///   F = ma  ->  a = F/m
 ///
 /// PHYSICAL INTUITION:
 ///   - Push a feather (low mass): it accelerates easily
 ///   - Push a boulder (high mass): it barely moves
 ///
 /// GAME DESIGN IMPLICATIONS:
-///   mass = 1.0    ← Default "normal" object
-///   mass = 10.0   ← Heavy object (slow to accelerate, hard to push)
-///   mass = 0.1    ← Light object (very responsive, easy to launch)
-///   mass = 0.0    ← STATIC/immovable (infinite mass  -  walls, floors)
+///   mass = 1.0    <- Default "normal" object
+///   mass = 10.0   <- Heavy object (slow to accelerate, hard to push)
+///   mass = 0.1    <- Light object (very responsive, easy to launch)
+///   mass = 0.0    <- STATIC/immovable (infinite mass  -  walls, floors)
 ///
 /// THE SPECIAL CASE OF mass = 0.0:
 /// When mass is zero, F = ma would give a = F/0 = ∞ (division by zero).
@@ -490,32 +490,32 @@ pub struct Mass(pub f32);
 Understanding how these four components interact is the foundation of ALL game physics:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    ONE PHYSICS TIMESTEP                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  ┌──────────────┐                                                 │
-│  │ Acceleration │ ◄──── Force Accumulation (gravity, drag, etc.) │
-│  │   (a = F/m)  │       a_new = F_gravity/m + F_drag/m + ...    │
-│  └──────┬───────┘                                                 │
-│         │                                                         │
-│         │ INTEGRATE: v_new = v_old + a × dt                      │
-│         ▼                                                         │
-│  ┌──────────────┐                                                 │
-│  │   Velocity   │ ◄──── Now holds updated velocity                │
-│  │   (v_new)    │                                                 │
-│  └──────┬───────┘                                                 │
-│         │                                                         │
-│         │ INTEGRATE: x_new = x_old + v_new × dt                  │
-│         ▼                                                         │
-│  ┌──────────────┐                                                 │
-│  │   Position   │ ◄──── Now holds updated position                │
-│  │   (x_new)    │                                                 │
-│  └──────────────┘                                                 │
-│                                                                   │
-│  Then: Acceleration is CLEARED for next frame                     │
-│  (forces are re-calculated each frame)                            │
-└─────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------+
+|                    ONE PHYSICS TIMESTEP                          |
++-----------------------------------------------------------------+
+|                                                                   |
+|  +--------------+                                                 |
+|  | Acceleration | <---- Force Accumulation (gravity, drag, etc.) |
+|  |   (a = F/m)  |       a_new = F_gravity/m + F_drag/m + ...    |
+|  +------+-------+                                                 |
+|         |                                                         |
+|         | INTEGRATE: v_new = v_old + a × dt                      |
+|         v                                                         |
+|  +--------------+                                                 |
+|  |   Velocity   | <---- Now holds updated velocity                |
+|  |   (v_new)    |                                                 |
+|  +------+-------+                                                 |
+|         |                                                         |
+|         | INTEGRATE: x_new = x_old + v_new × dt                  |
+|         v                                                         |
+|  +--------------+                                                 |
+|  |   Position   | <---- Now holds updated position                |
+|  |   (x_new)    |                                                 |
+|  +--------------+                                                 |
+|                                                                   |
+|  Then: Acceleration is CLEARED for next frame                     |
+|  (forces are re-calculated each frame)                            |
++-----------------------------------------------------------------+
 ```
 
 ---
@@ -536,9 +536,9 @@ After this, you will NEVER look at motion the same way again.
 You're driving a car. Your foot is on the gas pedal.
 
 ```
-The gas pedal is FORCE.      → How hard you push it.
-The car's speed is VELOCITY. → How fast you're going.
-The road position is POSITION. → Where you are on the road.
+The gas pedal is FORCE.      -> How hard you push it.
+The car's speed is VELOCITY. -> How fast you're going.
+The road position is POSITION. -> Where you are on the road.
 ```
 
 **Let's trace 5 seconds of driving, 1 second at a time:**
@@ -560,7 +560,7 @@ Second 2: You press the gas harder.
   - Gas pedal: medium press     (force = medium)
   - Speed increases to: 15 mph  (velocity = 15)
   - You've moved to: mile 0.36  (position = 0.36)
-  - Average speed: (5+15)/2 = 10 mph → moved 0.28 miles this second.
+  - Average speed: (5+15)/2 = 10 mph -> moved 0.28 miles this second.
 
 Second 3: You floor it.
   - Gas pedal: floored          (force = maximum)
@@ -624,8 +624,8 @@ This is SYMPLECTIC integration. If we used old speed:
 **The two rules in physics notation:**
 
 ```
-v(t + dt) = v(t) + a × dt         ← Rule 1: force changes velocity
-x(t + dt) = x(t) + v(t+dt) × dt   ← Rule 2: velocity changes position
+v(t + dt) = v(t) + a × dt         <- Rule 1: force changes velocity
+x(t + dt) = x(t) + v(t+dt) × dt   <- Rule 2: velocity changes position
                                      (note: uses v(t+dt), the NEW velocity!)
 ```
 
@@ -863,25 +863,25 @@ mod physics;
 
 fn main() {
     App::new()
-        // ─── DEFAULT PLUGINS ───
+        // --- DEFAULT PLUGINS ---
         // This ONE call enables: window, renderer, input, audio, time, UI
         // Without it, you'd have a headless physics simulation
         // (which is valid for server-side physics!)
         .add_plugins(DefaultPlugins)
         
-        // ─── CUSTOM PHYSICS PLUGIN ───
+        // --- CUSTOM PHYSICS PLUGIN ---
         // Our physics module exposes a Plugin that registers
         // all physics systems, resources, and events.
         // Adding it here = installing the physics engine.
         .add_plugins(physics::PhysicsPlugin)
         
-        // ─── STARTUP SYSTEMS ───
+        // --- STARTUP SYSTEMS ---
         // Systems that run ONCE when the app starts.
         // Use these for: spawning initial entities, setting up
         // resources that need computation, camera setup.
         .add_systems(Startup, setup)
         
-        // ─── UPDATE SYSTEMS ───
+        // --- UPDATE SYSTEMS ---
         // Systems that run EVERY FRAME.
         // Our physics systems are registered inside PhysicsPlugin,
         // but game-specific logic goes here.
@@ -902,7 +902,7 @@ fn main() {
 1. **Builds the system graph** from all `.add_systems()` calls
 2. **Determines parallel execution** groups (systems accessing different components can run simultaneously)
 3. **Runs all Startup systems** (your `setup()` function creates the initial world state)
-4. **Enters the render loop**: For each frame, run Update systems → sync Commands → render
+4. **Enters the render loop**: For each frame, run Update systems -> sync Commands -> render
 
 ---
 
@@ -912,47 +912,47 @@ Let's trace a complete frame from start to finish, showing exactly what data exi
 
 ```
 INITIAL STATE (Frame N, start):
-────────────────────────────────
+--------------------------------
 World:
   Entity(1):
     Position: (0.0, 300.0)
     Velocity: (0.0, 0.0)
-    Acceleration: (0.0, 0.0)    ← Cleared at end of last frame
+    Acceleration: (0.0, 0.0)    <- Cleared at end of last frame
     Mass: 1.0
 
   Resource:
-    PhysicsSettings.gravity: (0.0, -500.0)  ← 500 px/s² downward
-    PhysicsSettings.fixed_dt: 0.01667        ← 1/60 second
+    PhysicsSettings.gravity: (0.0, -500.0)  <- 500 px/s² downward
+    PhysicsSettings.fixed_dt: 0.01667        <- 1/60 second
 
 FRAME N BEGINS:
-────────────────
+----------------
 
 STEP 1: clear_forces()
-  Entity(1).Acceleration = (0.0, 0.0)  ← Already zero, just confirming
+  Entity(1).Acceleration = (0.0, 0.0)  <- Already zero, just confirming
 
 STEP 2: apply_gravity()
   Entity(1).Acceleration += (0.0, -500.0) × 1.0 (mass is implicit here)
   Entity(1).Acceleration = (0.0, -500.0)
-  ↓
+  v
   Now acceleration says: "I'm accelerating downward at 500 px/s²"
 
 STEP 3: integrate()
   Sub-step 1 (sub_dt = 0.01667):
-    a = (0.0, -500.0)                      ← From F = ma
+    a = (0.0, -500.0)                      <- From F = ma
     v += (0.0, -500.0) × 0.01667
-    v = (0.0, -8.33)                       ← Fell 8.33 px/s in this step
+    v = (0.0, -8.33)                       <- Fell 8.33 px/s in this step
     x += (0.0, -8.33) × 0.01667
-    x = (0.0, 299.86)                      ← Moved down 0.14 pixels
-    a = (0.0, 0.0)                         ← Cleared for next sub-step
+    x = (0.0, 299.86)                      <- Moved down 0.14 pixels
+    a = (0.0, 0.0)                         <- Cleared for next sub-step
 
   (If substeps = 1, we're done. If substeps = 4,
    repeat 3 more times with smaller steps)
 
 STEP 4: sync_to_render()
-  Entity(1).Transform.translation = (0.0, 299.86, 0.0)  ← Bevy's renderer sees this
+  Entity(1).Transform.translation = (0.0, 299.86, 0.0)  <- Bevy's renderer sees this
 
 FRAME N ENDS:
-────────────────
+----------------
   BOTTOM LINE: Entity moved from y=300 to y=299.86 (falling!)
   Next frame: velocity continues accumulating, object accelerates
   After ~60 frames (1 second): object has fallen ~250 pixels
@@ -973,7 +973,7 @@ FRAME N ENDS:
 | **Resource** | Global singleton data | PhysicsSettings  -  affects all entities |
 | **Commands** | Deferred spawn/despawn/modify | Batched for efficiency, executed at sync points |
 | **Sync Point** | Where deferred ops are flushed | Stops parallel execution temporarily  -  MINIMIZE THESE |
-| **Integration** | Transforming acceleration → velocity → position | The mathematical heart of physics simulation |
+| **Integration** | Transforming acceleration -> velocity -> position | The mathematical heart of physics simulation |
 | **Fixed Timestep** | Physics runs at constant rate regardless of FPS | Deterministic, framerate-independent simulation |
 
 ---
@@ -982,4 +982,4 @@ FRAME N ENDS:
 
 ---
 
-**[← Previous: Foreword & Index](ch01-foreword.md)** | **[Next: Vector Mathematics →](ch03-vectors.md)**
+**[<- Previous: Foreword & Index](ch01-foreword.md)** | **[Next: Vector Mathematics ->](ch03-vectors.md)**

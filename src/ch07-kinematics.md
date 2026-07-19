@@ -25,16 +25,16 @@ Position is the simplest. It's a LOCATION in space.
 ```
 In 1D (a number line):
   -5  -4  -3  -2  -1   0   1   2   3   4   5
-                      ▲
-                      │
+                      ^
+                      |
                   You are here: position = 0
 
 In 2D (a screen):
-          ↑ y
-          │
-    300 ─ ● player         ← Position = (200, 300)
-          │
-          └───────────────► x
+          ^ y
+          |
+    300 - * player         <- Position = (200, 300)
+          |
+          +---------------> x
               200
 ```
 
@@ -97,10 +97,10 @@ Over 60 frames (1 second), it moves 50 pixels total.
 Acceleration is the RATE OF CHANGE of velocity. If velocity is "how fast position changes," acceleration is "how fast VELOCITY changes."
 
 ```
-POSITION:  "Where am I?"     → measured in pixels
-VELOCITY:  "How fast is my   → measured in pixels PER SECOND
+POSITION:  "Where am I?"     -> measured in pixels
+VELOCITY:  "How fast is my   -> measured in pixels PER SECOND
            position changing?"
-ACCELERATION: "How fast is   → measured in pixels PER SECOND PER SECOND
+ACCELERATION: "How fast is   -> measured in pixels PER SECOND PER SECOND
               my velocity          (pixels/second²)
               changing?"
 ```
@@ -123,7 +123,7 @@ ACCELERATION: "How fast is   → measured in pixels PER SECOND PER SECOND
 Position, velocity, and acceleration form an unbroken chain:
 
 ```
-Acceleration ──► changes ──► Velocity ──► changes ──► Position
+Acceleration --> changes --> Velocity --> changes --> Position
  (external             (rate of change    (rate of change
   influence)            of velocity)       of position)
 ```
@@ -139,12 +139,12 @@ Your speed changes your LOCATION = position
 **In math notation (don't worry, this is just the formal version):**
 
 ```
-v(t) = d/dt [position(t)]    ← velocity is the DERIVATIVE of position
-a(t) = d/dt [velocity(t)]    ← acceleration is the DERIVATIVE of velocity
+v(t) = d/dt [position(t)]    <- velocity is the DERIVATIVE of position
+a(t) = d/dt [velocity(t)]    <- acceleration is the DERIVATIVE of velocity
 
 Going backward (which is what our code does every frame):
-position(t+dt) = position(t) + velocity(t) × dt   ← INTEGRATE velocity
-velocity(t+dt) = velocity(t) + acceleration(t) × dt  ← INTEGRATE acceleration
+position(t+dt) = position(t) + velocity(t) × dt   <- INTEGRATE velocity
+velocity(t+dt) = velocity(t) + acceleration(t) × dt  <- INTEGRATE acceleration
 ```
 
 ### What "Derivative" and "Integral" Mean in Plain English
@@ -153,12 +153,12 @@ If calculus scares you, here's the ONLY thing you need to know:
 
 ```
 A DERIVATIVE = "how fast is this thing changing RIGHT NOW?"
-  → The derivative of position is velocity.
-  → The derivative of velocity is acceleration.
+  -> The derivative of position is velocity.
+  -> The derivative of velocity is acceleration.
 
 An INTEGRAL = "add up all the tiny changes over time."
-  → The integral of acceleration over time is velocity.
-  → The integral of velocity over time is position.
+  -> The integral of acceleration over time is velocity.
+  -> The integral of velocity over time is position.
 ```
 
 **In game code, "integral" just means:** `value += change × delta_time`
@@ -230,12 +230,12 @@ STEP 3: Total time in the air.
 Height vs Time for the jump:
 
   height (m)
-    5 │    ╱╲        
-    4 │   ╱  ╲       ← Peak at t=1.02s, height=5.1m
-    3 │  ╱    ╲
-    2 │ ╱      ╲
-    1 │╱        ╲
-    0 └────────────► time (s)
+    5 |    \\        
+    4 |   \  \       <- Peak at t=1.02s, height=5.1m
+    3 |  \    \
+    2 | \      \
+    1 |\        \
+    0 +------------> time (s)
       0   1   2
 
   The shape is a PARABOLA. That's what "s = ut + ½at²" looks like.
@@ -243,11 +243,11 @@ Height vs Time for the jump:
   Velocity vs Time for the same jump:
 
   vel (m/s)
-   10 │    ╱
-    5 │   ╱         ← Crosses zero at t=1.02s (peak of jump)
-    0 │  ╱───────► t
-   -5 │ ╲
-  -10 │  ╲
+   10 |    \
+    5 |   \         <- Crosses zero at t=1.02s (peak of jump)
+    0 |  \-------> t
+   -5 | \
+  -10 |  \
   
   The velocity DECREASES LINEARLY. That's what "v = u + at" looks like.
   At the peak, velocity is zero  -  the player is momentarily weightless.
@@ -288,8 +288,8 @@ Enemy wants to shoot where the player WILL be, not where he IS.
 
   Without prediction:      With prediction:
   
-  Player ●───►             Player ●───►    ● (predicted position in 0.5s)
-     ↑                         ↑           ↗
+  Player *--->             Player *--->    * (predicted position in 0.5s)
+     ^                         ^           ↗
   Enemy shoots here ❌      Enemy aims here ✅
   (always misses)           (leads the target, always hits)
 ```
@@ -328,19 +328,19 @@ pub fn kinematics_step(
 ```
 KINEMATICS = THE LANGUAGE OF MOTION
 
-  POSITION:     "Where am I?"        → Vec2 in pixels
-  VELOCITY:     "How fast and       → Vec2 in pixels/second
+  POSITION:     "Where am I?"        -> Vec2 in pixels
+  VELOCITY:     "How fast and       -> Vec2 in pixels/second
                  which way?"
-  ACCELERATION: "How is my          → Vec2 in pixels/second²
+  ACCELERATION: "How is my          -> Vec2 in pixels/second²
                  velocity changing?"
   
   THE CHAIN:
-    a ──∫──► v ──∫──► x
+    a --∫--> v --∫--> x
     (integrate)  (integrate)
     
     EVERY FRAME:
     vel += acc × dt
-    pos += vel × dt    ← uses NEW velocity!
+    pos += vel × dt    <- uses NEW velocity!
     
   SUVAT EQUATIONS (for constant acceleration):
     v = u + at
@@ -362,4 +362,4 @@ KINEMATICS = THE LANGUAGE OF MOTION
 
 ---
 
-**[← Previous: Trigonometry](ch06-trigonometry.md)** | **[Next: Dynamics →](ch08-dynamics.md)**
+**[<- Previous: Trigonometry](ch06-trigonometry.md)** | **[Next: Dynamics ->](ch08-dynamics.md)**

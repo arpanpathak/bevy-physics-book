@@ -16,20 +16,20 @@ But they have a **fundamental, fatal flaw**:
 Imagine three nested rings, each controlling one axis of rotation:
 
          YAW (Y axis)          PITCH (X axis)         ROLL (Z axis)
-           │                       │                       │
-         ╭─┴─╮                   ╭─┴─╮                   ╭─┴─╮
-         │   │                   │   │                   │   │
-    ─────┤   ├─────         ─────┤   ├─────         ─────┤   ├─────
-         │   │                   │   │                   │   │
-         ╰───╯                   ╰───╯                   ╰───╯
+           |                       |                       |
+         +-+-+                   +-+-+                   +-+-+
+         |   |                   |   |                   |   |
+    -----+   +-----         -----+   +-----         -----+   +-----
+         |   |                   |   |                   |   |
+         +-----+                   +-----+                   +-----+
 
 When you pitch the plane UP by 90°, the yaw and roll rings ALIGN.
 Now yaw and roll do the SAME thing  -  you've lost a degree of freedom!
 
   Before (three independent axes):   After (two axes aligned):
-    YAW ──►  horizontal rotation       YAW ──►  same as roll! ❌
-    PITCH ──► vertical rotation         PITCH ──► vertical rotation
-    ROLL ──►  bank/tilt                 ROLL ──►  same as yaw! ❌
+    YAW -->  horizontal rotation       YAW -->  same as roll! ❌
+    PITCH --> vertical rotation         PITCH --> vertical rotation
+    ROLL -->  bank/tilt                 ROLL -->  same as yaw! ❌
     
   Result: jerky, unpredictable rotation. Try pitching 90° in any
   3D program and then yawing  -  the rotation "breaks."
@@ -63,14 +63,14 @@ A quaternion represents: "Rotate by θ degrees around axis A"
   A = (ax, ay, az) = unit vector axis of rotation
 
   Quaternion components:
-    w = cos(θ/2)          ← "amount" of rotation
-    x = ax × sin(θ/2)     ← X component of rotation axis
-    y = ay × sin(θ/2)     ← Y component of rotation axis
-    z = az × sin(θ/2)     ← Z component of rotation axis
+    w = cos(θ/2)          <- "amount" of rotation
+    x = ax × sin(θ/2)     <- X component of rotation axis
+    y = ay × sin(θ/2)     <- Y component of rotation axis
+    z = az × sin(θ/2)     <- Z component of rotation axis
 
 EXAMPLE: Rotate 90° around the Z axis:
   θ = 90° = π/2
-  A = (0, 0, 1)  ← Z axis
+  A = (0, 0, 1)  <- Z axis
 
   w = cos(45°) ≈ 0.707
   x = 0 × sin(45°) = 0
@@ -122,7 +122,7 @@ let roll_quaternion = Quat::from_rotation_z(std::f32::consts::FRAC_PI_4);  // Ti
 ```rust
 use bevy::prelude::*;
 
-/// ─── Method 1: From an axis and angle (MOST DIRECT) ───
+/// --- Method 1: From an axis and angle (MOST DIRECT) ---
 ///
 /// Specify exactly what axis to spin around and how much.
 /// The axis MUST be a unit vector (length = 1).
@@ -131,7 +131,7 @@ pub fn method_axis_angle() -> Quat {
     Quat::from_axis_angle(Vec3::Y, std::f32::consts::FRAC_PI_4)
 }
 
-/// ─── Method 2: From a specific axis (CONVENIENT) ───
+/// --- Method 2: From a specific axis (CONVENIENT) ---
 pub fn method_axis_shorthand() -> Quat {
     // These are equivalent to from_axis_angle with the corresponding axis:
     let pitch = Quat::from_rotation_x(0.5);  // Nod up by 0.5 radians
@@ -143,7 +143,7 @@ pub fn method_axis_shorthand() -> Quat {
     roll * yaw * pitch
 }
 
-/// ─── Method 3: From Euler angles (CONVENIENT BUT DANGEROUS) ───
+/// --- Method 3: From Euler angles (CONVENIENT BUT DANGEROUS) ---
 ///
 /// WARNING: Euler angles can cause gimbal lock!
 /// Only use this for simple cases or when reading user input.
@@ -157,7 +157,7 @@ pub fn method_euler() -> Quat {
     )
 }
 
-/// ─── Method 4: Look rotation (FACE TOWARD A TARGET) ───
+/// --- Method 4: Look rotation (FACE TOWARD A TARGET) ---
 ///
 /// Creates a rotation that makes `forward` direction point toward
 /// `target`. The `up` vector prevents rolling (defines which way is up).
@@ -182,7 +182,7 @@ pub fn apply_quaternion_to_vector() {
     let rotated_vector = rotation * original_vector;
     
     // rotated_vector ≈ (0, 1, 0)  -  the vector now points along Y!
-    // The point (1,0,0) rotated 90° around Z → (0,1,0)
+    // The point (1,0,0) rotated 90° around Z -> (0,1,0)
     
     /// 💡 QUATERNION ON THE LEFT, VECTOR ON THE RIGHT:
     ///   rotated = quaternion × vector
@@ -224,7 +224,7 @@ pub fn compose_rotations() {
     let yaw_left = Quat::from_rotation_y(std::f32::consts::FRAC_PI_4);   // 45° yaw
     
     // "Pitch up FIRST, THEN yaw left"
-    // (right-to-left: pitch is rightmost → applied first)
+    // (right-to-left: pitch is rightmost -> applied first)
     let pitch_then_yaw = yaw_left * pitch_up;
     
     // "Yaw left FIRST, THEN pitch up"
@@ -236,7 +236,7 @@ pub fn compose_rotations() {
     // but they lead to different final positions.
 }
 
-/// ─── Practical: flying an aircraft ───
+/// --- Practical: flying an aircraft ---
 ///
 /// In local rotation (multiply on the RIGHT), the rotation axes
 /// rotate WITH the object. This is what you want for aircraft:
@@ -280,7 +280,7 @@ pub fn slerp_between_orientations(
     start_rotation.slerp(end_rotation, interpolation_progress)
 }
 
-/// ─── Frame-rate-independent SLERP for smooth camera movement ───
+/// --- Frame-rate-independent SLERP for smooth camera movement ---
 pub fn smooth_slerp(
     current_rotation: Quat,
     target_rotation: Quat,
@@ -296,7 +296,7 @@ pub fn smooth_slerp(
     current_rotation.slerp(target_rotation, interpolation_factor)
 }
 
-/// ─── Complete: Smooth camera system ───
+/// --- Complete: Smooth camera system ---
 #[derive(Component)]
 pub struct SmoothCamera {
     /// The rotation we want to reach.
@@ -343,7 +343,7 @@ pub fn spaceship_rotation_system(
     let delta_seconds = time.delta_secs();
     
     for (ship_data, mut transform) in ship_query.iter_mut() {
-        // ─── Step 1: Read input → angular velocity for this frame ───
+        // --- Step 1: Read input -> angular velocity for this frame ---
         let mut angular_velocity = Vec3::ZERO;
         
         // Pitch (rotate around LOCAL X axis  -  nod "yes")
@@ -370,7 +370,7 @@ pub fn spaceship_rotation_system(
             angular_velocity.z += ship_data.max_angular_velocity.z;
         }
         
-        // ─── Step 2: Convert angular velocity to delta quaternion ───
+        // --- Step 2: Convert angular velocity to delta quaternion ---
         // Each axis of rotation becomes a small quaternion.
         let delta_angle = angular_velocity * delta_seconds;
         
@@ -381,7 +381,7 @@ pub fn spaceship_rotation_system(
         // Combine: roll × yaw × pitch (standard aircraft convention)
         let total_delta_quat = roll_delta_quat * yaw_delta_quat * pitch_delta_quat;
         
-        // ─── Step 3: Apply delta to current rotation ───
+        // --- Step 3: Apply delta to current rotation ---
         // Right-multiply = LOCAL rotation (axes move with ship)
         // Left-multiply = WORLD rotation (axes fixed)
         transform.rotation = transform.rotation * total_delta_quat;
@@ -391,7 +391,7 @@ pub fn spaceship_rotation_system(
         // With Euler angles: the yaw breaks (gimbal lock).
         // With quaternions: it works perfectly. 🎯
         
-        // ─── Step 4: Get forward direction for thrust ───
+        // --- Step 4: Get forward direction for thrust ---
         let forward_direction = transform.rotation * Vec3::NEG_Z;
         // Use forward_direction × thruster_force to move the ship
     }
@@ -430,10 +430,10 @@ USE MATRICES FOR:
 USE EULER ANGLES FOR:
   ✓ Displaying angles to the user
   ✓ Reading rotation from input
-  → Convert to quaternion immediately after!
+  -> Convert to quaternion immediately after!
 
 Quaternion = (cos(θ/2), axis × sin(θ/2))
-     ↑            ↑
+     ^            ^
      amount       axis of rotation
 ```
 
@@ -445,4 +445,4 @@ Quaternion = (cos(θ/2), axis × sin(θ/2))
 
 ---
 
-**[← Previous: Matrices & Transformations](ch04-matrices.md)** | **[Next: Trigonometry →](ch06-trigonometry.md)**
+**[<- Previous: Matrices & Transformations](ch04-matrices.md)** | **[Next: Trigonometry ->](ch06-trigonometry.md)**
