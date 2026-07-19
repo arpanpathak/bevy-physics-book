@@ -418,6 +418,10 @@ fn recommend_partitioning(object_count: usize) -> &'static str {
 // 🎯 The goal: reduce O(n²) to O(n log n) or better!
 ```
 
+> 💡 **Full source code for this chapter:** [code-examples/ch13-spatial-partitioning/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch13-spatial-partitioning)
+
+The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 > **Key Takeaway:** For 50+ physics objects, spatial partitioning isn't optional  -  it's essential. Start with a **spatial grid** (simplest), upgrade to a **quadtree** or **BVH** when needed. The 80/20 rule applies: a spatial grid gets you 80% of the benefit with 20% of the complexity. 🗺️
 
 ---

@@ -228,85 +228,191 @@ src/
 
 ---
 
-## 📝 Step 4: Components  -  The Deep Dive
+## 📝 Step 4: Components - The Deep Dive
 
-Let's examine each physics component and understand **why it exists**, **what it represents mathematically**, and **how it connects to the physics pipeline**.
+This is where we define the VOCABULARY of our physics engine. Every concept in physics becomes a Rust struct with `#[derive(Component)]`. 
+
+**Important rule:** Components are PURE DATA. No logic. No methods that modify other components. All logic lives in systems (Step 5). This separation is what makes ECS fast and parallelizable.
+
+---
 
 ### Position: Where Is the Object?
 
+**What it represents:** A location in 2D space. Position is a VECTOR from the world origin (0,0) to the entity's location. In physics terms: `r(t)` - the object's location at time t.
+
+**Why a separate component from Bevy's Transform?**
+- Transform bundles position + rotation + scale together. Physics only needs position.
+- Transform is connected to Bevy's scene graph - changing it triggers parent/child hierarchy updates.
+- Carrying rotation + scale through every physics iteration wastes CPU cache bandwidth.
+- By separating, the physics pipeline is independent of the rendering pipeline.
+
+**The struct:**
+
 ```rust
-/// 📍 Position represents a point in 2D Euclidean space.
-///
-/// MATHEMATICAL MEANING:
-/// Position is a VECTOR from the origin (0,0) to the object's location.
-/// In physics terms: position = r(t)  -  the object's location at time t.
-///
-/// WHY A SEPARATE COMPONENT?
-/// Bevy's built-in `Transform` bundles position + rotation + scale together.
-/// For rendering, this is convenient. For physics, it's a PROBLEM:
-///
-/// Problem 1: Transform.hierarchy
-///   Transform is part of Bevy's render graph. Modifying it triggers
-///   hierarchy recomputation (children move with parents). Physics
-///   doesn't need this  -  we just want raw x,y coordinates.
-///
-/// Problem 2: Transform contains rotation + scale
-///   Physics doesn't need these for integration. Carrying them in
-///   every physics iteration wastes cache bandwidth.
-///
-/// Problem 3: Separation of concerns
-///   Physics should own its own data. We write Position, and then
-///   SYNC to Transform for rendering. This makes the physics pipeline
-///   independent of the rendering pipeline.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Position(pub Vec2);
-
-impl Position {
-    /// Create a position from (x, y) coordinates
-    /// x = horizontal axis (positive = right)
-    /// y = vertical axis (positive = up in Bevy 2D)
-    pub fn new(x: f32, y: f32) -> Self {
-        Self(Vec2::new(x, y))
-    }
-}
 ```
 
-### Velocity: How Is Position Changing?
+That's it. A single `Vec2` wrapped in a newtype. `Vec2` holds the x and y coordinates.
+
+**Usage examples:**
+- `Position::new(400.0, 300.0)` - center of an 800×600 screen
+- `Position::new(0.0, 0.0)` - the origin (world center)
+- `Position(Vec2::ZERO)` - same as above, using default
+
+---
+
+### Velocity: How Fast and Which Way?
+
+**What it represents:** The RATE OF CHANGE of position over time. If velocity is (50, 0), the entity moves RIGHT at 50 units every second.
+
+**Physical intuition:** Think of velocity as "where the object WANTS to go next."
+- `(50, 0)` = "move right at 50 px/s"
+- `(0, -200)` = "move down at 200 px/s" (falling)
+- `(0, 0)` = "stay still"
+
+**The formula this enables:**
+```
+new_position = old_position + velocity × delta_time
+```
+
+This is THE fundamental equation of motion. Everything in game physics builds on it.
+
+**The struct:**
 
 ```rust
-/// 🏃 Velocity represents the RATE OF CHANGE of position.
-///
-/// MATHEMATICAL MEANING:
-/// Velocity is the DERIVATIVE of position with respect to time:
-///   v(t) = dr/dt = lim(Δt→0) [r(t+Δt) - r(t)] / Δt
-///
-/// In discrete terms (what we actually compute):
-///   v = Δr / Δt  →  Δr = v × Δt
-///
-/// UNITS: pixels per second (or meters per second in a physics simulation)
-///
-/// WHAT VELOCITY "FEELS LIKE" IN A GAME:
-///   - v = (50, 0)   → Moving right at 50 px/s
-///   - v = (0, -200) → Falling at 200 px/s (terminal velocity from gravity)
-///   - v = (0, 0)    → Stationary (but forces may change this next frame!)
-///
-/// CRITICAL INSIGHT:
-/// Velocity INTERPOLATES position between frames. If your game runs
-/// at 60 FPS and velocity is (60, 0), the object moves 1 pixel per frame.
-/// At 30 FPS, it moves 2 pixels per frame. The MOTION is the same  - 
-/// just the stepping granularity changes. This is WHY we multiply by dt.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Velocity(pub Vec2);
 ```
 
-### Acceleration: What Forces Act on This Object?
+Velocity and Position are BOTH `Vec2`. They can be added together because they're the SAME type. This is the beauty of vectors - position and velocity live in the same mathematical space.
+
+---
+
+### Acceleration: What Forces Are Acting?
+
+**What it represents:** The RATE OF CHANGE of velocity. If acceleration is (0, -500), the velocity decreases by 500 px/s every second. This is what gravity does - it continuously increases your downward speed.
+
+**The connection to Newton's Second Law:**
+```
+F = m × a   →   a = F / m
+```
+Acceleration is where FORCES live. Gravity, drag, thrust, wind - they all produce acceleration, which changes velocity, which changes position.
+
+**The pipeline:**
+```
+Forces → a = F/m → v += a×dt → x += v×dt
+(cause)  (Newton)  (integrate)  (integrate)
+```
+
+**Critical:** Acceleration is RECALCULATED every frame. It does NOT persist. Each frame:
+1. Clear acceleration to zero
+2. Apply all forces (gravity, drag, etc.)
+3. Compute a = F/m
+4. Integrate into velocity
+5. Clear for next frame
+
+**The struct:**
 
 ```rust
-/// ⚡ Acceleration represents the RATE OF CHANGE of velocity.
-///
-/// MATHEMATICAL MEANING:
-/// Acceleration is the SECOND DERIVATIVE of position:
-///   a(t) = dv/dt = d²r/dt²
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Acceleration(pub Vec2);
+```
+
+---
+
+### Mass: How Hard Is It to Move This Object?
+
+**What it represents:** INERTIA - resistance to changing velocity. Newton's Second Law: `F = m × a`, so `a = F / m`. Higher mass = same force produces less acceleration.
+
+**Practical values:**
+- `mass = 1.0` → Normal dynamic object. Force = acceleration numerically.
+- `mass = 10.0` → Heavy object. Same force gives 1/10 the acceleration.
+- `mass = 0.0` → STATIC object. NEVER moves. Walls, floors, pillars. Handled as special case to avoid division by zero.
+
+**The mass canceling trick:** Since `a = F/m` and gravity's `F = m × g`, we get `a = (m × g) / m = g`. The MASS CANCELS OUT. All objects fall at the same rate regardless of mass. A feather and a boulder fall identically in vacuum.
+
+**The struct:**
+
+```rust
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Mass(pub f32);
+```
+
+---
+
+### ForceAccumulator: The Scratch Paper for Forces
+
+**What it represents:** A temporary buffer that collects ALL forces acting on an entity during a single frame. Forces are ADDED to this buffer by various systems (gravity, drag, input), then the TOTAL is divided by mass to get acceleration.
+
+**Why clear every frame?** Forces are like pushes. If you push a box across the floor:
+- WHILE you're pushing: force is present → box accelerates
+- AFTER you stop: force is GONE → box slows (friction)
+- But the VELOCITY persists (inertia) until friction stops it
+
+If forces were NOT cleared, every force would be "always on." Gravity applied once would stay forever, accumulating MORE each frame. Objects would accelerate to infinite speed.
+
+**The struct:**
+
+```rust
+#[derive(Component, Debug, Clone, Copy)]
+pub struct ForceAccumulator {
+    pub total_force: Vec2,
+}
+
+impl ForceAccumulator {
+    pub fn add_force(&mut self, force: Vec2) {
+        self.total_force += force;
+    }
+    pub fn clear(&mut self) {
+        self.total_force = Vec2::ZERO;
+    }
+}
+```
+
+---
+
+### The Complete Data Flow
+
+Here's how the four components interact every single frame:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                  ONE PHYSICS TIMESTEP                         │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌──────────────────┐                                         │
+│  │ ForceAccumulator  │ ◄── Gravity adds (0, -500) × mass     │
+│  │  = (0, -1000)    │ ◄── Drag adds -velocity × damping      │
+│  └────────┬─────────┘                                         │
+│           │                                                   │
+│           ▼ a = F / m = (0, -1000) / 2.0 = (0, -500)         │
+│                                                               │
+│  ┌──────────────────┐                                         │
+│  │ Acceleration     │  = (0, -500) px/s²                      │
+│  └────────┬─────────┘                                         │
+│           │                                                   │
+│           ▼ v += a × dt = (0, 0) + (0, -500) × 0.01667       │
+│                                                               │
+│  ┌──────────────────┐                                         │
+│  │ Velocity         │  = (0, -8.33) px/s                      │
+│  └────────┬─────────┘                                         │
+│           │                                                   │
+│           ▼ x += v × dt = (0, 300) + (0, -8.33) × 0.01667    │
+│                                                               │
+│  ┌──────────────────┐                                         │
+│  │ Position         │  = (0, 299.86) px                       │
+│  └──────────────────┘                                         │
+│                                                               │
+│  Then: Acceleration cleared to (0, 0) for next frame          │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+> 💡 **Full source code for this chapter:** [code-examples/ch02-setup/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch02-setup)
+> 
+> The runnable project includes Cargo.toml, main.rs, and the complete physics module in separate files.
 ///
 /// This is where Newton's Second Law lives:
 ///   F = ma  →  a = F/m

@@ -561,6 +561,10 @@ Collision Detection Flow:
     • Polygon vs Polygon → SAT (all axes)         🐢 Slower
 ```
 
+> 💡 **Full source code for this chapter:** [code-examples/ch10-collision-detection/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch10-collision-detection)
+
+The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 > **Key Takeaway:** Collision detection is always a trade-off between speed and accuracy. Use simple shapes (circles, AABBs) for most things, SAT for complex polygons, and always pair it with broad-phase culling. The fastest collision check is the one you DON'T do! 🎯
 
 ---

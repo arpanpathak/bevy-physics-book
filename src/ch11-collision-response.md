@@ -407,6 +407,10 @@ fn physics_sleep(
 // 5. Add "slop" tolerance to avoid jittery stacks
 ```
 
+> 💡 **Full source code for this chapter:** [code-examples/ch11-collision-response/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch11-collision-response)
+
+The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 > **Key Takeaway:** Collision response is about applying **impulses**  -  instantaneous velocity changes along the collision normal. The magic formula `j = -(1+e)·v_rel·n / (1/m₁ + 1/m₂)` handles everything from splats to superballs. Add friction and position correction, and you've got a complete collision solver! 🏆
 
 ---

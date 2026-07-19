@@ -522,6 +522,10 @@ Constraints are RULES that objects must obey:
     ropes, chains, and ragdolls!
 ```
 
+> 💡 **Full source code for this chapter:** [code-examples/ch12-constraints/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch12-constraints)
+
+The runnable project includes Cargo.toml, main.rs, and complete module files.
+
 > **Key Takeaway:** Constraints are the grammar that turns independent particles into structured objects. Distance constraints + Verlet integration = cloth, ropes, chains, and ragdolls with minimal code. Run 5-10 constraint iterations per frame for stability. The magic isn't in any single constraint  -  it's in how they interact through iteration! 🏗️
 
 ---
