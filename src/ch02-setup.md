@@ -398,143 +398,331 @@ Understanding how these four components interact is the foundation of ALL game p
 
 ---
 
-## 🧮 Step 5: Integration  -  The Engine That Moves Things
+## 🔬 Deep Dive: What "Integration" Actually Means (Trace Through With Real Numbers)
 
-The integration module is where kinematics happens. Let's understand every line:
+This is the single most important concept in game physics. I'm going to explain it THREE ways:
+1. **An everyday analogy** (driving a car)
+2. **The math** (simple arithmetic, I promise)
+3. **The code** (how it looks in Rust)
 
-### PhysicsSettings Resource
+After this, you will NEVER look at motion the same way again.
+
+---
+
+### The Analogy: Driving a Car
+
+You're driving a car. Your foot is on the gas pedal.
+
+```
+The gas pedal is FORCE.      → How hard you push it.
+The car's speed is VELOCITY. → How fast you're going.
+The road position is POSITION. → Where you are on the road.
+```
+
+**Let's trace 5 seconds of driving, 1 second at a time:**
+
+```
+Second 0: You're stopped at a red light.
+  - Gas pedal: not pressed     (force = 0)
+  - Speed: 0 mph               (velocity = 0)
+  - Position: mile marker 0    (position = 0)
+
+Second 1: The light turns green. You press the gas gently.
+  - Gas pedal: lightly pressed  (force = small)
+  - Speed increases to: 5 mph   (velocity = 5)
+  - You've moved to: mile 0.08  (position = 0.08)
+  - Why 0.08? Average speed during this second was (0+5)/2 = 2.5 mph.
+    2.5 mph for 1 second = 0.00069 miles ≈ 0.08 miles in game units.
+
+Second 2: You press the gas harder.
+  - Gas pedal: medium press     (force = medium)
+  - Speed increases to: 15 mph  (velocity = 15)
+  - You've moved to: mile 0.36  (position = 0.36)
+  - Average speed: (5+15)/2 = 10 mph → moved 0.28 miles this second.
+
+Second 3: You floor it.
+  - Gas pedal: floored          (force = maximum)
+  - Speed increases to: 30 mph  (velocity = 30)
+  - Position: mile 1.01         (position = 1.01)
+
+Second 4: You see a red light ahead. You lift your foot off the gas.
+  - Gas pedal: released         (force = 0)
+  - Speed drops to: 25 mph      (velocity = 25 - drag slows you)
+  - Position: mile 1.47         (position = 1.47)
+
+Second 5: You brake gently.
+  - Brake pedal: pressed        (force = negative/braking)
+  - Speed drops to: 10 mph      (velocity = 10)
+  - Position: mile 1.65         (position = 1.65)
+```
+
+**Look at the pattern. Every second, three things happen:**
+
+```
+1. The PEDAL (force) changes the SPEED (velocity).
+2. The SPEED (velocity) changes the POSITION (position).
+3. The NEW speed is used to compute the NEXT position.
+
+This is EXACTLY what our physics code does, 60 times per second!
+```
+
+---
+
+### The Math: Two Lines That Control Everything
+
+The car example above follows EXACTLY two mathematical rules:
+
+```
+Rule 1: new_speed     = old_speed     + (pedal_force / car_mass) × time
+Rule 2: new_position  = old_position  + new_speed × time
+```
+
+Let's verify with the car example, second by second:
+
+```
+SECOND 1:
+  old_speed = 0 mph
+  pedal = 10 (gas), mass = 2 (car is heavy), time = 1 second
+  
+  new_speed = 0 + (10/2) × 1 = 5 mph  ✓
+  new_position = 0 + 5 × 1 = 5         ✓ (scaled down to 0.08 miles earlier)
+
+SECOND 2:
+  old_speed = 5 mph
+  pedal = 20 (more gas), mass = 2, time = 1
+  
+  new_speed = 5 + (20/2) × 1 = 15 mph  ✓
+  new_position = 5 + 15 × 1 = 20       ✓ (scaled to 0.36 miles)
+  
+Notice: we used NEW SPEED (15) for position, not the old speed (5).
+This is SYMPLECTIC integration. If we used old speed:
+  position = 5 + 5 × 1 = 10 --- WRONG! We'd be behind where we actually are.
+```
+
+**The two rules in physics notation:**
+
+```
+v(t + dt) = v(t) + a × dt         ← Rule 1: force changes velocity
+x(t + dt) = x(t) + v(t+dt) × dt   ← Rule 2: velocity changes position
+                                     (note: uses v(t+dt), the NEW velocity!)
+```
+
+In game code, these become TWO LINES:
 
 ```rust
-/// 🎯 Resource that controls physics simulation parameters
+// The ENTIRE physics engine, in two lines:
+velocity += acceleration * delta_time;           // Rule 1
+position += velocity * delta_time;                // Rule 2 (uses NEW velocity!)
+```
+
+**That's it. Everything else in this book -- forces, collisions, constraints -- is just figuring out what `acceleration` should be. The motion itself is always these two lines.**
+
+---
+
+### Trace It: Exactly What Happens in 60 Frames of a Falling Object
+
+Let's watch a ball fall for 1 second (60 frames) with real numbers:
+
+```
+INITIAL STATE:
+  position.y = 300          (ball starts at y=300, near the top of the screen)
+  velocity.y = 0            (ball is not moving yet -- dropped from rest)
+  gravity = -500            (gravity pulls down at 500 pixels/second^2)
+  dt = 1/60 ~ 0.01667      (each frame is about 16.67 milliseconds)
+
+Frame |  velocity  |  position  |  What's happening
+------+------------+------------+-------------------------------------------
+  0   |     0.00   |   300.00   |  Ball released. Starts falling.
+  1   |    -8.33   |   299.86   |  Gravity kicked in. Speed = -8.33
+  2   |   -16.67   |   299.58   |  Faster. Fell 0.28 pixels this frame
+  3   |   -25.00   |   299.17   |  Even faster.
+  4   |   -33.33   |   298.61   |  Speed is building up linearly.
+  5   |   -41.67   |   297.92   |  Position curve is parabolic.
+  10  |   -83.33   |   290.28   |  Half a second in. Falling fast.
+  15  |  -125.00   |   276.39   |
+  20  |  -166.67   |   256.94   |  Midpoint of the fall.
+  30  |  -250.00   |   193.06   |  Ball is moving visibly fast.
+  40  |  -333.33   |   105.56   |  Really zooming now.
+  50  |  -416.67   |   -15.28   |  Past the bottom of the screen!
+  60  |  -500.00   |  -158.33   |  1 second elapsed. Off screen.
+
+KEY OBSERVATIONS:
+  1. Velocity INCREASES by 8.33 EVERY frame. (-500 x 0.01667 = -8.33)
+     This is LINEAR growth. Each frame adds the same amount.
+
+  2. Position CHANGES by velocity x dt each frame.
+     Since velocity grows, position changes MORE each frame.
+     This is QUADRATIC/PARABOLIC growth - like a snowball rolling downhill.
+
+  3. After 60 frames (1 second):
+     velocity = -500 pixels/second (terminal speed from gravity alone)
+     position changed by = 0 + (-500) x 1^2 / 2 = -250 pixels
+     Check: 1/2 x (-500) x 1^2 = -250. And 300 - 250 = 50.
+     But our table shows -158 at frame 60!
+     
+     Why the difference? Because we're using DISCRETE integration (frames),
+     not the continuous formula. The discrete version is an APPROXIMATION.
+     With smaller dt, it gets closer to the exact answer.
+     With dt = 1/120 (120 FPS), the error is halved.
+
+THIS IS WHY WE USE SMALL TIMESTEPS!
+More frames per second = more accurate physics.
+But also more computation. Trade-offs everywhere in game dev.
+```
+
+---
+
+### The Wrong Way: What Happens If You Use Old Velocity
+
+Let me show you why using the OLD velocity (Explicit Euler) instead of the NEW velocity (Symplectic Euler) causes EXPLOSIONS:
+
+```
+BOTH methods start the same:
+
+Frame 0: velocity = 0, position = 0
+Frame 1: velocity += -500 x 0.01667 = -8.33
+
+NOW THE DIFFERENCE:
+
+SYMPLECTIC (correct): position += NEW velocity = -8.33
+  position = 0 + (-8.33) x 0.01667 = -0.139
+  Energy stays constant. ✓
+
+EXPLICIT (wrong):     position += OLD velocity = 0
+  position = 0 + 0 x 0.01667 = 0  <- The ball DIDN'T MOVE this frame!
+  Energy artificially LOW.
+  
+Frame 2:
+  SYMPLECTIC: velocity = -16.67, position = -0.417  ✓
+  EXPLICIT:   velocity = -16.67, position = -0.139  <- Still behind!
+
+After 60 frames (1 second) of an ideal orbit:
+  SYMPLECTIC: Orbit stays stable. Energy conserved. ✓
+  EXPLICIT:   Orbit spiraled outward by 5%! Energy INCREASED! ✗
+
+THE INTUITION:
+  Explicit Euler underestimates motion (uses old, slower velocity).
+  This adds energy to the system each frame.
+  After thousands of frames, energy has doubled, tripled, etc.
+  Objects fly off to infinity! 💥
+  
+  Symplectic Euler estimates average velocity (new velocity ~ average).
+  Energy stays balanced. Orbits stay in orbit. Springs don't explode.
+```
+
+---
+
+### The Code: How It Looks in Rust
+
+Now that you understand the WHY, here's the code that implements it:
+
+```rust
+/// The TWO-LINE integration that powers all of physics.
 ///
-/// A `Resource` in Bevy is a SINGLETON  -  there's only ONE instance
-/// of this data in the entire World. Unlike components (which are
-/// per-entity), resources are global.
-///
-/// Why use a Resource instead of a Component?
-/// - Gravity affects ALL objects equally (it's not per-entity)
-/// - Timestep is a WORLD setting, not an object property
-/// - There's only ONE physics world
-#[derive(Resource)]
-pub struct PhysicsSettings {
-    /// 🌍 Global gravity vector (e.g., (0, -9.81) for Earth-like)
-    /// Units: pixels/second² (or m/s² in a physics-scale simulation)
-    ///
-    /// For 2D games, gravity typically only has a Y component.
-    /// Negative Y = pulls objects downward.
-    /// Zero X = no horizontal gravity (wind would change this).
-    pub gravity: Vec2,
+/// Input:  velocity, position (current state)
+///         acceleration (from F = ma)
+///         delta_time (timestep, typically 1/60 second)
+/// Output: velocity, position (next state, modified in-place)
+fn symplectic_euler_step(
+    velocity: &mut Vec2,
+    position: &mut Vec2,
+    acceleration: &Vec2,
+    delta_time: f32,
+) {
+    // Rule 1: Acceleration changes velocity.
+    // v_new = v_old + a x dt
+    //
+    // Example: v = (0, 0), a = (0, -500), dt = 0.01667
+    //   v_new = (0, 0) + (0, -500) x 0.01667 = (0, -8.33)
+    *velocity += *acceleration * delta_time;
     
-    /// ⏱️ Fixed timestep in seconds
-    /// 1/60 = ~16.67ms (standard game physics rate)
-    ///
-    /// WHY FIXED? NOT variable like the frame rate?
-    /// If dt varied with frame rate:
-    ///   - 30 FPS: dt = 33ms, objects jump twice as far per step
-    ///   - 120 FPS: dt = 8ms, objects move half as far per step
-    /// This means physics FRAMERATE DEPENDENT  -  different computers
-    /// would get different simulation results!
-    ///
-    /// Fixed timestep solves this:
-    ///   - Physics always advances by 1/60 second per step
-    ///   - If a frame takes 33ms (30 FPS), physics runs TWICE
-    ///   - If a frame takes 8ms (120 FPS), physics runs ONCE
-    ///   - The RESULT is identical regardless of framerate!
-    pub fixed_dt: f32,
-    
-    /// 🔄 Number of sub-steps per physics step
-    /// More sub-steps = more stable but slower
-    /// 1 = normal, 4 = very stable, 8 = overkill
-    pub substeps: u32,
+    // Rule 2: Velocity changes position. Uses NEW velocity!
+    // x_new = x_old + v_new x dt
+    //
+    // Example: x = (0, 300), v_new = (0, -8.33), dt = 0.01667
+    //   x_new = (0, 300) + (0, -8.33) x 0.01667 = (0, 299.86)
+    *position += *velocity * delta_time;
 }
 ```
 
-### The Integration System
+And here's the full Bevy system that calls it for every physics entity every frame:
 
 ```rust
-/// 🔄 **Euler Integration System**
-///
-/// This is the HEART of our physics engine. Every frame, this system
-/// transforms forces into motion through the chain:
-///
-///   Forces ──► Acceleration ──► Velocity ──► Position
-///
-/// The mathematical operation is called "integration" because we're
-/// COMPUTING THE AREA under the acceleration curve.
-///
-/// ANALOGY: If acceleration is the gas pedal, velocity is the car's
-/// speed, and position is how far the car has traveled. You press
-/// the gas (acceleration) → car speeds up (velocity) → car moves
-/// (position changes).
-pub fn euler_integration(
-    // 🎯 Query: find all entities with ALL four of these components
-    mut query: Query<(
-        &mut Position,      // 📍 We WRITE to position
-        &mut Velocity,      // 🏃 We WRITE to velocity
-        &mut Acceleration,  // ⚡ We READ and WRITE to acceleration
-        &Mass,              // ⚖️ We READ mass (don't change it)
+/// The integration system registered with Bevy.
+/// It runs every frame, for every entity that has all four physics components.
+pub fn integrate_positions_using_symplectic_euler(
+    mut physics_query: Query<(
+        &ForceAccumulator,
+        &Mass,
+        &mut Acceleration,
+        &mut Velocity,
+        &mut Position,
     )>,
-    // 🔧 Read global settings
-    settings: Res<PhysicsSettings>,
+    physics_settings: Res<PhysicsSettings>,
 ) {
-    let dt = settings.fixed_dt;
-    let substeps = settings.substeps;
-    let sub_dt = dt / substeps as f32;
+    // Use the FIXED timestep, not the real frame delta.
+    // This makes physics framerate-independent.
+    let delta_time = physics_settings.fixed_delta_time;
 
-    for (mut pos, mut vel, mut acc, mass) in query.iter_mut() {
-        // ⏭️ Sub-stepping: run physics multiple times per frame
-        // Each sub-step is smaller = more stable integration
-        for _ in 0..substeps {
-            // STEP 1: Apply gravity to acceleration
-            // Gravity is a CONSTANT force (always pulling down)
-            // a_gravity = g (doesn't depend on mass!)
-            // F_gravity = m × g, so a = F/m = g
-            // This is why all objects fall at the same rate
-            // (in vacuum  -  we'll add air resistance later)
-            acc.0 += settings.gravity;
+    for (force_accumulator, mass, mut acceleration, mut velocity, mut position) in
+        physics_query.iter_mut()
+    {
+        // Step 1: Newton's Second Law - a = F/m
+        if mass.value > 0.0 {
+            acceleration.value = force_accumulator.total_force / mass.value;
+        } else {
+            acceleration.value = Vec2::ZERO;
+        }
 
-            // STEP 2: INTEGRATE acceleration → velocity
-            // v_new = v_old + a × Δt
-            //
-            // This is a RECTANGLE APPROXIMATION of the area
-            // under the acceleration curve:
-            //
-            //   a(t)
-            //   │
-            //   │   ┌──────────────────── ← a is constant over Δt
-            //   │   │                    │
-            //   │   │  area = a × Δt     │
-            //   │   │                    │
-            //   └───┴────────────────────► t
-            //       Δt
-            //
-            // The area = CHANGE IN VELOCITY. This is the
-            // FUNDAMENTAL THEOREM OF CALCULUS in action!
-            if mass.0 > 0.0 {
-                vel.0 += acc.0 * sub_dt;
-            }
+        // Step 2: Symplectic Euler integration
+        velocity.value += acceleration.value * delta_time;
+        position.value += velocity.value * delta_time;  // Uses NEW velocity!
+    }
+}
+```
 
-            // STEP 3: INTEGRATE velocity → position
-            // x_new = x_old + v_new × Δt
-            //
-            // ⚠️ NOTE: We use v_new (just updated), not v_old!
-            // This is "SEMI-IMPLICIT" or "SYMPLECTIC" Euler.
-            //
-            // Why it matters:
-            //   Explicit Euler (bad):   x += v_old × dt
-            //   Symplectic Euler (good): x += v_new × dt
-            //
-            // The difference: by using the NEW velocity, we estimate
-            // the AVERAGE velocity over the timestep, not the START.
-            // This small change conserves energy  -  objects in orbit
-            // stay in orbit instead of spiraling outward!
-            pos.0 += vel.0 * sub_dt;
+---
 
-            // STEP 4: Clear acceleration for next frame
-            // Forces don't persist  -  each frame calculates them fresh
-            // If we don't clear, old forces would accumulate and
-            // objects would accelerate forever (RUNAWAY PHYSICS!)
-            acc.0 = Vec2::ZERO;
+### The PhysicsSettings Resource: World Settings
+
+```rust
+/// Global physics settings stored as a Bevy Resource (singleton).
+///
+/// A Resource in Bevy is like a global variable - but managed by Bevy's
+/// scheduler so systems can safely read/write it without conflicts.
+///
+/// Why a Resource and not a Component?
+///   - Gravity affects ALL objects equally (not per-entity)
+///   - Timestep is a WORLD setting, not an object property
+///   - There's only ONE physics world with one set of settings
+///
+/// Why FIXED timestep and not the frame's delta time?
+///   If dt varied with framerate:
+///     30 FPS: dt = 33ms, objects jump TWICE as far per step
+///     120 FPS: dt = 8ms, objects move HALF as far per step
+///   Physics would run at DIFFERENT speeds on different computers!
+///   
+///   Fixed timestep: physics always advances by 1/60 second per step.
+///   If a frame takes 33ms (30 FPS): physics runs TWICE (catch up)
+///   If a frame takes 8ms (120 FPS): physics runs ONCE (just right)
+///   The RESULT is identical regardless of framerate!
+#[derive(Resource)]
+pub struct PhysicsSettings {
+    /// Gravity vector. Default: (0, -500) pixels/second^2 in 2D.
+    /// Negative Y = pulls objects downward.
+    /// Game feel: (0, -9.81) = realistic, (0, -500) = platformer snappy
+    pub gravity: Vec2,
+    
+    /// Fixed physics timestep. 1/60 = ~16.67ms for 60 Hz simulation.
+    /// Standard choice: 1/60. Stable and compatible with 60 FPS rendering.
+    pub fixed_delta_time: f32,
+}
+
+impl Default for PhysicsSettings {
+    fn default() -> Self {
+        Self {
+            gravity: Vec2::new(0.0, -500.0),
+            fixed_delta_time: 1.0 / 60.0,
         }
     }
 }
