@@ -16,22 +16,22 @@
 
 | #  | Chapter | ⭐ Highlights |
 |----|---------|--------------|
-| 01 | 🚀 [Foreword & Index](#-foreword--index) | Navigation guide, how to read this book |
-| 02 | ⚙️ [Setting Up Your Bevy Physics Playground](#️-setting-up-your-bevy-physics-playground) | Cargo setup, Bevy boilerplate |
-| 03 | 🧮 [Vector Mathematics: The Language of Space](#-vector-mathematics-the-language-of-space) | 2D/3D vectors, operations, applications |
-| 04 | 🔢 [Matrices & Transformations](#-matrices--transformations) | Rotation, scaling, translation, composition |
-| 05 | 🌀 [Quaternions: Rotations Without Gimbal Lock](#-quaternions-rotations-without-gimbal-lock) | Quaternion math, slerp, orientation |
-| 06 | 📐 [Trigonometry for Game Physics](#-trigonometry-for-game-physics) | Sin/cos/tan, angles, projectile motion |
-| 07 | 🏃 [Kinematics: The Geometry of Motion](#-kinematics-the-geometry-of-motion) | Position, velocity, acceleration curves |
-| 08 | 💥 [Dynamics: Forces & Newton's Laws](#-dynamics-forces--newtons-laws) | Force accumulation, gravity, friction, drag |
-| 09 | 🔄 [Integration Methods: Simulating Motion Over Time](#-integration-methods-simulating-motion-over-time) | Euler, Verlet, RK4 comparisons |
-| 10 | 🧱 [Collision Detection: Finding Overlaps](#-collision-detection-finding-overlaps) | AABB, Circle, SAT, Raycasting |
-| 11 | 🤝 [Collision Response: Making Things Bounce](#-collision-response-making-things-bounce) | Impulse resolution, restitution, friction |
-| 12 | 🔗 [Constraints & Joints](#-constraints--joints) | Springs, distance constraints, ragdolls |
-| 13 | 📦 [Spatial Partitioning: Optimization at Scale](#-spatial-partitioning-optimization-at-scale) | Grid, Quadtree, BVH |
-| 14 | 🏗️ [Bevy ECS Physics Architecture](#️-bevy-ecs-physics-architecture) | Systems, resources, bundles, plugins |
-| 15 | 🎮 [Mini Physics Sandbox: Putting It All Together](#-mini-physics-sandbox-putting-it-all-together) | Complete working game example |
-| 16 | 📚 [Appendix: Rust Patterns & References](#-appendix-rust-patterns--references) | Cheat sheets, further reading |
+| 01 | 🚀 [Foreword & Index](ch01-foreword.md) | Navigation guide, how to read this book |
+| 02 | ⚙️ [Setting Up Your Bevy Physics Playground](ch02-setup.md) | Cargo setup, Bevy boilerplate |
+| 03 | 🧮 [Vector Mathematics: The Language of Space](ch03-vectors.md) | 2D/3D vectors, operations, applications |
+| 04 | 🔢 [Matrices & Transformations](ch04-matrices.md) | Rotation, scaling, translation, composition |
+| 05 | 🌀 [Quaternions: Rotations Without Gimbal Lock](ch05-quaternions.md) | Quaternion math, slerp, orientation |
+| 06 | 📐 [Trigonometry for Game Physics](ch06-trigonometry.md) | Sin/cos/tan, angles, projectile motion |
+| 07 | 🏃 [Kinematics: The Geometry of Motion](ch07-kinematics.md) | Position, velocity, acceleration curves |
+| 08 | 💥 [Dynamics: Forces & Newton's Laws](ch08-dynamics.md) | Force accumulation, gravity, friction, drag |
+| 09 | 🔄 [Integration Methods: Simulating Motion Over Time](ch09-integration.md) | Euler, Verlet, RK4 comparisons |
+| 10 | 🧱 [Collision Detection: Finding Overlaps](ch10-collision-detection.md) | AABB, Circle, SAT, Raycasting |
+| 11 | 🤝 [Collision Response: Making Things Bounce](ch11-collision-response.md) | Impulse resolution, restitution, friction |
+| 12 | 🔗 [Constraints & Joints](ch12-constraints.md) | Springs, distance constraints, ragdolls |
+| 13 | 📦 [Spatial Partitioning: Optimization at Scale](ch13-spatial-partitioning.md) | Grid, Quadtree, BVH |
+| 14 | 🏗️ [Bevy ECS Physics Architecture](ch14-ecs-architecture.md) | Systems, resources, bundles, plugins |
+| 15 | 🎮 [Mini Physics Sandbox: Putting It All Together](ch15-physics-sandbox.md) | Complete working game example |
+| 16 | 📚 [Appendix: Rust Patterns & References](ch16-appendix.md) | Cheat sheets, further reading |
 
 ---
 
