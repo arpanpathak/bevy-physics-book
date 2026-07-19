@@ -1,186 +1,330 @@
 # 📐 Trigonometry for Game Physics
 
-> **"Trigonometry is the geometry of the circle — it turns angles into action."** 🌀
+> **"Trigonometry is the bridge between ANGLES and POSITIONS. It's how you turn 'face 45° to the right' into 'move (0.707, 0.707) units per second.' Without trig, rotation doesn't exist."** 🌀
 
 ---
 
-## 🎯 Why Trig Is Everywhere in Games
+## 🎯 The Central Problem Trigonometry Solves
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                   TRIGONOMETRY IN GAMES                   │
-├──────────────────────────────────────────────────────────┤
-│                                                          │
-│  🌊 Wave motion:  y = sin(time × frequency)             │
-│  🏀 Projectiles:  x = cos(θ) × speed, y = sin(θ) × speed│
-│  🌀 Rotation:     x' = x·cos(θ) - y·sin(θ)              │
-│  🧭 FOV checks:   cos(θ) = (a·b) / (|a|·|b|)           │
-│  🎵 Audio pan:    pan = sin(angle_to_listener)          │
-│  🌓 Day/night:    light = max(0, sin(sun_angle))        │
-│  💫 Particle trails: spiral = (cos(t), sin(t)) × t      │
-│                                                          │
-└──────────────────────────────────────────────────────────┘
-```
+You're building a game. A player presses the joystick at a 45° angle. You need to move the character in that direction at speed 100 px/s.
 
----
-
-## 📐 The Unit Circle
-
-The **unit circle** is the foundation of all trig:
-
-```
-                    sin(θ)
-                      ↑
-         ┌───────────┬───────────┐
-         │           │           │
-    -1,0│   QII     │    QI     │1,0
-    ←───┼───────────┼───────────┼───→ cos(θ)
-         │           │           │
-         │   QIII    │    QIV    │
-         │           │           │
-         └───────────┴───────────┘
-                    ↓
-                   -1,0
-```
+**Without trig**, what velocity do you set?
 
 ```rust
-/// 📐 The unit circle in code
-let angle = std::f32::consts::FRAC_PI_4;  // 45°
+// ❌ GUESSING: Which way does 45° go?
+let velocity = Vec2::new(100.0, 100.0);
+// Problem: length = √(100² + 100²) = 141.4 — 41% too fast!
+// And is (100, 100) actually 45°? Yes... but the speed is wrong.
+```
 
-// cos(θ) = x-coordinate on unit circle
-let x = angle.cos();  // ≈ 0.707
+**With trig, it's exact:**
 
-// sin(θ) = y-coordinate on unit circle  
-let y = angle.sin();  // ≈ 0.707
+```rust
+// ✅ EXACT: sin and cos give the correct unit vector at ANY angle
+let angle_in_radians = 45.0_f32.to_radians(); // = π/4 ≈ 0.785
+let direction = Vec2::new(
+    angle_in_radians.cos(),  // = 0.707
+    angle_in_radians.sin(),  // = 0.707
+);
+let velocity = direction * 100.0; // = (70.7, 70.7) — length = 100 ✅
+```
 
-// tan(θ) = sin(θ) / cos(θ) = slope
-let slope = angle.tan();  // ≈ 1.0
+**This is the fundamental job of trigonometry in games: convert between angles and vectors.**
 
-/// 💡 Key insight: (cos(θ), sin(θ)) is a UNIT VECTOR
-/// pointing in direction θ!
-let direction = Vec2::new(angle.cos(), angle.sin());
-// ‖direction‖ = 1.0 always!
+---
+
+## 📐 The Unit Circle: Where Sin and Cos Come From
+
+A **unit circle** is a circle with radius 1 centered at the origin. The angle θ is measured counterclockwise from the positive X axis.
+
+```
+            sin(θ) axis (Y)
+                ↑
+                │
+     Quadrant II│Quadrant I
+       (-,+)    │    (+,+)
+                │
+  ←─────────────┼─────────────→ cos(θ) axis (X)
+  (-1, 0)       │(1, 0)          cos(θ) = x-coordinate
+                │                sin(θ) = y-coordinate
+  Quadrant III  │Quadrant IV
+       (-,-)    │    (+,-)
+                │
+                ↓
+    (0, -1)
+```
+
+**The key insight:** For any angle θ, the point `(cos(θ), sin(θ))` is on the unit circle. This is a UNIT VECTOR at angle θ.
+
+```rust
+/// 📐 Verify the unit circle property:
+/// For ANY angle θ, the vector (cos(θ), sin(θ)) has length exactly 1.
+pub fn verify_unit_circle_property() {
+    let angles = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, std::f32::consts::PI];
+    
+    for angle in angles {
+        let unit_vector = Vec2::new(angle.cos(), angle.sin());
+        let length = unit_vector.length();
+        
+        // length should ALWAYS be 1.0 (within floating-point precision)
+        assert!((length - 1.0).abs() < 0.0001, 
+            "Angle {angle}: length = {length}, expected 1.0");
+    }
+    // This passes for ALL angles. This is the Pythagorean identity:
+    // cos²(θ) + sin²(θ) = 1  →  ‖(cos(θ), sin(θ))‖ = 1
+}
+```
+
+### The Right Triangle Connection
+
+If the unit circle seems abstract, the RIGHT TRIANGLE definition is more intuitive:
+
+```
+For a right triangle with angle θ at the origin:
+
+           │
+           │
+      hyp  │  opp          sin(θ) = opposite / hypotenuse
+     ╱    │                cos(θ) = adjacent / hypotenuse
+    ╱ θ   │                tan(θ) = opposite / adjacent
+   ────────┘
+   adj
+
+On the unit circle (hypotenuse = 1):
+  cos(θ) = adjacent  ← the x-coordinate
+  sin(θ) = opposite  ← the y-coordinate
 ```
 
 ---
 
-## 🎯 The Trig Functions
+## 🔄 The Three Core Functions
 
 ```rust
-/// 📐 SIN: y-coordinate on unit circle
-/// Usage: vertical motion, wave effects, up/down
-let sin_45 = std::f32::consts::FRAC_PI_4.sin();
-
-/// 📐 COS: x-coordinate on unit circle  
-/// Usage: horizontal motion, cycle timing
-let cos_45 = std::f32::consts::FRAC_PI_4.cos();
-
-/// 📐 TAN: slope = sin/cos
-/// Usage: aiming, angle calculations
-let tan_45 = std::f32::consts::FRAC_PI_4.tan();
-```
-
-### 🔄 Common Angles Reference
-
-| Degrees | Radians | cos(θ) | sin(θ) | Use Case |
-|---------|---------|--------|--------|----------|
-| 0° | 0 | 1 | 0 | Facing right |
-| 45° | π/4 | 0.707 | 0.707 | Diagonal movement |
-| 90° | π/2 | 0 | 1 | Facing up |
-| 180° | π | -1 | 0 | Facing left |
-| 270° | 3π/2 | 0 | -1 | Facing down |
-| 360° | 2π | 1 | 0 | Full rotation |
-
----
-
-## 🏗️ Wave Motion (Sine & Cosine)
-
-```rust
-/// 🌊 Floating platform that bobs up and down
-#[derive(Component)]
-struct FloatingPlatform {
-    /// Base Y position
-    base_y: f32,
-    /// How far up/down it goes
-    amplitude: f32,
-    /// How fast it bobs
-    frequency: f32,
-    /// Phase offset for variety
-    phase: f32,
+/// 📐 SIN(θ): Returns the y-coordinate on the unit circle.
+///
+/// Range: [-1, 1]
+/// Period: 2π (360°) — sin repeats every full rotation.
+/// Key values:
+///   sin(0) = 0      sin(π/2) = 1     sin(π) = 0      sin(3π/2) = -1
+///
+/// Game uses:
+///   - Vertical oscillation (bouncing, waves)
+///   - Cross product magnitude
+///   - Sound wave generation
+pub fn sine_example(angle_radians: f32) -> f32 {
+    angle_radians.sin()
 }
 
-fn update_floating_platforms(
-    time: Res<Time>,
-    mut query: Query<(&mut Transform, &FloatingPlatform)>,
-) {
-    let t = time.elapsed_secs();
+/// 📐 COS(θ): Returns the x-coordinate on the unit circle.
+///
+/// Range: [-1, 1]
+/// Period: 2π — cos repeats every full rotation.
+/// Key values:
+///   cos(0) = 1      cos(π/2) = 0     cos(π) = -1     cos(3π/2) = 0
+///
+/// Game uses:
+///   - Horizontal oscillation
+///   - Dot product
+///   - Rotation matrix construction
+pub fn cosine_example(angle_radians: f32) -> f32 {
+    angle_radians.cos()
+}
+
+/// 📐 TAN(θ): Returns the slope = sin(θ) / cos(θ).
+///
+/// Range: (-∞, ∞) — tan has ASYMPTOTES where cos(θ) = 0.
+/// Period: π (180°) — tan repeats every half rotation.
+///
+/// Game uses:
+///   - Computing slopes
+///   - Line-of-sight angle checks
+///   - (Rarely used directly — atan2 is more useful)
+pub fn tangent_example(angle_radians: f32) -> f32 {
+    angle_radians.tan()
+    // ⚠️ WARNING: tan(π/2) = ∞ (division by zero!)
+    // Use atan2() instead for angle calculations.
+}
+```
+
+---
+
+## 🔄 atan2: The Function You'll Use Most
+
+**`atan2(y, x)` is the inverse of sin/cos** — given a vector, it returns the angle:
+
+```rust
+/// 🎯 atan2(y, x) returns the angle of the vector (x, y).
+///
+/// WHY atan2 IS BETTER THAN atan(y/x):
+///
+/// atan(y/x) has TWO problems:
+///   1. Division by zero when x = 0
+///   2. Can't distinguish between Quadrants I and III
+///      (because y/x = (-y)/(-x), so (1,1) and (-1,-1) give the same angle!)
+///
+/// atan2(y, x) solves BOTH:
+///   1. Handles x = 0 (returns ±π/2)
+///   2. Uses the SIGNS of BOTH arguments to determine the correct quadrant
+///
+/// Range: [-π, π] = [-180°, 180°]
+///   (0, 1)  →  π/2   (up)
+///   (1, 0)  →  0     (right)
+///   (0, -1) → -π/2   (down)
+///   (-1, 0) →  π     (left)
+pub fn angle_of_vector(vector: Vec2) -> f32 {
+    vector.y.atan2(vector.x)
+}
+
+/// ─── Complete: Aim a weapon toward the mouse cursor ───
+pub fn aim_toward_target(
+    shooter_position: Vec2,
+    target_position: Vec2,
+) -> f32 {
+    // Step 1: Vector from shooter to target
+    let direction_to_target = target_position - shooter_position;
     
-    for (mut transform, platform) in query.iter_mut() {
-        // 🌊 y = base_y + amplitude × sin(2π × frequency × t + phase)
-        // sin gives smooth oscillation between -1 and 1
-        let offset = platform.amplitude * 
-            (platform.frequency * t * std::f32::consts::TAU + platform.phase).sin();
+    // Step 2: Convert to angle using atan2
+    // This works for ANY relative position — left, right, up, down, diagonal
+    let angle_to_target = direction_to_target.y.atan2(direction_to_target.x);
+    
+    angle_to_target
+}
+
+/// ─── Complete: Move in the direction of an angle ───
+pub fn velocity_from_angle(angle_radians: f32, speed: f32) -> Vec2 {
+    Vec2::new(
+        angle_radians.cos() * speed,  // X component
+        angle_radians.sin() * speed,  // Y component
+    )
+}
+
+/// These two functions form a ROUND-TRIP:
+///
+/// vector → atan2 → angle → cos/sin → same vector (up to length)
+///   (3, 4)  →  0.927  →  (0.6, 0.8)  →  direction of (3, 4)!
+///
+/// angle → cos/sin → vector → atan2 → same angle
+///   0.927  →  (0.6, 0.8)  →  0.927  →  ✅
+pub fn demonstrate_round_trip() {
+    let original_vector = Vec2::new(3.0, 4.0);
+    
+    // Vector → angle
+    let angle = original_vector.y.atan2(original_vector.x); // ≈ 0.927 rad
+    
+    // Angle → unit vector (same direction)
+    let reconstructed_direction = Vec2::new(angle.cos(), angle.sin());
+    
+    // They should point in the same direction
+    let dot_product = original_vector.normalize().dot(reconstructed_direction);
+    assert!((dot_product - 1.0).abs() < 0.0001); // ≈ 1.0 → same direction! ✅
+}
+```
+
+---
+
+## 🏗️ Practical Example 1: Wave Motion (Sine & Cosine in Action)
+
+```rust
+/// 🌊 Floating platform that bobs up and down using a sine wave.
+///
+/// The general form of a sine wave is:
+///   y(t) = amplitude × sin(2π × frequency × t + phase)
+///
+/// Where:
+///   amplitude = how far it moves from center
+///   frequency = how many complete cycles per second
+///   phase = horizontal shift (for variety between objects)
+///   t = time in seconds
+#[derive(Component)]
+pub struct FloatingPlatform {
+    /// The center Y position around which the platform bobs.
+    pub base_y: f32,
+    /// How far up and down the platform moves (peak-to-peak = 2× this).
+    pub amplitude: f32,
+    /// How many full bobs per second. 1.0 = one cycle/second.
+    pub frequency: f32,
+    /// Phase offset in radians. Use different values for different
+    /// platforms so they don't all bob in sync.
+    pub phase_offset: f32,
+}
+
+pub fn update_floating_platform_system(
+    time: Res<Time>,
+    mut platform_query: Query<(&FloatingPlatform, &mut Transform)>,
+) {
+    let current_time = time.elapsed_secs();
+    
+    for (platform, mut transform) in platform_query.iter_mut() {
+        // The sine wave formula:
+        // offset = A × sin(2πft + φ)
+        //
+        // sin oscillates between -1 and 1
+        // multiplying by amplitude gives range [-amplitude, +amplitude]
+        // TAU = 2π = one full cycle
+        let vertical_offset = platform.amplitude
+            * (platform.frequency * current_time * std::f32::consts::TAU
+               + platform.phase_offset)
+                  .sin();
         
-        transform.translation.y = platform.base_y + offset;
+        transform.translation.y = platform.base_y + vertical_offset;
     }
 }
 
-/// 💡 Use sin() for VERTICAL oscillation, cos() for HORIZONTAL
-/// Or add them for circular motion!
-```
-
-```
-Pure Sine Wave:                 Sine + Cosine (Circle):
-                                
-    y                            y
-    │   ╱╲                       │   ╭───╮
-    │  ╱  ╲                      │  ╱     ╲
-    │ ╱    ╲                     │ ╱       ╲
-  ──┼──────────────► t           │╱         ╲► t
-    │ ╲    ╱                     │╲         ╱
-    │  ╲  ╱                      │ ╲       ╱
-    │   ╲╱                       │  ╲     ╱
-    │                            │   ╰───╯
+/// 🌊 BUTTER SMOOTH sine wave animation:
+///
+/// If you want a more "natural" feel, use a cosine wave for the
+/// horizontal component and sine for vertical — this creates
+/// circular/elliptical motion:
+pub fn circular_motion_example(
+    center: Vec2,
+    radius: f32,
+    speed: f32,
+    time: f32,
+) -> Vec2 {
+    let angle = speed * time;
+    Vec2::new(
+        center.x + angle.cos() * radius,  // Horizontal: cosine
+        center.y + angle.sin() * radius,  // Vertical: sine
+    )
+    // This traces a PERFECT CIRCLE at constant angular velocity.
+    // (cos(t), sin(t)) = UNIT CIRCLE = circular motion!
+}
 ```
 
 ---
 
-## 🏀 Projectile Motion
+## 🏀 Practical Example 2: Projectile Motion
 
 ```rust
-/// 🏀 Fire a projectile at an angle
-#[derive(Bundle)]
-struct Projectile {
-    pos: Position,
-    vel: Velocity,
-    mass: Mass,
-    sprite: SpriteBundle,
-}
-
-/// 🎯 Fire at a target with proper trig
-fn fire_projectile(
+/// Fires a projectile toward a target using trigonometric decomposition.
+///
+/// The key insight: we use atan2 to find the angle, then cos/sin to
+/// decompose the velocity into x and y components. Gravity then
+/// curves the trajectory into a parabola.
+pub fn fire_projectile_toward_target(
     commands: &mut Commands,
-    origin: Vec2,
-    target: Vec2,
-    speed: f32,
+    origin_position: Vec2,
+    target_position: Vec2,
+    muzzle_velocity: f32,
 ) {
-    // STEP 1: 🧭 Calculate direction using atan2
-    let dx = target.x - origin.x;
-    let dy = target.y - origin.y;
-    let angle = dy.atan2(dx);  // atan2 handles ALL quadrants
+    // Step 1: Find the angle to the target using atan2.
+    // atan2 handles ALL quadrants — works for targets left, right,
+    // above, or below. Regular atan would fail.
+    let direction_to_target = target_position - origin_position;
+    let launch_angle = direction_to_target.y.atan2(direction_to_target.x);
     
-    // STEP 2: 📐 Decompose velocity using trig
-    // speed_x = cos(angle) × speed
-    // speed_y = sin(angle) × speed
+    // Step 2: Decompose the velocity vector into x and y components.
+    // v_x = v × cos(θ)  — horizontal component (constant without drag)
+    // v_y = v × sin(θ)  — vertical component (affected by gravity)
     let velocity = Vec2::new(
-        angle.cos() * speed,
-        angle.sin() * speed,
+        launch_angle.cos() * muzzle_velocity,
+        launch_angle.sin() * muzzle_velocity,
     );
     
-    // STEP 3: 🎯 Apply gravity for arc
-    // Gravity will pull it down naturally!
+    // Step 3: Spawn the projectile with the computed velocity.
+    // Gravity will automatically pull it down, creating a parabolic arc.
     commands.spawn((
-        Position(origin),
+        Position(origin_position),
         Velocity(velocity),
         Mass(1.0),
         SpriteBundle {
@@ -190,182 +334,130 @@ fn fire_projectile(
     ));
 }
 
-/// 🧮 The full projectile equation:
-/// x(t) = x₀ + v₀·cos(θ)·t
-/// y(t) = y₀ + v₀·sin(θ)·t - ½·g·t²
+/// The FULL projectile position equation at time t:
 ///
-/// This creates a beautiful PARABOLA!
-fn projectile_position(origin: Vec2, velocity: Vec2, gravity: f32, t: f32) -> Vec2 {
+///   x(t) = x₀ + v₀·cos(θ)·t
+///   y(t) = y₀ + v₀·sin(θ)·t - ½·g·t²
+///
+/// This is the combination of:
+///   - Linear motion in x (no horizontal force, no drag)
+///   - Constant acceleration in y (gravity)
+///
+/// The result is a PARABOLA. At 45°, you get MAXIMUM range.
+pub fn projectile_position_at_time(
+    origin: Vec2,
+    initial_velocity: Vec2,
+    gravity: f32,
+    time: f32,
+) -> Vec2 {
     Vec2::new(
-        origin.x + velocity.x * t,
-        origin.y + velocity.y * t - 0.5 * gravity * t * t,
+        origin.x + initial_velocity.x * time,
+        origin.y + initial_velocity.y * time - 0.5 * gravity * time * time,
     )
 }
 ```
 
 ```
-Projectile Trajectory:
+Projectile trajectory at different launch angles:
 
-    y
-    ↑
-    │  ╱◉  ← Launch at angle θ with speed v₀
-    │ ╱
-    │╱  ╲
-    │     ╲  ← Parabolic arc (gravity pulling down)
-    │       ╲
-    │         ╲
-    │           ◉ ← Impact!
-    └──────────────────────────→ x
-              range
-
-    The perfect angle? θ = 45° gives MAXIMUM range! 🏆
+  angle = 75°:     ╱‾‾╲     High arc, short range
+                   ╱    ╲
+                  
+  angle = 45°:    ╱╲       MAXIMUM RANGE 🏆
+                 ╱  ╲
+                 
+  angle = 15°:   ╱╲        Low arc, long range
+                ╱  ╲
+               
+  The 45° angle gives the BEST balance of vertical and horizontal
+  velocity. sin(45°) = cos(45°) = 0.707 — equal components!
 ```
 
 ---
 
-## 👁️ Field of View Detection
+## 👁️ Practical Example 3: Field of View Detection
 
 ```rust
-/// 🎯 Check if a target is within a field-of-view cone
-fn is_in_fov(
-    observer_pos: Vec2,
-    observer_facing: Vec2,  // Unit vector direction
-    target_pos: Vec2,
-    fov_angle: f32,         // Half-angle in radians
-    max_distance: f32,
+/// Checks whether `target_position` is within the field of view of
+/// an observer at `observer_position` facing `observer_facing_direction`.
+///
+/// This uses the dot product, which IS cos(θ) when both vectors are
+/// unit vectors. We avoid computing the actual angle — comparing
+/// cosines is equivalent and MUCH faster.
+pub fn is_target_in_field_of_view(
+    observer_position: Vec2,
+    observer_facing_direction: Vec2, // MUST be a unit vector!
+    target_position: Vec2,
+    field_of_view_half_angle: f32,   // In radians (e.g., 45° = π/4)
+    maximum_detection_distance: f32,
 ) -> bool {
-    // STEP 1: Vector from observer to target
-    let to_target = target_pos - observer_pos;
+    // ─── Step 1: Compute the vector from observer to target ───
+    let vector_to_target = target_position - observer_position;
     
-    // STEP 2: Check distance (quick rejection)
-    let dist_sq = to_target.length_squared();
-    if dist_sq > max_distance * max_distance {
-        return false;  // Too far
+    // ─── Step 2: Quick distance rejection (avoids trig entirely) ───
+    // If the target is too far, don't bother with angle check.
+    let distance_squared = vector_to_target.length_squared();
+    let max_distance_squared = maximum_detection_distance * maximum_detection_distance;
+    if distance_squared > max_distance_squared {
+        return false; // Too far away
     }
     
-    // STEP 3: 🔥 THE DOT PRODUCT = cos(angle)
-    // a·b = |a|·|b|·cos(θ)
-    // Since observer_facing is unit and we normalize to_target:
-    let to_target_norm = to_target.normalize_or_zero();
-    let cos_angle = observer_facing.dot(to_target_norm);
+    // ─── Step 3: Compute cos(θ) using the DOT PRODUCT ───
+    // a · b = |a| × |b| × cos(θ)
+    // Since observer_facing IS a unit vector (|a| = 1):
+    // observer_facing · normalized(to_target) = cos(θ)
+    let direction_to_target_normalized = vector_to_target.normalize_or_zero();
+    let cosine_of_angle = observer_facing_direction.dot(direction_to_target_normalized);
     
-    // STEP 4: Compare against cos(fov_angle)
-    // cos is DECREASING from 0 to π, so:
-    // If cos_angle > cos(fov) → angle < fov → INSIDE cone
-    cos_angle > fov_angle.cos()
-}
-
-/// 💡 Why cos(angle) instead of computing the angle directly?
-/// cos_angle is a simple dot product — no acos() needed!
-/// acos() is expensive and has numerical edge cases.
-```
-
-```
-    Field of View:
-    
-              ╱  │  ╲
-             ╱   │   ╲
-            ╱    │ θ  ╲  ← fov_angle
-           ╱     │     ╲
-          ╱      │      ╲
-         ╱    ───┼───    ╲
-        ╱    observer     ╲
-       ╱                   ╲
-      ╱   ✅ Inside FOV     ╲
-     ╱                       ╲
-    ╱   ❌ Outside FOV        ╲
-    
-    θ < fov_angle → IN
-    θ > fov_angle → OUT
-```
-
----
-
-## 🎮 Putting It All Together: 2D Aiming System
-
-```rust
-/// 🎯 Complete 2D aiming toward mouse cursor
-
-#[derive(Component)]
-struct Gun {
-    /// Barrel length (where bullets spawn)
-    barrel_length: f32,
-    /// Fire rate (shots per second)
-    fire_rate: f32,
-    timer: f32,
-}
-
-fn aim_toward_mouse(
-    windows: Query<&Window>,
-    mut player_query: Query<(&mut Transform, &Gun), With<Player>>,
-) {
-    // Get mouse position in world coordinates
-    let window = windows.single();
-    let cursor_pos = match window.cursor_position() {
-        Some(pos) => pos,
-        None => return,
-    };
-    
-    // Convert screen coords to world coords (simplified)
-    let mouse_world = Vec2::new(
-        cursor_pos.x - window.width() / 2.0,
-        -(cursor_pos.y - window.height() / 2.0),
-    );
-    
-    for (mut transform, gun) in player_query.iter_mut() {
-        // 📐 atan2 gives us the angle to the mouse!
-        let angle = mouse_world.y.atan2(mouse_world.x);
-        transform.rotation = Quat::from_rotation_z(angle);
-        
-        // 📍 Barrel tip position (where bullets spawn)
-        let barrel_tip = Vec2::new(
-            transform.translation.x + angle.cos() * gun.barrel_length,
-            transform.translation.y + angle.sin() * gun.barrel_length,
-        );
-        
-        // Store barrel tip for bullet spawning...
-    }
+    // ─── Step 4: Compare against cos(fov_angle) ───
+    // cos(θ) is a DECREASING function from 0 to π:
+    //   θ = 0° → cos(θ) = 1 (directly ahead)
+    //   θ = 45° → cos(θ) = 0.707
+    //   θ = 90° → cos(θ) = 0 (to the side)
+    //   θ = 180° → cos(θ) = -1 (behind)
+    //
+    // So if cos(θ) > cos(fov), then θ < fov → target IS inside FOV
+    let cosine_of_field_of_view = field_of_view_half_angle.cos();
+    cosine_of_angle > cosine_of_field_of_view
 }
 ```
 
 ---
 
-## 📊 Quick Reference: Trig Identities for Games
+## 📊 Quick Reference: Trig for Games
 
-| Identity | Formula | Use Case |
-|----------|---------|----------|
-| sin² + cos² | sin²(θ) + cos²(θ) = 1 | Verify unit circle |
-| Double angle | sin(2θ) = 2·sin(θ)·cos(θ) | Fast oscillation |
-| Law of cos | c² = a² + b² - 2ab·cos(C) | Any triangle solving |
-| atan2 | atan2(y, x) | Angle from vector |
-| sin → cos | cos(θ) = sin(θ + π/2) | Phase shifting |
-| Dot → cos | a·b = |a||b|cos(θ) | Angle between vectors |
+| Operation | Formula | Bevy Code | When to Use |
+|-----------|---------|-----------|-------------|
+| Angle → X component | x = cos(θ) × speed | `angle.cos() * speed` | Moving along an angle |
+| Angle → Y component | y = sin(θ) × speed | `angle.sin() * speed` | Moving along an angle |
+| Vector → Angle | θ = atan2(y, x) | `vector.y.atan2(vector.x)` | Aiming toward a point |
+| Smooth oscillation | f(t) = A×sin(2πft) | `amplitude * (freq * t * TAU).sin()` | Bouncing, waves |
+| Circular motion | (r·cos(t), r·sin(t)) | `Vec2::new(t.cos(), t.sin()) * r` | Orbiting, spinning |
+| Field of view | cos(θ) = dot product | `facing.dot(to_target)` | Vision cones |
+| Arc-projection | s = (v²×sin(2θ))/g | Projectile range | Weapon balancing |
 
 ---
 
 ## 🎯 Chapter Summary
 
-```rust
-/// 📝 Trig cheat sheet for game physics:
+```
+TRIGONOMETRY IS THE BRIDGE BETWEEN ANGLES AND VECTORS:
 
-// ANGLE → VECTOR (polar to cartesian)
-let direction = Vec2::new(angle.cos(), angle.sin());
-
-// VECTOR → ANGLE
-let angle = vector.y.atan2(vector.x);
-
-// SMOOTH OSCILLATION
-let value = amplitude * (frequency * t).sin();
-
-// FIELD OF VIEW CHECK
-let in_fov = facing.dot(to_target_norm) > fov_angle.cos();
-
-// PROJECTILE LAUNCH
-let vx = speed * angle.cos();
-let vy = speed * angle.sin();
+  Angle → Vector:     Vec2::new(angle.cos(), angle.sin()) × speed
+  Vector → Angle:     vector.y.atan2(vector.x)
+  Oscillation:        amplitude × (frequency × t).sin()
+  FOV Check:          facing.dot(to_target) > cos(half_fov)
+  
+  KEY INSIGHT: sin and cos CONVERT rotation into translation.
+  To move at an angle, you don't "rotate the velocity" — you
+  COMPUTE the velocity from the angle using trig.
+  
+  atan2 IS THE MOST IMPORTANT TRIG FUNCTION for games.
+  It converts "where is the target?" into "which way do I aim?"
+  Always use atan2(y, x), never atan(y/x).
 ```
 
-> **Key Takeaway:** Trig is how angles become action. `sin` and `cos` translate rotations into movement. `atan2` translates positions into angles. Master these three functions, and you can build anything from aiming systems to orbital mechanics! ⭐
+> **Trig is the machinery hidden behind almost every game feature: aiming, movement, camera control, projectile physics, wave effects, field-of-view, and more. `cos`, `sin`, and `atan2` — master these three functions and you can build anything involving angles and positions.** 📐
 
 ---
 
