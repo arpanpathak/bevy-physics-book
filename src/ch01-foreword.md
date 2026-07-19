@@ -110,24 +110,46 @@ Real physics engines (like NASA's) use double-precision matrix decompositions wi
 
 ---
 
-## 🚀 Quick Start Snippet
+## 🚀 Quick Start For The Impatient
 
-For the impatient  -  here's a minimal Bevy app with physics running:
+Want to skip the explanations and just see something move on screen? Follow these exact steps:
+
+### 1. Create a new Rust project
+
+Open a terminal and run:
+
+```bash
+cargo new my_physics_game
+cd my_physics_game
+```
+
+### 2. Add Bevy as a dependency
+
+Open `Cargo.toml` and replace its contents with:
+
+```toml
+[package]
+name = "my_physics_game"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.15"
+```
+
+### 3. Write the code
+
+Open `src/main.rs` and replace its contents with:
 
 ```rust
 use bevy::prelude::*;
 
-/// 📍 Position of our physics object in 2D space
-/// We use our own component instead of Transform
-/// to separate simulation from rendering
 #[derive(Component)]
 struct Position(Vec2);
 
-/// 🏃 Velocity: rate of change of position (units/second)
 #[derive(Component)]
 struct Velocity(Vec2);
 
-/// 🎬 Entry point  -  sets up the simulation
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -137,12 +159,11 @@ fn main() {
         .run();
 }
 
-/// 🏗️ Spawn a test entity with position and velocity
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((
         Position(Vec2::new(0.0, 0.0)),
-        Velocity(Vec2::new(50.0, 100.0)), // moves diagonal-down
+        Velocity(Vec2::new(50.0, 100.0)),
         SpriteBundle {
             sprite: Sprite::from_color(Color::srgb(1.0, 0.5, 0.2), Vec2::new(20.0, 20.0)),
             ..default()
@@ -150,25 +171,29 @@ fn setup(mut commands: Commands) {
     ));
 }
 
-/// 🔄 Physics step: integrate velocity into position
-/// This runs every frame using Bevy's Update schedule
 fn physics_step(mut query: Query<(&Velocity, &mut Position)>, time: Res<Time>) {
-    // dt = delta-time, the time elapsed since last frame
-    let dt = time.delta_secs();
-
     for (vel, mut pos) in query.iter_mut() {
-        // 📐 Position += Velocity × Δt  (Euler integration)
-        pos.0 += vel.0 * dt;
+        pos.0 += vel.0 * time.delta_secs();
     }
 }
 
-/// 🎨 Sync our physics Position to Bevy's Transform for rendering
 fn render_position(mut query: Query<(&Position, &mut Transform)>) {
     for (pos, mut transform) in query.iter_mut() {
         transform.translation = Vec3::new(pos.0.x, pos.0.y, 0.0);
     }
 }
 ```
+
+### 4. Run it
+
+```bash
+# First build takes 5-15 minutes (downloading + compiling Bevy)
+cargo run
+```
+
+A window will appear with an orange square moving diagonally across a black background.
+
+> **That's it.** An orange square moves across the screen. The rest of this book explains what each piece does and how to build a complete physics engine from here. The full runnable code is at [code-examples/ch02-setup/](https://github.com/arpanpathak/bevy-physics-book/tree/main/code-examples/ch02-setup).
 
 **Ready? Let's dive in!** 🏊‍♂️
 
