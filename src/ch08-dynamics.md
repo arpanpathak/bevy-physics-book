@@ -1,6 +1,6 @@
 # 💥 Dynamics: Forces & Newton's Laws
 
-> **"Kinematics describes WHAT motion looks like — 'the object fell down.' Dynamics explains WHY — 'gravity exerted a force of 9.8 N/kg downward.' The equation F = ma is the bridge between the two."** 💪
+> **"Kinematics describes WHAT motion looks like  -  'the object fell down.' Dynamics explains WHY  -  'gravity exerted a force of 9.8 N/kg downward.' The equation F = ma is the bridge between the two."** 💪
 
 ---
 
@@ -24,7 +24,7 @@ Dynamics answers: **what forces are acting on this object, and how do they chang
 
 ## 📜 Newton's Three Laws (The Full Explanation)
 
-### 1️⃣ Law of Inertia — "Objects Resist Change"
+### 1️⃣ Law of Inertia  -  "Objects Resist Change"
 
 ```
 An object at rest stays at rest.
@@ -33,9 +33,9 @@ UNLESS acted upon by a net external force.
 
 WHAT THIS MEANS IN CODE:
   • If no forces act on an object, velocity stays constant.
-  • This is why we CLEAR forces each frame — without new forces,
+  • This is why we CLEAR forces each frame  -  without new forces,
     nothing should accelerate.
-  • Inertia is NOT a force — it's the ABSENCE of acceleration
+  • Inertia is NOT a force  -  it's the ABSENCE of acceleration
     when no net force exists.
 
 GAME EXAMPLE: A puck on an ice rink (no friction)
@@ -46,7 +46,7 @@ GAME EXAMPLE: A puck on an ice rink (no friction)
   In a real game, we ADD friction (a force) to make it stop.
 ```
 
-### 2️⃣ F = ma — "The Central Equation"
+### 2️⃣ F = ma  -  "The Central Equation"
 
 ```
 The net force on an object equals its mass times its acceleration.
@@ -69,7 +69,7 @@ CODE IMPACT:
   • mass = 0.0  → a = undefined! We treat this as "static object"
 ```
 
-### 3️⃣ Action-Reaction — "Forces Are Symmetric"
+### 3️⃣ Action-Reaction  -  "Forces Are Symmetric"
 
 ```
 For every action force, there's an equal and opposite reaction force.
@@ -145,7 +145,7 @@ pub fn clear_force_accumulators(
     mut force_query: Query<&mut ForceAccumulator>,
 ) {
     for mut force_accumulator in force_query.iter_mut() {
-        force_accumulator.clear(); // Set to (0, 0) — FRESH START
+        force_accumulator.clear(); // Set to (0, 0)  -  FRESH START
     }
 }
 ```
@@ -168,16 +168,16 @@ pub fn clear_force_accumulators(
 ///
 ///   Since a = F/m = (m × g) / m = g, ALL objects fall at the SAME rate
 ///   regardless of mass! A feather and a boulder fall identically
-///   (in vacuum — air resistance changes this).
+///   (in vacuum  -  air resistance changes this).
 ///
 ///   This is why astronauts on the Moon dropped a hammer and feather
-///   together — they hit the ground simultaneously.
+///   together  -  they hit the ground simultaneously.
 pub fn apply_gravity_to_all_objects(
     mut force_query: Query<(&Mass, &mut ForceAccumulator)>,
     physics_settings: Res<PhysicsSettings>,
 ) {
     for (mass, mut force_accumulator) in force_query.iter_mut() {
-        // F = m × g — gravity force is proportional to mass
+        // F = m × g  -  gravity force is proportional to mass
         let gravitational_force = physics_settings.gravity * mass.0;
         force_accumulator.add_force(gravitational_force);
     }
@@ -190,7 +190,7 @@ pub fn apply_gravity_to_all_objects(
 ///   Moon gravity:                  g = (0, -1.62)  → floaty jumps
 ///   "Juice" gravity:              g = (0, -100)   → dramatic falls
 ///
-/// There's no "correct" gravity for a game — only what feels right.
+/// There's no "correct" gravity for a game  -  only what feels right.
 ```
 
 ### 🌬️ Linear Drag (Damping): Why Things Stop
@@ -327,8 +327,8 @@ SPRING OSCILLATION VISUALIZED:
 /// The formula: a = F / m
 ///
 /// Special cases:
-///   mass = 0 (static): a = 0 — immovable object
-///   mass < 0: invalid — don't do this
+///   mass = 0 (static): a = 0  -  immovable object
+///   mass < 0: invalid  -  don't do this
 pub fn convert_forces_to_acceleration(
     mut physics_query: Query<(
         &ForceAccumulator,
@@ -346,7 +346,7 @@ pub fn convert_forces_to_acceleration(
             acceleration.0 = force_accumulator.total_force() / mass.0;
         } else {
             // mass = 0.0 → static/infinite mass object
-            // These objects NEVER accelerate — they're immovable.
+            // These objects NEVER accelerate  -  they're immovable.
             // Think: walls, floors, pillars, the ground.
             acceleration.0 = Vec2::ZERO;
         }
@@ -363,9 +363,9 @@ Let's trace ONE object through ONE complete physics frame:
 ```rust
 /// INITIAL STATE:
 ///   Position: (0, 300)
-///   Velocity: (0, 0)         — starting from rest
+///   Velocity: (0, 0)          -  starting from rest
 ///   Mass: 2.0
-///   Gravity: (0, -500)        — 500 px/s² downward
+///   Gravity: (0, -500)         -  500 px/s² downward
 ///   Damping: 0.1
 ///   dt: 1/60 ≈ 0.01667
 
@@ -392,8 +392,8 @@ pub fn trace_complete_physics_frame() {
     //   v += a × dt = (0, 0) + (0, -500) × 0.01667 = (0, -8.33)
     //   x += v × dt = (0, 300) + (0, -8.33) × 0.01667 = (0, 299.86)
     //
-    //   New Velocity: (0, -8.33)  — falling slowly
-    //   New Position: (0, 299.86) — slightly lower
+    //   New Velocity: (0, -8.33)   -  falling slowly
+    //   New Position: (0, 299.86)  -  slightly lower
     
     // ─── FRAME 2 ───
     //   Clear: ForceAccumulator = (0, 0)
@@ -409,10 +409,10 @@ pub fn trace_complete_physics_frame() {
     
     // ─── FRAME 60 (~1 second) ───
     //   Terminal velocity approach: drag ≈ gravity
-    //   Velocity ≈ (0, -500) — falling at constant speed
+    //   Velocity ≈ (0, -500)  -  falling at constant speed
     //   Drag = -0.1 × (0, -500) = (0, 50)
     //   Gravity = (0, -1000)
-    //   Net force = (0, -50) — almost zero!
+    //   Net force = (0, -50)  -  almost zero!
     //   Object falls at constant speed from here on.
     
     println!("Complete physics trace available above.");
@@ -449,7 +449,7 @@ DYNAMICS = WHY THINGS MOVE
   • Misunderstanding F = ma: a = F/m, NOT a = F × m!
 ```
 
-> **Dynamics is WHERE GAME FEEL COMES FROM. The same game with gravity = -200 vs gravity = -2000 feels COMPLETELY different. Drag of 0.1 vs 10.0 changes whether movement feels like ice or mud. Forces aren't just physics — they're the VOCABULARY of game feel. Tune them, don't just copy them.** 💪
+> **Dynamics is WHERE GAME FEEL COMES FROM. The same game with gravity = -200 vs gravity = -2000 feels COMPLETELY different. Drag of 0.1 vs 10.0 changes whether movement feels like ice or mud. Forces aren't just physics  -  they're the VOCABULARY of game feel. Tune them, don't just copy them.** 💪
 
 ---
 

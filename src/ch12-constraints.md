@@ -34,7 +34,7 @@ The simplest and most useful constraint:
 /// Resolves a **distance constraint** between two particles.
 ///
 /// A distance constraint ensures that two particles remain at a fixed
-/// distance from each other — like a rigid rod connecting them.
+/// distance from each other  -  like a rigid rod connecting them.
 ///
 /// # How It Works
 ///
@@ -53,7 +53,7 @@ The simplest and most useful constraint:
 /// particle_2 += displacement × (inverse_mass_2 / total_inverse_mass)
 /// ```
 ///
-/// This is a **position-based** constraint solver — we directly modify
+/// This is a **position-based** constraint solver  -  we directly modify
 /// positions rather than applying forces. This is what makes Verlet
 /// integration so powerful: constraints become trivial position adjustments.
 ///
@@ -83,7 +83,7 @@ pub fn distance_constraint(
 
     // ⛔ Guard against division by zero.
     // If both particles are at the exact same position, the direction
-    // vector is undefined. We just bail out — the constraint can't
+    // vector is undefined. We just bail out  -  the constraint can't
     // be resolved until the particles separate.
     if current_distance < 0.0001 {
         return;
@@ -123,7 +123,7 @@ pub fn distance_constraint(
             * (inverse_mass_of_second_particle / total_inverse_mass);
     }
     // If total_inverse_mass is 0, both particles are immovable (mass = ∞).
-    // Nothing we can do — they're pinned to the world.
+    // Nothing we can do  -  they're pinned to the world.
 }
 ```
 
@@ -294,7 +294,7 @@ Chain Simulation:
 ## 🔄 Rotational Joint
 
 ```rust
-/// 🔄 Hinge / Pivot joint — objects rotate around a common point
+/// 🔄 Hinge / Pivot joint  -  objects rotate around a common point
 #[derive(Component)]
 struct HingeJoint {
     /// World-space position of the hinge
@@ -522,7 +522,7 @@ Constraints are RULES that objects must obey:
     ropes, chains, and ragdolls!
 ```
 
-> **Key Takeaway:** Constraints are the grammar that turns independent particles into structured objects. Distance constraints + Verlet integration = cloth, ropes, chains, and ragdolls with minimal code. Run 5-10 constraint iterations per frame for stability. The magic isn't in any single constraint — it's in how they interact through iteration! 🏗️
+> **Key Takeaway:** Constraints are the grammar that turns independent particles into structured objects. Distance constraints + Verlet integration = cloth, ropes, chains, and ragdolls with minimal code. Run 5-10 constraint iterations per frame for stability. The magic isn't in any single constraint  -  it's in how they interact through iteration! 🏗️
 
 ---
 

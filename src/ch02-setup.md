@@ -1,6 +1,6 @@
 # ⚙️ Setting Up Your Bevy Physics Playground
 
-> **"Before you can simulate physics, you need to understand the simulation framework. Bevy's architecture isn't just 'how we set up the project' — it's the conceptual foundation for everything that follows."** 🔨
+> **"Before you can simulate physics, you need to understand the simulation framework. Bevy's architecture isn't just 'how we set up the project'  -  it's the conceptual foundation for everything that follows."** 🔨
 
 ---
 
@@ -33,7 +33,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# 🎯 Bevy 0.15 — the entire game framework
+# 🎯 Bevy 0.15  -  the entire game framework
 # This ONE crate gives us:
 #   - ECS World (entities, components, systems)
 #   - Renderer (window, sprites, camera)
@@ -44,7 +44,7 @@ bevy = "0.15"
 
 ### What's Inside Bevy?
 
-Bevy is not a monolith — it's a **modular collection of plugins** under one crate:
+Bevy is not a monolith  -  it's a **modular collection of plugins** under one crate:
 
 ```
 bevy 0.15 ─┬── bevy_ecs        🧠 Core ECS (World, entities, components, systems)
@@ -59,12 +59,12 @@ bevy 0.15 ─┬── bevy_ecs        🧠 Core ECS (World, entities, component
 
 When you call `.add_plugins(DefaultPlugins)` in your app, you're enabling ALL of these at once. For physics, the essential ones are:
 
-- `bevy_ecs` — The **entire physics engine** runs on this
-- `bevy_time` — Provides `Time.delta_secs()` for integration
-- `bevy_render` + `bevy_sprite` — Visualizes physics objects
-- `bevy_input` — Enables interactive physics controls
+- `bevy_ecs`  -  The **entire physics engine** runs on this
+- `bevy_time`  -  Provides `Time.delta_secs()` for integration
+- `bevy_render` + `bevy_sprite`  -  Visualizes physics objects
+- `bevy_input`  -  Enables interactive physics controls
 
-> 💡 **Key Insight:** The physics engine we build will run ENTIRELY within `bevy_ecs`. The other plugins are just for visualization and interaction. If you removed `DefaultPlugins`, your physics code would still compile and run — you just wouldn't see anything!
+> 💡 **Key Insight:** The physics engine we build will run ENTIRELY within `bevy_ecs`. The other plugins are just for visualization and interaction. If you removed `DefaultPlugins`, your physics code would still compile and run  -  you just wouldn't see anything!
 
 ---
 
@@ -145,7 +145,7 @@ fn physics_step(
     query: Query<(&Velocity, &mut Position)>,  // Declarative query
     time: Res<Time>,
 ) {
-    // Bevy handles the iteration — it finds ALL matching entities
+    // Bevy handles the iteration  -  it finds ALL matching entities
     // and feeds them to this function body
     for (vel, mut pos) in query.iter_mut() {
         pos.0 += vel.0 * time.delta_secs();
@@ -161,7 +161,7 @@ This enables Bevy's **parallelism guarantee**: If two systems access different c
 
 ---
 
-## 🏗️ Step 3: Project Structure — Why Module Separation Matters
+## 🏗️ Step 3: Project Structure  -  Why Module Separation Matters
 
 ```bash
 mkdir -p src/physics
@@ -176,25 +176,25 @@ This structure isn't arbitrary. Each file has a **clear responsibility**:
 ```
 src/
 ├── main.rs              # 🎬 Main entry: App construction, system registration
-│                        #    "THE ORCHESTRATOR" — knows what systems exist
+│                        #    "THE ORCHESTRATOR"  -  knows what systems exist
 │                        #    and in what order they run, but doesn't
 │                        #    know HOW they work internally
 │
 └── physics/             # 🧠 Physics engine: encapsulated module
     ├── mod.rs           # 📝 Module declarations & PhysicsPlugin definition
-    │                    #    "THE BOUNDARY" — external code only sees
+    │                    #    "THE BOUNDARY"  -  external code only sees
     │                    #    this module's public API
     │
     ├── components.rs    # 📍 Data types: Position, Velocity, Mass, etc.
-    │                    #    "THE VOCABULARY" — defines what physics
+    │                    #    "THE VOCABULARY"  -  defines what physics
     │                    #    concepts exist (pure data, no logic)
     │
     ├── integration.rs   # 🔄 Systems that UPDATE components
-    │                    #    "THE PHYSICS" — implements Euler integration,
+    │                    #    "THE PHYSICS"  -  implements Euler integration,
     │                    #    force accumulation, damping
     │
     └── collision.rs     # 🧱 Systems that DETECT and RESPOND to overlaps
-                         #    "THE COLLISIONS" — broad phase, narrow phase,
+                         #    "THE COLLISIONS"  -  broad phase, narrow phase,
                          #    impulse resolution
 ```
 
@@ -212,7 +212,7 @@ By separating data (`components.rs`) from logic (`integration.rs`, `collision.rs
 
 ---
 
-## 📝 Step 4: Components — The Deep Dive
+## 📝 Step 4: Components  -  The Deep Dive
 
 Let's examine each physics component and understand **why it exists**, **what it represents mathematically**, and **how it connects to the physics pipeline**.
 
@@ -223,7 +223,7 @@ Let's examine each physics component and understand **why it exists**, **what it
 ///
 /// MATHEMATICAL MEANING:
 /// Position is a VECTOR from the origin (0,0) to the object's location.
-/// In physics terms: position = r(t) — the object's location at time t.
+/// In physics terms: position = r(t)  -  the object's location at time t.
 ///
 /// WHY A SEPARATE COMPONENT?
 /// Bevy's built-in `Transform` bundles position + rotation + scale together.
@@ -232,7 +232,7 @@ Let's examine each physics component and understand **why it exists**, **what it
 /// Problem 1: Transform.hierarchy
 ///   Transform is part of Bevy's render graph. Modifying it triggers
 ///   hierarchy recomputation (children move with parents). Physics
-///   doesn't need this — we just want raw x,y coordinates.
+///   doesn't need this  -  we just want raw x,y coordinates.
 ///
 /// Problem 2: Transform contains rotation + scale
 ///   Physics doesn't need these for integration. Carrying them in
@@ -277,7 +277,7 @@ impl Position {
 /// CRITICAL INSIGHT:
 /// Velocity INTERPOLATES position between frames. If your game runs
 /// at 60 FPS and velocity is (60, 0), the object moves 1 pixel per frame.
-/// At 30 FPS, it moves 2 pixels per frame. The MOTION is the same —
+/// At 30 FPS, it moves 2 pixels per frame. The MOTION is the same  - 
 /// just the stepping granularity changes. This is WHY we multiply by dt.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Velocity(pub Vec2);
@@ -321,7 +321,7 @@ pub struct Velocity(pub Vec2);
 ///   acc = (0, 0)          ← Clear for next frame
 ///
 /// IMPORTANT: Acceleration is RECALCULATED every frame.
-/// We don't "store" acceleration between frames — it's ephemeral,
+/// We don't "store" acceleration between frames  -  it's ephemeral,
 /// derived from the forces currently acting on the object.
 /// This is why we clear it after integration.
 ///
@@ -336,7 +336,7 @@ pub struct Acceleration(pub Vec2);
 ### Mass: How Hard Is It to Move This Object?
 
 ```rust
-/// ⚖️ Mass represents INERTIA — resistance to acceleration.
+/// ⚖️ Mass represents INERTIA  -  resistance to acceleration.
 ///
 /// MATHEMATICAL MEANING:
 /// Mass is the proportionality constant between force and acceleration:
@@ -350,12 +350,12 @@ pub struct Acceleration(pub Vec2);
 ///   mass = 1.0    ← Default "normal" object
 ///   mass = 10.0   ← Heavy object (slow to accelerate, hard to push)
 ///   mass = 0.1    ← Light object (very responsive, easy to launch)
-///   mass = 0.0    ← STATIC/immovable (infinite mass — walls, floors)
+///   mass = 0.0    ← STATIC/immovable (infinite mass  -  walls, floors)
 ///
 /// THE SPECIAL CASE OF mass = 0.0:
 /// When mass is zero, F = ma would give a = F/0 = ∞ (division by zero).
 /// So we handle it specially: entities with zero mass don't move.
-/// They're STATIC COLLIDERS — they participate in collision detection
+/// They're STATIC COLLIDERS  -  they participate in collision detection
 /// but are never moved by the physics engine.
 ///
 /// This is how we create walls, floors, and other immovable objects.
@@ -398,7 +398,7 @@ Understanding how these four components interact is the foundation of ALL game p
 
 ---
 
-## 🧮 Step 5: Integration — The Engine That Moves Things
+## 🧮 Step 5: Integration  -  The Engine That Moves Things
 
 The integration module is where kinematics happens. Let's understand every line:
 
@@ -407,7 +407,7 @@ The integration module is where kinematics happens. Let's understand every line:
 ```rust
 /// 🎯 Resource that controls physics simulation parameters
 ///
-/// A `Resource` in Bevy is a SINGLETON — there's only ONE instance
+/// A `Resource` in Bevy is a SINGLETON  -  there's only ONE instance
 /// of this data in the entire World. Unlike components (which are
 /// per-entity), resources are global.
 ///
@@ -432,7 +432,7 @@ pub struct PhysicsSettings {
     /// If dt varied with frame rate:
     ///   - 30 FPS: dt = 33ms, objects jump twice as far per step
     ///   - 120 FPS: dt = 8ms, objects move half as far per step
-    /// This means physics FRAMERATE DEPENDENT — different computers
+    /// This means physics FRAMERATE DEPENDENT  -  different computers
     /// would get different simulation results!
     ///
     /// Fixed timestep solves this:
@@ -490,7 +490,7 @@ pub fn euler_integration(
             // a_gravity = g (doesn't depend on mass!)
             // F_gravity = m × g, so a = F/m = g
             // This is why all objects fall at the same rate
-            // (in vacuum — we'll add air resistance later)
+            // (in vacuum  -  we'll add air resistance later)
             acc.0 += settings.gravity;
 
             // STEP 2: INTEGRATE acceleration → velocity
@@ -526,12 +526,12 @@ pub fn euler_integration(
             //
             // The difference: by using the NEW velocity, we estimate
             // the AVERAGE velocity over the timestep, not the START.
-            // This small change conserves energy — objects in orbit
+            // This small change conserves energy  -  objects in orbit
             // stay in orbit instead of spiraling outward!
             pos.0 += vel.0 * sub_dt;
 
             // STEP 4: Clear acceleration for next frame
-            // Forces don't persist — each frame calculates them fresh
+            // Forces don't persist  -  each frame calculates them fresh
             // If we don't clear, old forces would accumulate and
             // objects would accelerate forever (RUNAWAY PHYSICS!)
             acc.0 = Vec2::ZERO;
@@ -542,7 +542,7 @@ pub fn euler_integration(
 
 ---
 
-## 🎬 Step 6: Main Entry Point — The Full Picture
+## 🎬 Step 6: Main Entry Point  -  The Full Picture
 
 Now let's understand the main.rs in its entirety:
 
@@ -654,21 +654,21 @@ FRAME N ENDS:
 
 | Concept | What It Means | Why It Matters |
 |---------|---------------|----------------|
-| **App** | A builder for the entire game | Everything is registered here — plugins, systems, resources |
+| **App** | A builder for the entire game | Everything is registered here  -  plugins, systems, resources |
 | **DefaultPlugins** | Built-in window/render/input/audio | Provides the "runtime" for our physics to exist in |
 | **Plugin** | A package of systems + resources | Encapsulates our physics engine as a reusable unit |
 | **System** | A function that transforms ECS data | Stateless, parallelizable, scheduled by Bevy |
-| **Query** | A pattern-matching access to components | Like a database query — find entities with specific components |
-| **Component** | A piece of typed data on an entity | Position, Velocity, etc. — PURE DATA, NO LOGIC |
-| **Resource** | Global singleton data | PhysicsSettings — affects all entities |
+| **Query** | A pattern-matching access to components | Like a database query  -  find entities with specific components |
+| **Component** | A piece of typed data on an entity | Position, Velocity, etc.  -  PURE DATA, NO LOGIC |
+| **Resource** | Global singleton data | PhysicsSettings  -  affects all entities |
 | **Commands** | Deferred spawn/despawn/modify | Batched for efficiency, executed at sync points |
-| **Sync Point** | Where deferred ops are flushed | Stops parallel execution temporarily — MINIMIZE THESE |
+| **Sync Point** | Where deferred ops are flushed | Stops parallel execution temporarily  -  MINIMIZE THESE |
 | **Integration** | Transforming acceleration → velocity → position | The mathematical heart of physics simulation |
 | **Fixed Timestep** | Physics runs at constant rate regardless of FPS | Deterministic, framerate-independent simulation |
 
 ---
 
-> **Key Takeaway:** Bevy's architecture isn't just ceremony — it's a carefully designed system that enables parallel, cache-efficient, deterministic physics simulation. Every struct, every trait, every registration call serves a purpose in the data flow. Understanding this flow is the difference between "copying code" and "knowing how to build." 🏗️
+> **Key Takeaway:** Bevy's architecture isn't just ceremony  -  it's a carefully designed system that enables parallel, cache-efficient, deterministic physics simulation. Every struct, every trait, every registration call serves a purpose in the data flow. Understanding this flow is the difference between "copying code" and "knowing how to build." 🏗️
 
 ---
 

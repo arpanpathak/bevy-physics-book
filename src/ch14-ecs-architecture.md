@@ -1,6 +1,6 @@
 # 🏗️ Bevy ECS Physics Architecture
 
-> **"The ECS pattern isn't just an architectural choice — it's a fundamental shift in how we THINK about game state. Components are data. Systems are transformations on that data. Entities are nothing but an ID. This separation is the key to building physics that scales."** 🧠
+> **"The ECS pattern isn't just an architectural choice  -  it's a fundamental shift in how we THINK about game state. Components are data. Systems are transformations on that data. Entities are nothing but an ID. This separation is the key to building physics that scales."** 🧠
 
 ---
 
@@ -39,7 +39,7 @@ This approach has **three fatal problems** for game physics:
 
 ### 🐢 Problem 1: Cache Inefficiency (The Killer)
 
-Modern CPUs are **memory-bound**, not compute-bound. When you iterate `Vec<PhysicsObject>`, you load the ENTIRE struct into cache — even fields you don't need:
+Modern CPUs are **memory-bound**, not compute-bound. When you iterate `Vec<PhysicsObject>`, you load the ENTIRE struct into cache  -  even fields you don't need:
 
 ```
 Memory Layout (OO):
@@ -69,7 +69,7 @@ In OO, `update_objects` has a `&mut Vec<PhysicsObject>`. You CANNOT safely run t
 
 ```rust
 fn update_objects(objects: &mut Vec<PhysicsObject>) {
-    // Can't split this into threads — Rust sees one mutable borrow
+    // Can't split this into threads  -  Rust sees one mutable borrow
     for obj in objects.iter_mut() { /* ... */ }
 }
 ```
@@ -81,7 +81,7 @@ With ECS, **Bevy's scheduler** proves at compile time that systems don't conflic
 fn apply_gravity(mut query: Query<(&Mass, &mut Velocity)>) { /* ... */ }
 fn render_sync(query: Query<(&Position, &mut Transform)>) { /* ... */ }
 
-// ❌ These CANNOT — both write to Velocity
+// ❌ These CANNOT  -  both write to Velocity
 fn apply_gravity(mut query: Query<(&mut Velocity)>) { /* ... */ }
 fn apply_drag(mut query: Query<(&mut Velocity)>) { /* ... */ }
 ```
@@ -115,7 +115,7 @@ struct Health(f32);
 
 Let's examine each pillar in depth:
 
-### 1️⃣ Entities — Just IDs
+### 1️⃣ Entities  -  Just IDs
 
 An **Entity** in Bevy is nothing but a u64 (32-bit index + 32-bit generation):
 
@@ -131,12 +131,12 @@ struct Entity {
 ```
 
 This means:
-- Entity creation is **O(1)** — just increment a counter
-- Entity deletion is **O(1)** — mark slot as free, bump generation
+- Entity creation is **O(1)**  -  just increment a counter
+- Entity deletion is **O(1)**  -  mark slot as free, bump generation
 - Entity ID can be stored safely even if the entity is despawned (the generation prevents use-after-free)
-- An entity is just a "bundle of components" — its identity comes from what components are attached
+- An entity is just a "bundle of components"  -  its identity comes from what components are attached
 
-### 2️⃣ Components — Pure Data
+### 2️⃣ Components  -  Pure Data
 
 A **Component** is any Rust type that implements the `Component` trait:
 
@@ -201,7 +201,7 @@ fn move_objects(query: Query<(&mut Position, &Velocity)>) {
 // This is usually negligible (< 5% overhead).
 ```
 
-### 3️⃣ Systems — Pure Logic
+### 3️⃣ Systems  -  Pure Logic
 
 A **System** is a function that operates on components:
 
@@ -230,7 +230,7 @@ fn my_system(
 }
 ```
 
-**Critical insight:** Systems are **stateless** — they read state from components/resources and write state to components/resources. This is what enables Bevy's scheduler to reorder and parallelize them safely.
+**Critical insight:** Systems are **stateless**  -  they read state from components/resources and write state to components/resources. This is what enables Bevy's scheduler to reorder and parallelize them safely.
 
 ---
 
@@ -248,7 +248,7 @@ fn configure_scheduling(app: &mut App) {
         system_a,  // Reads Position, writes Velocity
         system_b,  // Reads Velocity, writes Transform
         system_c,  // Reads Transform, writes Sprite
-        system_d,  // Reads Position, reads Velocity — compatible with both!
+        system_d,  // Reads Position, reads Velocity  -  compatible with both!
     ));
 }
 ```
@@ -277,7 +277,7 @@ Frame ─► [system_a] ─► [system_b, system_d] ─► [system_c] ─► ren
 Physics has **strict ordering requirements** that MUST be enforced:
 
 ```rust
-// ❌ WRONG: No ordering — Bevy may run integrate BEFORE apply_gravity
+// ❌ WRONG: No ordering  -  Bevy may run integrate BEFORE apply_gravity
 // If integrate runs first, gravity has no effect this frame!
 app.add_systems(Update, (apply_gravity, integrate, detect_collisions));
 
@@ -419,7 +419,7 @@ fn only_players(query: Query<&Transform, With<Player>>) {
 
 // ─── Without: Exclude entities that have this component ───
 fn only_non_sleeping(query: Query<&mut Velocity, Without<Sleeping>>) {
-    // Skip sleeping entities — they don't need physics updates
+    // Skip sleeping entities  -  they don't need physics updates
 }
 
 // ─── Or/And/Nor: Combine filters ───
@@ -477,14 +477,14 @@ fn fast(query: Query<(&mut Position, &Velocity)>) {
     }
 }
 
-// 🐢 SLOWER: Sparse access — but still fast enough for most uses
+// 🐢 SLOWER: Sparse access  -  but still fast enough for most uses
 fn single(query: Query<(&mut Position, &Velocity)>) {
     if let Some((mut pos, vel)) = query.iter_mut().next() {
         pos.0 += vel.0;
     }
 }
 
-// 🐌 SLOWEST: Random access by entity — USE SPARSE
+// 🐌 SLOWEST: Random access by entity  -  USE SPARSE
 fn random_access(query: Query<&mut Position>) {
     for entity_id in some_list_of_ids {
         if let Ok(mut pos) = query.get_mut(entity_id) {
@@ -559,7 +559,7 @@ fn collision_response(
 
 ```rust
 fn spawn_objects(mut commands: Commands) {
-    // These don't execute NOW — they go into a buffer
+    // These don't execute NOW  -  they go into a buffer
     let entity = commands.spawn((
         Position::new(0.0, 0.0),
         Velocity::new(10.0, 0.0),
@@ -573,7 +573,7 @@ fn spawn_objects(mut commands: Commands) {
 }
 
 // 💡 Why deferred?
-// Immediate commands would force a sync point — stopping ALL
+// Immediate commands would force a sync point  -  stopping ALL
 // parallel execution to process the changes. Batching them
 // means the scheduler stays efficient.
 ```
@@ -793,7 +793,7 @@ Here's what happens in one physics frame, traced end to end:
 ## 🎯 Chapter Summary
 
 ```
-ECS Architecture is NOT optional — it's the FOUNDATION of scalable physics:
+ECS Architecture is NOT optional  -  it's the FOUNDATION of scalable physics:
 
 🎯 ENTITIES = IDs (just a number)
    - Entity(1) ≠ Entity(2) even if same components

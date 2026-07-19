@@ -13,7 +13,7 @@ You're building a game. A player presses the joystick at a 45° angle. You need 
 ```rust
 // ❌ GUESSING: Which way does 45° go?
 let velocity = Vec2::new(100.0, 100.0);
-// Problem: length = √(100² + 100²) = 141.4 — 41% too fast!
+// Problem: length = √(100² + 100²) = 141.4  -  41% too fast!
 // And is (100, 100) actually 45°? Yes... but the speed is wrong.
 ```
 
@@ -26,7 +26,7 @@ let direction = Vec2::new(
     angle_in_radians.cos(),  // = 0.707
     angle_in_radians.sin(),  // = 0.707
 );
-let velocity = direction * 100.0; // = (70.7, 70.7) — length = 100 ✅
+let velocity = direction * 100.0; // = (70.7, 70.7)  -  length = 100 ✅
 ```
 
 **This is the fundamental job of trigonometry in games: convert between angles and vectors.**
@@ -103,7 +103,7 @@ On the unit circle (hypotenuse = 1):
 /// 📐 SIN(θ): Returns the y-coordinate on the unit circle.
 ///
 /// Range: [-1, 1]
-/// Period: 2π (360°) — sin repeats every full rotation.
+/// Period: 2π (360°)  -  sin repeats every full rotation.
 /// Key values:
 ///   sin(0) = 0      sin(π/2) = 1     sin(π) = 0      sin(3π/2) = -1
 ///
@@ -118,7 +118,7 @@ pub fn sine_example(angle_radians: f32) -> f32 {
 /// 📐 COS(θ): Returns the x-coordinate on the unit circle.
 ///
 /// Range: [-1, 1]
-/// Period: 2π — cos repeats every full rotation.
+/// Period: 2π  -  cos repeats every full rotation.
 /// Key values:
 ///   cos(0) = 1      cos(π/2) = 0     cos(π) = -1     cos(3π/2) = 0
 ///
@@ -132,13 +132,13 @@ pub fn cosine_example(angle_radians: f32) -> f32 {
 
 /// 📐 TAN(θ): Returns the slope = sin(θ) / cos(θ).
 ///
-/// Range: (-∞, ∞) — tan has ASYMPTOTES where cos(θ) = 0.
-/// Period: π (180°) — tan repeats every half rotation.
+/// Range: (-∞, ∞)  -  tan has ASYMPTOTES where cos(θ) = 0.
+/// Period: π (180°)  -  tan repeats every half rotation.
 ///
 /// Game uses:
 ///   - Computing slopes
 ///   - Line-of-sight angle checks
-///   - (Rarely used directly — atan2 is more useful)
+///   - (Rarely used directly  -  atan2 is more useful)
 pub fn tangent_example(angle_radians: f32) -> f32 {
     angle_radians.tan()
     // ⚠️ WARNING: tan(π/2) = ∞ (division by zero!)
@@ -150,7 +150,7 @@ pub fn tangent_example(angle_radians: f32) -> f32 {
 
 ## 🔄 atan2: The Function You'll Use Most
 
-**`atan2(y, x)` is the inverse of sin/cos** — given a vector, it returns the angle:
+**`atan2(y, x)` is the inverse of sin/cos**  -  given a vector, it returns the angle:
 
 ```rust
 /// 🎯 atan2(y, x) returns the angle of the vector (x, y).
@@ -184,7 +184,7 @@ pub fn aim_toward_target(
     let direction_to_target = target_position - shooter_position;
     
     // Step 2: Convert to angle using atan2
-    // This works for ANY relative position — left, right, up, down, diagonal
+    // This works for ANY relative position  -  left, right, up, down, diagonal
     let angle_to_target = direction_to_target.y.atan2(direction_to_target.x);
     
     angle_to_target
@@ -273,7 +273,7 @@ pub fn update_floating_platform_system(
 /// 🌊 BUTTER SMOOTH sine wave animation:
 ///
 /// If you want a more "natural" feel, use a cosine wave for the
-/// horizontal component and sine for vertical — this creates
+/// horizontal component and sine for vertical  -  this creates
 /// circular/elliptical motion:
 pub fn circular_motion_example(
     center: Vec2,
@@ -308,14 +308,14 @@ pub fn fire_projectile_toward_target(
     muzzle_velocity: f32,
 ) {
     // Step 1: Find the angle to the target using atan2.
-    // atan2 handles ALL quadrants — works for targets left, right,
+    // atan2 handles ALL quadrants  -  works for targets left, right,
     // above, or below. Regular atan would fail.
     let direction_to_target = target_position - origin_position;
     let launch_angle = direction_to_target.y.atan2(direction_to_target.x);
     
     // Step 2: Decompose the velocity vector into x and y components.
-    // v_x = v × cos(θ)  — horizontal component (constant without drag)
-    // v_y = v × sin(θ)  — vertical component (affected by gravity)
+    // v_x = v × cos(θ)   -  horizontal component (constant without drag)
+    // v_y = v × sin(θ)   -  vertical component (affected by gravity)
     let velocity = Vec2::new(
         launch_angle.cos() * muzzle_velocity,
         launch_angle.sin() * muzzle_velocity,
@@ -370,7 +370,7 @@ Projectile trajectory at different launch angles:
                 ╱  ╲
                
   The 45° angle gives the BEST balance of vertical and horizontal
-  velocity. sin(45°) = cos(45°) = 0.707 — equal components!
+  velocity. sin(45°) = cos(45°) = 0.707  -  equal components!
 ```
 
 ---
@@ -382,7 +382,7 @@ Projectile trajectory at different launch angles:
 /// an observer at `observer_position` facing `observer_facing_direction`.
 ///
 /// This uses the dot product, which IS cos(θ) when both vectors are
-/// unit vectors. We avoid computing the actual angle — comparing
+/// unit vectors. We avoid computing the actual angle  -  comparing
 /// cosines is equivalent and MUCH faster.
 pub fn is_target_in_field_of_view(
     observer_position: Vec2,
@@ -449,7 +449,7 @@ TRIGONOMETRY IS THE BRIDGE BETWEEN ANGLES AND VECTORS:
   FOV Check:          facing.dot(to_target) > cos(half_fov)
   
   KEY INSIGHT: sin and cos CONVERT rotation into translation.
-  To move at an angle, you don't "rotate the velocity" — you
+  To move at an angle, you don't "rotate the velocity"  -  you
   COMPUTE the velocity from the angle using trig.
   
   atan2 IS THE MOST IMPORTANT TRIG FUNCTION for games.
@@ -457,7 +457,7 @@ TRIGONOMETRY IS THE BRIDGE BETWEEN ANGLES AND VECTORS:
   Always use atan2(y, x), never atan(y/x).
 ```
 
-> **Trig is the machinery hidden behind almost every game feature: aiming, movement, camera control, projectile physics, wave effects, field-of-view, and more. `cos`, `sin`, and `atan2` — master these three functions and you can build anything involving angles and positions.** 📐
+> **Trig is the machinery hidden behind almost every game feature: aiming, movement, camera control, projectile physics, wave effects, field-of-view, and more. `cos`, `sin`, and `atan2`  -  master these three functions and you can build anything involving angles and positions.** 📐
 
 ---
 

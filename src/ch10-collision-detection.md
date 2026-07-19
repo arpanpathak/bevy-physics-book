@@ -29,7 +29,7 @@ The simplest and fastest collision shape:
 ```rust
 /// 📦 An Axis-Aligned Bounding Box
 ///
-/// "Axis-Aligned" means the box CANNOT rotate — its edges are
+/// "Axis-Aligned" means the box CANNOT rotate  -  its edges are
 /// always parallel to the x and y axes.
 ///
 /// This makes collision checks INCREDIBLY fast:
@@ -132,7 +132,7 @@ impl Circle {
         let dist = diff.length();
         
         if dist < 0.0001 {
-            // Circles are perfectly overlapping — pick a direction
+            // Circles are perfectly overlapping  -  pick a direction
             Vec2::X
         } else {
             diff / dist  // Unit vector from self to other
@@ -260,7 +260,7 @@ impl Polygon {
             // Edge vector
             let edge = self.vertices[j] - self.vertices[i];
             
-            // 🔄 Perpendicular (normalized) — this is our axis!
+            // 🔄 Perpendicular (normalized)  -  this is our axis!
             let normal = Vec2::new(-edge.y, edge.x).normalize();
             normals.push(normal);
         }
@@ -334,7 +334,7 @@ SAT Visualization:
 ## 🎯 Raycasting
 
 ```rust
-/// 🎯 Ray — an infinite line from origin in a direction
+/// 🎯 Ray  -  an infinite line from origin in a direction
 struct Ray {
     origin: Vec2,
     direction: Vec2,  // Should be normalized
@@ -407,7 +407,7 @@ impl Ray {
 ## 🏗️ Complete Collision System
 
 ```rust
-/// 💥 Collision event — emitted when two entities collide
+/// 💥 Collision event  -  emitted when two entities collide
 #[derive(Event)]
 struct CollisionEvent {
     entity_a: Entity,

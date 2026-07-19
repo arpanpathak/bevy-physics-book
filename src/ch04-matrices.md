@@ -1,6 +1,6 @@
 # 🔢 Matrices & Transformations
 
-> **"A matrix is a function that takes a vector and returns a vector — but it's a special kind of function: LINEAR. Scaling, rotation, reflection, shear — all of these are just matrix multiplications. A single 3×3 grid of numbers represents ANY spatial relationship in 2D."** 🔄
+> **"A matrix is a function that takes a vector and returns a vector  -  but it's a special kind of function: LINEAR. Scaling, rotation, reflection, shear  -  all of these are just matrix multiplications. A single 3×3 grid of numbers represents ANY spatial relationship in 2D."** 🔄
 
 ---
 
@@ -92,34 +92,34 @@ Let's verify this with concrete examples:
 ```rust
 /// The identity matrix: columns are the STANDARD basis vectors.
 let identity_matrix = Mat3::IDENTITY;
-// Column 0: (1, 0, 0) → X-axis stays at (1, 0) — unchanged.
-// Column 1: (0, 1, 0) → Y-axis stays at (0, 1) — unchanged.
-// Column 2: (0, 0, 1) → Origin stays at (0, 0) — unchanged.
-// Result: point = 1×X + 0×Y + 0×origin = (x, y) — THE SAME POINT.
+// Column 0: (1, 0, 0) → X-axis stays at (1, 0)  -  unchanged.
+// Column 1: (0, 1, 0) → Y-axis stays at (0, 1)  -  unchanged.
+// Column 2: (0, 0, 1) → Origin stays at (0, 0)  -  unchanged.
+// Result: point = 1×X + 0×Y + 0×origin = (x, y)  -  THE SAME POINT.
 
 /// Scale matrix: columns are just the axes, but LONGER.
 let scale_matrix = Mat3::from_scale(Vec2::new(2.0, 3.0));
-// Column 0: (2, 0, 0) → X-axis now points to (2, 0) — twice as long.
-// Column 1: (0, 3, 0) → Y-axis now points to (0, 3) — three times as long.
-// Result: point = x×(2,0) + y×(0,3) = (2x, 3y) — stretched!
+// Column 0: (2, 0, 0) → X-axis now points to (2, 0)  -  twice as long.
+// Column 1: (0, 3, 0) → Y-axis now points to (0, 3)  -  three times as long.
+// Result: point = x×(2,0) + y×(0,3) = (2x, 3y)  -  stretched!
 
 /// Rotation matrix: columns are the axes, but ROTATED.
 let rotation_matrix = Mat3::from_angle(std::f32::consts::FRAC_PI_4);
 // Column 0: (cos45°, sin45°, 0) ≈ (0.707, 0.707, 0)
 // Column 1: (-sin45°, cos45°, 0) ≈ (-0.707, 0.707, 0)
 // Result: point = x×(0.707,0.707) + y×(-0.707,0.707)
-//        = (0.707x - 0.707y, 0.707x + 0.707y) — rotated 45°!
+//        = (0.707x - 0.707y, 0.707x + 0.707y)  -  rotated 45°!
 //
 // 🔑 KEY INSIGHT: The columns of a rotation matrix are ORTHONORMAL.
 // They're unit vectors perpendicular to each other. This is what
-// makes rotation "rigid" — it preserves distances and angles.
+// makes rotation "rigid"  -  it preserves distances and angles.
 ```
 
 ---
 
 ## 🔧 The Three Fundamental Transformations (In Depth)
 
-### 1️⃣ Translation — Moving Without Rotating
+### 1️⃣ Translation  -  Moving Without Rotating
 
 ```rust
 /// TRANSLATION moves a point by adding a constant offset.
@@ -130,12 +130,12 @@ let rotation_matrix = Mat3::from_angle(std::f32::consts::FRAC_PI_4);
 ///   [0  0  1 ]   [1]   [1     ]
 ///
 /// The identity submatrix (top-left 2×2) means rotation and scale
-/// are both identity — we're ONLY moving.
+/// are both identity  -  we're ONLY moving.
 ///
 /// Geometric meaning:
-///   Column 0: (1, 0, 0) — X-axis unchanged
-///   Column 1: (0, 1, 0) — Y-axis unchanged  
-///   Column 2: (tx, ty, 1) — Origin moves to (tx, ty)!
+///   Column 0: (1, 0, 0)  -  X-axis unchanged
+///   Column 1: (0, 1, 0)  -  Y-axis unchanged  
+///   Column 2: (tx, ty, 1)  -  Origin moves to (tx, ty)!
 pub fn create_translation_matrix(offset: Vec2) -> Mat3 {
     Mat3::from_translation(offset)
 }
@@ -147,7 +147,7 @@ let moved_point = move_right_and_up.transform_point2(original_point);
 // moved_point = (10 + 100, 20 + 50) = (110, 70)
 ```
 
-### 2️⃣ Rotation — Spinning Around the Origin
+### 2️⃣ Rotation  -  Spinning Around the Origin
 
 ```rust
 /// ROTATION spins a point around the origin (0,0) by angle θ.
@@ -172,8 +172,8 @@ let moved_point = move_right_and_up.transform_point2(original_point);
 ///   y' = x·sin(θ) + y·cos(θ)
 ///
 /// The columns are literally:
-///   Column 0: (cosθ, sinθ) — where the X axis points after rotation
-///   Column 1: (-sinθ, cosθ) — where the Y axis points after rotation
+///   Column 0: (cosθ, sinθ)  -  where the X axis points after rotation
+///   Column 1: (-sinθ, cosθ)  -  where the Y axis points after rotation
 ///
 /// Note that these two columns are always PERPENDICULAR (dot product = 0)
 /// and both have length 1. This is what makes rotation "rigid."
@@ -185,16 +185,16 @@ pub fn create_rotation_matrix(angle_radians: f32) -> Mat3 {
 let rotate_90 = create_rotation_matrix(std::f32::consts::FRAC_PI_2); // 90°
 let point_on_x_axis = Vec2::new(10.0, 0.0);
 let after_rotation = rotate_90.transform_point2(point_on_x_axis);
-// after_rotation ≈ (0, 10) — the point moved from the X axis to the Y axis ✅
+// after_rotation ≈ (0, 10)  -  the point moved from the X axis to the Y axis ✅
 
 // What about a diagonal point?
 let diagonal = Vec2::new(1.0, 1.0);
 let rotated_diagonal = rotate_90.transform_point2(diagonal);
 // = (1·0 - 1·1, 1·1 + 1·0) = (-1, 1)
-// The point (1,1) rotated 90° to (-1,1) — try drawing it!
+// The point (1,1) rotated 90° to (-1,1)  -  try drawing it!
 ```
 
-### 3️⃣ Scaling — Stretching Along Axes
+### 3️⃣ Scaling  -  Stretching Along Axes
 
 ```rust
 /// SCALING stretches or shrinks a point along the x and y axes.
@@ -222,7 +222,7 @@ let mirror_x = create_scale_matrix(Vec2::new(-1.0, 1.0));
 
 ## 🔗 Composition: The Reason Matrices Exist
 
-The real power of matrices isn't in individual transformations — it's in **combining them**.
+The real power of matrices isn't in individual transformations  -  it's in **combining them**.
 
 ### How Matrix Multiplication Works
 
@@ -285,7 +285,7 @@ let result = transform.transform_point2(input_point);
 // Final result: (114.14, 64.14) ✅
 ```
 
-### THE CARDINAL RULE: T × R × S — Always
+### THE CARDINAL RULE: T × R × S  -  Always
 
 This order (Scale → Rotate → Translate) is NON-NEGOTIABLE for game physics:
 
@@ -293,14 +293,14 @@ This order (Scale → Rotate → Translate) is NON-NEGOTIABLE for game physics:
 /// Why T × R × S and NOT S × R × T?
 ///
 /// T × R × S (Correct):
-///   1. Scale at the origin (safe — no offset to distort)
+///   1. Scale at the origin (safe  -  no offset to distort)
 ///   2. Rotate at the origin (clean rotation)
 ///   3. Translate to final position (just moves the result)
 ///
 /// S × R × T (Wrong):
 ///   1. Translate FIRST (moves away from origin)
 ///   2. Rotate (swings the translated point in an arc around origin!)
-///   3. Scale (also scales the offset from origin — shearing!)
+///   3. Scale (also scales the offset from origin  -  shearing!)
 ///
 /// The result: the object moves in a giant arc instead of
 /// cleanly rotating around its center. It looks BROKEN.
@@ -350,7 +350,7 @@ S × R × T (Wrong):
 
 ## 🔬 Homogeneous Coordinates: The Magic of the Extra Row
 
-If you've been paying attention, you noticed our matrices are 3×3 even though we're working in 2D. This isn't wasteful — it's **necessary**.
+If you've been paying attention, you noticed our matrices are 3×3 even though we're working in 2D. This isn't wasteful  -  it's **necessary**.
 
 ### The Problem with 2×2 Matrices
 
@@ -368,7 +368,7 @@ let scale_2d = Mat2::from_cols(
 /// You'd need to do translation separately:
 let rotated = rotation_2d * point;
 let translated = rotated + Vec2::new(100.0, 50.0); // Manual addition!
-// This breaks composition — you can't combine rotation and translation
+// This breaks composition  -  you can't combine rotation and translation
 // into a single operation.
 ```
 
@@ -402,7 +402,7 @@ pub fn demonstrate_point_vs_vector(transform: Mat3) {
     
     /// 💡 This is why velocity doesn't "move" when the object translates!
     /// If you have a velocity of (50, 0) and the object moves to a new
-    /// position, the velocity DIRECTION stays the same — only rotation
+    /// position, the velocity DIRECTION stays the same  -  only rotation
     /// and scale affect it.
 }
 ```
@@ -411,7 +411,7 @@ pub fn demonstrate_point_vs_vector(transform: Mat3) {
 
 ## 🔄 The Inverse: Undoing a Transformation
 
-Every transformation matrix has an **inverse** — a matrix that undoes it:
+Every transformation matrix has an **inverse**  -  a matrix that undoes it:
 
 ```rust
 /// If transform moves a point from A to B, then
@@ -428,7 +428,7 @@ pub fn demonstrate_inverse() {
     let inverse_transform = transform.inverse();
     let recovered_point = inverse_transform.transform_point2(transformed_point);
     
-    // recovered_point ≈ (10, 20) — identical within floating-point precision
+    // recovered_point ≈ (10, 20)  -  identical within floating-point precision
     println!(
         "Original: ({:.1}, {:.1}), Recovered: ({:.1}, {:.1})",
         original_point.x, original_point.y,

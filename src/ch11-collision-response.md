@@ -1,6 +1,6 @@
 # 🤝 Collision Response: Making Things Bounce
 
-> **"Detection tells you something is wrong. Response makes it right — with velocity, impulses, and a little bit of magic."** 💥
+> **"Detection tells you something is wrong. Response makes it right  -  with velocity, impulses, and a little bit of magic."** 💥
 
 ---
 
@@ -148,9 +148,9 @@ fn resolve_collision(
 /// e = 1.0   → Perfectly elastic (ideal, no energy loss)
 ///
 /// Combined restitution (when two objects collide):
-/// e_combined = min(e_a, e_b)  — conservative
-/// e_combined = e_a × e_b       — common choice
-/// e_combined = sqrt(e_a × e_b) — geometric mean
+/// e_combined = min(e_a, e_b)   -  conservative
+/// e_combined = e_a × e_b        -  common choice
+/// e_combined = sqrt(e_a × e_b)  -  geometric mean
 
 #[derive(Component)]
 struct Material {
@@ -255,7 +255,7 @@ fn collision_response_system(
 ## 🧮 Energy & Momentum Conservation
 
 ```rust
-/// 🧮 Physics invariants — these should be conserved
+/// 🧮 Physics invariants  -  these should be conserved
 ///
 /// MONITOR THESE during development to catch bugs!
 
@@ -298,10 +298,10 @@ fn check_kinetic_energy(
 
 ## 🎯 Practical: Stacking Boxes
 
-Stacking requires special handling — gravity keeps pushing down:
+Stacking requires special handling  -  gravity keeps pushing down:
 
 ```rust
-/// 📦 Stacking boxes — keeping things stable
+/// 📦 Stacking boxes  -  keeping things stable
 ///
 /// Problem: Box A sits on Box B. Gravity pulls A down.
 /// Solution: Box A is ON TOP of Box B.
@@ -330,14 +330,14 @@ fn detect_resting_contacts(
     
     for (entity, mut pos, mut vel, mass, stack) in query.iter_mut() {
         if pos.0.y <= ground_y && vel.0.y < 0.0 {
-            // 🛑 On the ground — stop downward velocity
+            // 🛑 On the ground  -  stop downward velocity
             pos.0.y = ground_y;
             
             if vel.0.y < 0.0 {
                 vel.0.y = 0.0;
             }
             
-            // ✅ Object is resting — mark as such
+            // ✅ Object is resting  -  mark as such
             println!("📦 Entity {:?} is resting on ground", entity);
         }
     }
@@ -350,7 +350,7 @@ fn detect_resting_contacts(
 /// 4. Use multiple iterations (2-4) per physics step
 /// 5. Consider using a "sleep" system for stationary objects
 
-/// 😴 Physics sleep — skip simulation for resting objects
+/// 😴 Physics sleep  -  skip simulation for resting objects
 #[derive(Component)]
 struct Sleeping {
     timer: f32,
@@ -407,7 +407,7 @@ fn physics_sleep(
 // 5. Add "slop" tolerance to avoid jittery stacks
 ```
 
-> **Key Takeaway:** Collision response is about applying **impulses** — instantaneous velocity changes along the collision normal. The magic formula `j = -(1+e)·v_rel·n / (1/m₁ + 1/m₂)` handles everything from splats to superballs. Add friction and position correction, and you've got a complete collision solver! 🏆
+> **Key Takeaway:** Collision response is about applying **impulses**  -  instantaneous velocity changes along the collision normal. The magic formula `j = -(1+e)·v_rel·n / (1/m₁ + 1/m₂)` handles everything from splats to superballs. Add friction and position correction, and you've got a complete collision solver! 🏆
 
 ---
 

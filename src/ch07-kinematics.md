@@ -1,6 +1,6 @@
 # 🏃 Kinematics: The Geometry of Motion
 
-> **"Kinematics is the grammar of motion. It tells you WHERE something is, HOW FAST it's moving, and HOW that speed is changing — without asking WHY. The 'why' comes next chapter (Dynamics). For now, we just describe."** 🎯
+> **"Kinematics is the grammar of motion. It tells you WHERE something is, HOW FAST it's moving, and HOW that speed is changing  -  without asking WHY. The 'why' comes next chapter (Dynamics). For now, we just describe."** 🎯
 
 ---
 
@@ -14,9 +14,9 @@ Kinematics gives you the tools to answer them with a simple, elegant framework:
 ┌──────────────────────────────────────────────────────────┐
 │                THE KINEMATIC TRIAD                        │
 │                                                          │
-│    📍 POSITION    (x)    — "Where are you?"              │
-│    🏃 VELOCITY    (v)    — "How fast? Which way?"        │
-│    ⚡ ACCELERATION (a)   — "How is velocity changing?"    │
+│    📍 POSITION    (x)     -  "Where are you?"              │
+│    🏃 VELOCITY    (v)     -  "How fast? Which way?"        │
+│    ⚡ ACCELERATION (a)    -  "How is velocity changing?"    │
 │                                                          │
 │    These three are LINKED by calculus:                   │
 │                                                          │
@@ -116,7 +116,7 @@ Frame    vel.y          pos.y          What happens
                        (which increases each frame!)
 ```
 
-Notice: velocity **accumulates** (it keeps getting more negative), while position **accelerates** downward (it drops further each frame). That's the hallmark of constant acceleration — the velocity graph is a straight line, and the position graph is a parabola.
+Notice: velocity **accumulates** (it keeps getting more negative), while position **accelerates** downward (it drops further each frame). That's the hallmark of constant acceleration  -  the velocity graph is a straight line, and the position graph is a parabola.
 
 ---
 
@@ -175,7 +175,7 @@ fn suvat_examples() {
     s = ut + ½at²               v = u + at
     
     The position peaks when velocity hits zero.
-    Velocity is the SLOPE of position — when the
+    Velocity is the SLOPE of position  -  when the
     parabola flattens at the top, velocity is zero.
 ```
 
@@ -195,7 +195,7 @@ fn predict_position(
     acceleration: Vec2,  // Usually gravity
     t: f32,              // How far into the future
 ) -> Vec2 {
-    // s = ut + ½at² — the full kinematic equation, in 2D!
+    // s = ut + ½at²  -  the full kinematic equation, in 2D!
     // X and Y are independent:
     //   x(t) = x₀ + vx·t + ½·ax·t²
     //   y(t) = y₀ + vy·t + ½·ay·t²
@@ -253,7 +253,7 @@ The kinematic chain DOESN'T stop at acceleration:
 Most games stop at acceleration, but **jerk-limited camera smoothing** is a game-changer:
 
 ```rust
-/// 📷 Jerk-limited camera — silky smooth, no snapping
+/// 📷 Jerk-limited camera  -  silky smooth, no snapping
 #[derive(Component)]
 struct SmoothCamera {
     cam_vel: Vec3,      // Current velocity of camera
@@ -287,7 +287,7 @@ fn smooth_camera(
 }
 ```
 
-Without jerk limiting, the camera snaps instantly when the player changes direction. With jerk limiting, it glides — giving a **cinematic feel**.
+Without jerk limiting, the camera snaps instantly when the player changes direction. With jerk limiting, it glides  -  giving a **cinematic feel**.
 
 ---
 
@@ -357,7 +357,7 @@ KINEMATICS IS THE LANGUAGE OF MOTION:
     THE INSIGHT: Position, velocity, and acceleration
     are NOT separate things. They're the SAME thing
     at different levels of differentiation. Every
-    frame, you're doing calculus — one addition at a time.
+    frame, you're doing calculus  -  one addition at a time.
 ```
 
 > **Master kinematics and you've mastered 90% of what a game physics engine does. All the complexity is in figuring out acceleration (forces, collisions, constraints). The motion itself is just `vel += acc × dt; pos += vel × dt`. Period.** 🏃

@@ -58,7 +58,7 @@ bevy = "0.15"
 
 ```rust
 // 📁 src/physics.rs
-//! 🧠 Complete physics engine — all in one file for clarity!
+//! 🧠 Complete physics engine  -  all in one file for clarity!
 //!
 //! This combines everything we've learned into a single,
 //! working physics module.
@@ -361,7 +361,7 @@ fn resolve_collisions(
 
 ```rust
 // 📁 src/sandbox.rs
-//! 🎮 Physics sandbox — interactive demo
+//! 🎮 Physics sandbox  -  interactive demo
 
 use bevy::prelude::*;
 use crate::physics::*;
@@ -598,7 +598,7 @@ pub fn debug_ui(
 
 ```rust
 // 📁 src/main.rs
-//! 🎮 Physics Sandbox — Main Entry Point
+//! 🎮 Physics Sandbox  -  Main Entry Point
 //!
 //! Run with: cargo run
 //!

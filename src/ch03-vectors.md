@@ -1,6 +1,6 @@
 # 🧮 Vector Mathematics: The Language of Space
 
-> **"Vectors are to game physics what nouns are to language — the fundamental building blocks of everything you want to express."** 🗺️
+> **"Vectors are to game physics what nouns are to language  -  the fundamental building blocks of everything you want to express."** 🗺️
 
 ---
 
@@ -35,7 +35,7 @@ let position: Vec2 = Vec2::new(3.0, 4.0);
 // 📍 A 3D vector
 let velocity: Vec3 = Vec3::new(1.0, 0.5, 0.0);
 
-// 🏠 Vectors are Copy types — they're cheap to pass around
+// 🏠 Vectors are Copy types  -  they're cheap to pass around
 ```
 
 ---
@@ -50,10 +50,10 @@ In game physics, vectors play **dual roles**:
 | **🏃 Direction/Movement** | `Vec2::new(5, -3)` | A change or direction, no fixed location |
 
 ```rust
-/// 📍 Position is a POINT vector — it anchors us in space
+/// 📍 Position is a POINT vector  -  it anchors us in space
 let player_pos = Vec2::new(400.0, 300.0);
 
-/// 🏃 Velocity is a DIRECTION vector — it tells us where we're going
+/// 🏃 Velocity is a DIRECTION vector  -  it tells us where we're going
 let player_vel = Vec2::new(50.0, -20.0);
 
 /// After 1 second, our new position is:
@@ -93,7 +93,7 @@ let character_pos = Vec2::new(100.0, 200.0);
 let movement = Vec2::new(50.0, 0.0); // Move right 50 units
 
 let new_position = character_pos + movement;
-// new_position = (150, 200) — the character moved right!
+// new_position = (150, 200)  -  the character moved right!
 
 // 📝 Bevy's Vec2 already overloads the + operator
 ```
@@ -181,7 +181,7 @@ let length_sq = v.length_squared();  // = 25.0
 
 ### ⚡ Length Squared: The Performance Trick
 
-Computing `length()` requires a **square root** — one of the most expensive math operations. `length_squared()` skips it:
+Computing `length()` requires a **square root**  -  one of the most expensive math operations. `length_squared()` skips it:
 
 ```rust
 // ❌ Slow approach (square root for every pair)
@@ -259,7 +259,7 @@ fn chase_player(enemy_pos: Vec2, player_pos: Vec2, speed: f32) -> Vec2 {
 }
 
 /// 💡 If direction is (0, 0), normalize() returns (0, 0)
-/// Bevy handles this gracefully — no NaN!
+/// Bevy handles this gracefully  -  no NaN!
 ```
 
 ### ⚠️ The Zero Vector Problem
@@ -273,7 +273,7 @@ let safe = zero.normalize();  // → Vec2::ZERO
 // But if you want explicit handling:
 let vec = some_function();
 if vec == Vec2::ZERO {
-    // Don't normalize — just skip or use a default direction
+    // Don't normalize  -  just skip or use a default direction
 } else {
     let dir = vec.normalize();
 }
@@ -390,8 +390,8 @@ fn turn_toward(facing: Vec2, target_dir: Vec2) -> f32 {
 
 /// 📐 2. Get the perpendicular (90° rotated) vector
 let right = Vec2::new(1.0, 0.0);
-let up = right.perp();           // (0, 1) — rotate 90° CCW
-let down = right.perp().perp();  // (-1, 0) — rotate 180° total
+let up = right.perp();           // (0, 1)  -  rotate 90° CCW
+let down = right.perp().perp();  // (-1, 0)  -  rotate 180° total
 ```
 
 ---
@@ -509,7 +509,7 @@ struct Player {
     acceleration: f32, // How fast we reach max speed
 }
 
-/// 🎮 Player movement — handles WASD input using vector math
+/// 🎮 Player movement  -  handles WASD input using vector math
 fn player_movement(
     time: Res<Time>,
     keyboard: Res<ButtonInput<KeyCode>>,
@@ -528,7 +528,7 @@ fn player_movement(
         
         // STEP 2: 🧭 Normalize so diagonal isn't faster
         // Without normalization: pressing W+D gives velocity = (1, 1)
-        //   length = √(1+1) ≈ 1.414 — 41% faster than just W!
+        //   length = √(1+1) ≈ 1.414  -  41% faster than just W!
         if input_dir != Vec2::ZERO {
             input_dir = input_dir.normalize();
         }

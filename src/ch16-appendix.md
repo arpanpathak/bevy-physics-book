@@ -17,7 +17,7 @@ Vec2::ZERO                         // (0, 0)
 Vec2::ONE                          // (1, 1)
 Vec2::X                            // (1, 0)
 Vec2::Y                            // (0, 1)
-Vec2::splat(v)                     // (v, v) — all components same
+Vec2::splat(v)                     // (v, v)  -  all components same
 
 // ─── BASIC OPERATIONS ───
 a + b                              // Component-wise addition
@@ -98,7 +98,7 @@ q.to_euler(EulerRot::XYZ)          // To Euler angles (pitch, yaw, roll)
 ### 📐 Physics Constants
 
 ```rust
-/// 🌍 Standard gravity values (pixels/s² — game scale!)
+/// 🌍 Standard gravity values (pixels/s²  -  game scale!)
 pub const GRAVITY_EARTH_LIKE: Vec2 = Vec2::new(0.0, -500.0);
 pub const GRAVITY_MOON_LIKE: Vec2 = Vec2::new(0.0, -81.0);
 pub const GRAVITY_MARIO_LIKE: Vec2 = Vec2::new(0.0, -2000.0);  // Snappy!
@@ -112,10 +112,10 @@ pub const DEG_180: f32 = 3.141592653589793;   // π
 pub const DEG_360: f32 = 6.283185307179586;   // 2π
 
 /// ⏱️ Common physics timesteps
-pub const DT_30FPS: f32 = 1.0 / 30.0;   // 33.33ms — low quality
-pub const DT_60FPS: f32 = 1.0 / 60.0;   // 16.67ms — standard
-pub const DT_120FPS: f32 = 1.0 / 120.0; // 8.33ms — high quality
-pub const DT_240FPS: f32 = 1.0 / 240.0; // 4.17ms — overkill
+pub const DT_30FPS: f32 = 1.0 / 30.0;   // 33.33ms  -  low quality
+pub const DT_60FPS: f32 = 1.0 / 60.0;   // 16.67ms  -  standard
+pub const DT_120FPS: f32 = 1.0 / 120.0; // 8.33ms  -  high quality
+pub const DT_240FPS: f32 = 1.0 / 240.0; // 4.17ms  -  overkill
 ```
 
 ---
@@ -312,10 +312,10 @@ fn physics_command_handler(
 
 ### Online Resources 🌐
 
-- **[Bevy Book](https://bevyengine.org/learn/)** — Official Bevy documentation
-- **[Bevy Examples](https://github.com/bevyengine/bevy/tree/main/examples)** — Official examples
-- **[Game Physics Pearls](https://www.gamephysicspearls.com/)** — Gems of wisdom
-- **[The Nature of Code](https://natureofcode.com/)** — Physics simulations in code
+- **[Bevy Book](https://bevyengine.org/learn/)**  -  Official Bevy documentation
+- **[Bevy Examples](https://github.com/bevyengine/bevy/tree/main/examples)**  -  Official examples
+- **[Game Physics Pearls](https://www.gamephysicspearls.com/)**  -  Gems of wisdom
+- **[The Nature of Code](https://natureofcode.com/)**  -  Physics simulations in code
 
 ### Rust Crates to Explore 🦀
 
@@ -334,7 +334,7 @@ fn physics_command_handler(
 > **"You've journeyed from vectors to Verlet, from gravity to gimbal lock, from Euler to ECS. You now hold the keys to the physics kingdom. Go build something that bounces, floats, crashes, and soars!"** 🚀
 
 ```rust
-/// The final physics system — YOU!
+/// The final physics system  -  YOU!
 fn you_as_a_physics_engine() -> &'static str {
     "You're now equipped to build game physics in Rust with Bevy! 🎮"
 }

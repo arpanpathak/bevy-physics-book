@@ -2,7 +2,7 @@
 
 ## A Comprehensive Guide to Building Physics Engines with Bevy & Rust
 
-> **"Game physics is the art of lying convincingly — making the virtual world feel real, one elegant equation at a time."** 🎯
+> **"Game physics is the art of lying convincingly  -  making the virtual world feel real, one elegant equation at a time."** 🎯
 
 ---
 
@@ -39,12 +39,12 @@
 
 This book is for **Rust game developers** who want to understand the *mathematical soul* of physics simulation. You'll learn:
 
-- ✅ **The math** — vectors, matrices, quaternions, calculus for games
-- ✅ **The code** — clean, idiomatic Rust with Bevy's ECS
-- ✅ **The architecture** — how to structure physics engines that scale
-- ✅ **The intuition** — why things work (and when they break)
+- ✅ **The math**  -  vectors, matrices, quaternions, calculus for games
+- ✅ **The code**  -  clean, idiomatic Rust with Bevy's ECS
+- ✅ **The architecture**  -  how to structure physics engines that scale
+- ✅ **The intuition**  -  why things work (and when they break)
 
-> **Prerequisites:** Basic Rust knowledge. No prior physics or Bevy experience required — we build from the ground up! 🌱
+> **Prerequisites:** Basic Rust knowledge. No prior physics or Bevy experience required  -  we build from the ground up! 🌱
 
 ---
 
@@ -90,9 +90,9 @@ Each chapter builds on the previous. Code examples use **Bevy 0.15+** and are **
 
 **The Golden Rule of Game Physics:** ⭐
 
-> *"It doesn't need to be physically accurate — it needs to be **physically plausible** and **fun**."*
+> *"It doesn't need to be physically accurate  -  it needs to be **physically plausible** and **fun**."*
 
-Real physics engines (like NASA's) use double-precision matrix decompositions with femtosecond timesteps. **Game physics** uses floats, cheats, and Euler integration — and that's perfectly fine! 🎮
+Real physics engines (like NASA's) use double-precision matrix decompositions with femtosecond timesteps. **Game physics** uses floats, cheats, and Euler integration  -  and that's perfectly fine! 🎮
 
 ---
 
@@ -112,7 +112,7 @@ Real physics engines (like NASA's) use double-precision matrix decompositions wi
 
 ## 🚀 Quick Start Snippet
 
-For the impatient — here's a minimal Bevy app with physics running:
+For the impatient  -  here's a minimal Bevy app with physics running:
 
 ```rust
 use bevy::prelude::*;
@@ -127,7 +127,7 @@ struct Position(Vec2);
 #[derive(Component)]
 struct Velocity(Vec2);
 
-/// 🎬 Entry point — sets up the simulation
+/// 🎬 Entry point  -  sets up the simulation
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)

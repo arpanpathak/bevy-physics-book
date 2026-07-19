@@ -1,6 +1,6 @@
 # 📦 Spatial Partitioning: Optimization at Scale
 
-> **"With 10 objects, check everything against everything (100 checks). With 1000 objects, that's 500,000 checks — you need spatial partitioning!"** 🗺️
+> **"With 10 objects, check everything against everything (100 checks). With 1000 objects, that's 500,000 checks  -  you need spatial partitioning!"** 🗺️
 
 ---
 
@@ -9,7 +9,7 @@
 Naive collision detection checks **every pair**:
 
 ```rust
-// ❌ O(n²) — doesn't scale!
+// ❌ O(n²)  -  doesn't scale!
 for a in all_objects {
     for b in all_objects {
         if a != b && a.overlaps(&b) {
@@ -31,7 +31,7 @@ for a in all_objects {
 ## 1️⃣ Spatial Grid (Simple & Effective)
 
 ```rust
-/// 🗺️ Spatial Hash Grid — divides space into cells
+/// 🗺️ Spatial Hash Grid  -  divides space into cells
 ///
 /// Only check collisions between objects in the SAME cell (or adjacent cells)
 /// Objects far apart are never compared.
@@ -176,7 +176,7 @@ Spatial Grid Visualization:
 ## 2️⃣ Quadtree (Adaptive Partitioning)
 
 ```rust
-/// 🌳 Quadtree — adaptive spatial partitioning
+/// 🌳 Quadtree  -  adaptive spatial partitioning
 ///
 /// Unlike the grid (which has fixed cell size), a quadtree
 /// subdivides only where there are many objects.
@@ -218,13 +218,13 @@ impl Quadtree {
             return;
         }
         
-        // Not full yet — just add here
+        // Not full yet  -  just add here
         if self.objects.len() < self.capacity {
             self.objects.push((entity, pos));
             return;
         }
         
-        // Full and no children — subdivide!
+        // Full and no children  -  subdivide!
         self.subdivide();
         
         // Now insert into children
@@ -284,7 +284,7 @@ impl Quadtree {
 ## 3️⃣ Bounding Volume Hierarchy (BVH)
 
 ```rust
-/// 🌳 Bounding Volume Hierarchy — tree of nested bounding boxes
+/// 🌳 Bounding Volume Hierarchy  -  tree of nested bounding boxes
 ///
 /// Used by:
 /// - Bevy's built-in rendering (frustum culling)
@@ -384,10 +384,10 @@ impl BvhNode {
 /// 🎯 Recommendation by scene size:
 fn recommend_partitioning(object_count: usize) -> &'static str {
     match object_count {
-        0..=50 => "❌ None needed — brute force is fine!",
-        51..=500 => "✅ Spatial Grid — simple and effective",
-        501..=5000 => "✅ Quadtree — handles uneven distribution",
-        5001.. => "✅ BVH — professional-grade, used in Rapier",
+        0..=50 => "❌ None needed  -  brute force is fine!",
+        51..=500 => "✅ Spatial Grid  -  simple and effective",
+        501..=5000 => "✅ Quadtree  -  handles uneven distribution",
+        5001.. => "✅ BVH  -  professional-grade, used in Rapier",
     }
 }
 ```
@@ -418,7 +418,7 @@ fn recommend_partitioning(object_count: usize) -> &'static str {
 // 🎯 The goal: reduce O(n²) to O(n log n) or better!
 ```
 
-> **Key Takeaway:** For 50+ physics objects, spatial partitioning isn't optional — it's essential. Start with a **spatial grid** (simplest), upgrade to a **quadtree** or **BVH** when needed. The 80/20 rule applies: a spatial grid gets you 80% of the benefit with 20% of the complexity. 🗺️
+> **Key Takeaway:** For 50+ physics objects, spatial partitioning isn't optional  -  it's essential. Start with a **spatial grid** (simplest), upgrade to a **quadtree** or **BVH** when needed. The 80/20 rule applies: a spatial grid gets you 80% of the benefit with 20% of the complexity. 🗺️
 
 ---
 

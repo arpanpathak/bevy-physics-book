@@ -1,12 +1,12 @@
 # 🔄 Integration Methods: Simulating Motion Over Time
 
-> **"Integration is the art of turning 'what happens next?' into 'what happens now?' — one tiny step at a time."** ⏱️
+> **"Integration is the art of turning 'what happens next?' into 'what happens now?'  -  one tiny step at a time."** ⏱️
 
 ---
 
 ## 🤔 The Problem
 
-Physics is **continuous** — it happens at every infinitesimal moment. But computers are **discrete** — they process frames. Integration bridges this gap:
+Physics is **continuous**  -  it happens at every infinitesimal moment. But computers are **discrete**  -  they process frames. Integration bridges this gap:
 
 ```
 Reality (continuous):  ●━━━━━━━━━━━━━━━━━━━━━━━━━━━━●
@@ -122,7 +122,7 @@ pub fn explicit_euler(
 /// preserves the **symplectic form** of Hamiltonian mechanics. In
 /// plain English: it conserves energy much better. Objects in orbit
 /// stay in orbit. Springs don't explode. This is NOT just theoretical
-/// — the difference in stability is dramatic.
+///  -  the difference in stability is dramatic.
 ///
 /// # Arguments
 /// * `current_position` - Position at start of timestep. Modified in-place.
@@ -136,11 +136,11 @@ pub fn symplectic_euler(
     delta_time: f32,
 ) {
     // Step 1: Integrate acceleration into velocity.
-    // Δv = a × Δt  — the area under the (constant) acceleration curve.
+    // Δv = a × Δt   -  the area under the (constant) acceleration curve.
     *current_velocity += *acceleration * delta_time;
 
     // Step 2: Integrate the NEW velocity into position.
-    // Δx = v_new × Δt  — uses the velocity we JUST computed.
+    // Δx = v_new × Δt   -  uses the velocity we JUST computed.
     //
     // ✅ THIS IS THE KEY: By using the new velocity, we're effectively
     // estimating the AVERAGE velocity over this timestep as v_new,
@@ -333,7 +333,7 @@ impl VerletParticle {
 ///
 /// RK4 operates on "state" objects rather than individual components.
 /// The state bundles position and velocity together because they
-/// are co-evolving quantities — you can't update one without the other.
+/// are co-evolving quantities  -  you can't update one without the other.
 #[derive(Clone, Debug)]
 pub struct PhysicsState {
     /// The position of the body in world space.
@@ -360,7 +360,7 @@ pub struct StateDerivative {
 /// RK4 (Runge-Kutta 4th Order) takes FOUR samples of the acceleration
 /// function within a single timestep and combines them using a
 /// weighted average (Simpson's rule). This gives dramatically better
-/// accuracy than Euler methods — at the cost of 4× more acceleration
+/// accuracy than Euler methods  -  at the cost of 4× more acceleration
 /// evaluations.
 ///
 /// # How RK4 Works (Conceptual)
@@ -374,7 +374,7 @@ pub struct StateDerivative {
 /// 4. **k4**: Samples acceleration at the END, using k3 to estimate the final state.
 /// 5. Combines all four with weights: (k1 + 2×k2 + 2×k3 + k4) / 6
 ///
-/// This is analogous to Simpson's Rule for numerical integration —
+/// This is analogous to Simpson's Rule for numerical integration  - 
 /// midpoints get higher weight because they're better estimates.
 ///
 /// # Arguments
@@ -528,7 +528,7 @@ pub struct FixedTimestepAccumulator {
 
     /// Maximum number of physics steps to run in a single frame.
     /// If the game freezes for 5 seconds, we DON'T want to run
-    /// 300 physics steps to catch up — that would freeze again!
+    /// 300 physics steps to catch up  -  that would freeze again!
     /// Instead, we cap at this value and let the simulation
     /// "fall behind" (which is usually imperceptible).
     pub max_steps_per_frame: u32,
@@ -605,7 +605,7 @@ pub fn fixed_timestep_physics_system(
 ///
 /// This is the core physics pipeline, executed at the fixed timestep:
 /// 1. Zero out acceleration (forces don't persist between frames)
-/// 2. Apply forces (gravity, drag, etc.) — accumulated in Acceleration
+/// 2. Apply forces (gravity, drag, etc.)  -  accumulated in Acceleration
 /// 3. Integrate: acceleration → velocity → position
 ///
 /// # Arguments
@@ -636,7 +636,7 @@ fn run_single_physics_step(
         }
 
         // Step 3: Clear acceleration for the next timestep.
-        // Forces don't accumulate — they're re-evaluated each frame.
+        // Forces don't accumulate  -  they're re-evaluated each frame.
         acceleration.0 = Vec2::ZERO;
     }
 }
@@ -689,7 +689,7 @@ fn recommend_integrator(requirements: SimulationRequirements) -> &'static str {
 ## 🎯 Chapter Summary
 
 ```rust
-/// 📝 Integration cheat sheet — the three methods at a glance.
+/// 📝 Integration cheat sheet  -  the three methods at a glance.
 
 /// 1️⃣ SYMPLECTIC EULER (USE THIS 99% OF THE TIME)
 /// Stable, fast, energy-conserving. The standard for game physics.
@@ -722,10 +722,10 @@ fn verlet_step(
 /// Start with Symplectic Euler. It's simple, fast, and good enough.
 /// Switch to Verlet only if you need cloth/constraints.
 /// Use RK4 only if you're doing scientific simulation.
-/// Never use Explicit Euler — it's strictly worse than Symplectic.
+/// Never use Explicit Euler  -  it's strictly worse than Symplectic.
 ```
 
-> **The integrator is the HEART of your physics engine. Everything else — forces, collisions, constraints — feeds INTO the integrator. Choose Symplectic Euler by default. It's stable, energy-conserving, and simple. Only reach for Verlet or RK4 when you have a specific need they're uniquely suited for.** 🏆
+> **The integrator is the HEART of your physics engine. Everything else  -  forces, collisions, constraints  -  feeds INTO the integrator. Choose Symplectic Euler by default. It's stable, energy-conserving, and simple. Only reach for Verlet or RK4 when you have a specific need they're uniquely suited for.** 🏆
 
 ---
 

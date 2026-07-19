@@ -1,6 +1,6 @@
 # 🌀 Quaternions: Rotations Without Gimbal Lock
 
-> **"Quaternions are the dark magic of 3D rotation — they look like 4D gibberish but rotate things with divine elegance. No gimbal lock, no singularities, just perfect spherical interpolation."** 🧙‍♂️
+> **"Quaternions are the dark magic of 3D rotation  -  they look like 4D gibberish but rotate things with divine elegance. No gimbal lock, no singularities, just perfect spherical interpolation."** 🧙‍♂️
 
 ---
 
@@ -24,7 +24,7 @@ Imagine three nested rings, each controlling one axis of rotation:
          ╰───╯                   ╰───╯                   ╰───╯
 
 When you pitch the plane UP by 90°, the yaw and roll rings ALIGN.
-Now yaw and roll do the SAME thing — you've lost a degree of freedom!
+Now yaw and roll do the SAME thing  -  you've lost a degree of freedom!
 
   Before (three independent axes):   After (two axes aligned):
     YAW ──►  horizontal rotation       YAW ──►  same as roll! ❌
@@ -32,14 +32,14 @@ Now yaw and roll do the SAME thing — you've lost a degree of freedom!
     ROLL ──►  bank/tilt                 ROLL ──►  same as yaw! ❌
     
   Result: jerky, unpredictable rotation. Try pitching 90° in any
-  3D program and then yawing — the rotation "breaks."
+  3D program and then yawing  -  the rotation "breaks."
 ```
 
 ### The Mathematical Root Cause
 
 Euler angles represent rotation as THREE SEPARATE 2D rotations applied in sequence. Each rotation is relative to the PREVIOUS coordinate system, not a fixed global one. When one rotation hits 90°, the next two axes become parallel, and the representation collapses.
 
-**Quaternions solve this by representing rotation as a SINGLE 4D object — no axes, no sequencing, no singularities.**
+**Quaternions solve this by representing rotation as a SINGLE 4D object  -  no axes, no sequencing, no singularities.**
 
 ---
 
@@ -181,12 +181,12 @@ pub fn apply_quaternion_to_vector() {
     let original_vector = Vec3::new(1.0, 0.0, 0.0); // Points along X axis
     let rotated_vector = rotation * original_vector;
     
-    // rotated_vector ≈ (0, 1, 0) — the vector now points along Y!
+    // rotated_vector ≈ (0, 1, 0)  -  the vector now points along Y!
     // The point (1,0,0) rotated 90° around Z → (0,1,0)
     
     /// 💡 QUATERNION ON THE LEFT, VECTOR ON THE RIGHT:
     ///   rotated = quaternion × vector
-    /// This is NOT commutative — reversed multiplication gives nonsense.
+    /// This is NOT commutative  -  reversed multiplication gives nonsense.
 }
 
 /// ⭐ GETTING AXIS DIRECTIONS AFTER ROTATION:
@@ -266,11 +266,11 @@ pub fn local_vs_world_rotation() {
 /// SLERP interpolates between two rotations along the SHORTEST PATH.
 ///
 /// WITHOUT SLERP (interpolating Euler angles):
-///   The rotation "wobbles" — angular velocity changes mid-path,
+///   The rotation "wobbles"  -  angular velocity changes mid-path,
 ///   causing a jerky, unnatural feel.
 ///
 /// WITH SLERP (interpolating quaternions):
-///   CONSTANT angular velocity — the object rotates at exactly
+///   CONSTANT angular velocity  -  the object rotates at exactly
 ///   the same speed throughout. Smooth as glass. 🪟
 pub fn slerp_between_orientations(
     start_rotation: Quat,
@@ -346,7 +346,7 @@ pub fn spaceship_rotation_system(
         // ─── Step 1: Read input → angular velocity for this frame ───
         let mut angular_velocity = Vec3::ZERO;
         
-        // Pitch (rotate around LOCAL X axis — nod "yes")
+        // Pitch (rotate around LOCAL X axis  -  nod "yes")
         if keyboard_input.pressed(KeyCode::KeyW) {
             angular_velocity.x -= ship_data.max_angular_velocity.x;
         }
@@ -354,7 +354,7 @@ pub fn spaceship_rotation_system(
             angular_velocity.x += ship_data.max_angular_velocity.x;
         }
         
-        // Yaw (rotate around LOCAL Y axis — shake "no")
+        // Yaw (rotate around LOCAL Y axis  -  shake "no")
         if keyboard_input.pressed(KeyCode::KeyA) {
             angular_velocity.y -= ship_data.max_angular_velocity.y;
         }
@@ -362,7 +362,7 @@ pub fn spaceship_rotation_system(
             angular_velocity.y += ship_data.max_angular_velocity.y;
         }
         
-        // Roll (rotate around LOCAL Z axis — tilt head)
+        // Roll (rotate around LOCAL Z axis  -  tilt head)
         if keyboard_input.pressed(KeyCode::KeyQ) {
             angular_velocity.z -= ship_data.max_angular_velocity.z;
         }
@@ -437,7 +437,7 @@ Quaternion = (cos(θ/2), axis × sin(θ/2))
      amount       axis of rotation
 ```
 
-> **Quaternions are THE professional choice for 3D rotation. No gimbal lock, perfect SLERP, compact storage. The 4D math looks intimidating but in practice you just call `.slerp()` and `from_axis_angle()` — Bevy handles the dark magic. Your players will never experience gimbal lock again.** 🌀
+> **Quaternions are THE professional choice for 3D rotation. No gimbal lock, perfect SLERP, compact storage. The 4D math looks intimidating but in practice you just call `.slerp()` and `from_axis_angle()`  -  Bevy handles the dark magic. Your players will never experience gimbal lock again.** 🌀
 
 ---
 
